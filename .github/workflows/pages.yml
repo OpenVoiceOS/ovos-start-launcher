@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Verify generated launcher sources
+        run: |
+          python3 scripts/build-launcher.py
+          git diff --exit-code -- v1.sh v2.sh
       - name: Test the code format
         run: node --test test/*.test.mjs
       - name: Test launcher with isolated fake installers

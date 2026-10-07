@@ -1,0 +1,288 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+# OVOS Start protocol v2. The v1 URL now rejects timeless codes as well.
+# The timestamp is a local expiry check, not a signature or an online revocation.
+set -eu
+set +x
+
+# @MESSAGES@
+ovos_locale=en-us
+case "${LC_ALL:-${LC_MESSAGES:-${LANG:-en}}}" in
+  fr*) ovos_locale=fr-fr;; de*) ovos_locale=de-de;; es*) ovos_locale=es-es;; it*) ovos_locale=it-it;;
+  nl*) ovos_locale=nl-nl;; pt*) ovos_locale=pt-pt;; ca*) ovos_locale=ca-es;; eu*) ovos_locale=eu-es;;
+  gl*) ovos_locale=gl-es;; hi*) ovos_locale=hi-in;; kab*) ovos_locale=kab-dz;;
+esac
+fail_message() { say "$1" >&2; exit 1; }
+fail() {
+  # Preserve precise English decoder diagnostics. Localize before any side effect.
+  if [ "$ovos_locale" = en-us ]; then printf '%s\n' "$*" >&2; exit 1; fi
+  case "$*" in
+    *64-bit*) fail_message bits;; *expired*) fail_message expired;;
+    *future-dated*) fail_message future;; *clock*|*timestamp*) fail_message clock;;
+    *) fail_message invalid;;
+  esac
+}
+
+# Also protects timestamp arithmetic on shells with a 32-bit userland.
+[ "$(getconf LONG_BIT 2>/dev/null || true)" = 64 ] || fail 'OVOS needs a 64-bit operating system. No changes were made.'
+ovos_mode=install
+case "${1:-}" in
+  --decode|--scenario) ovos_mode=${1#--}; shift;;
+esac
+[ "$#" = 1 ] || fail 'Paste the complete command from OVOS Start, including your setup code.'
+case "$1" in
+  ????????|????-????) fail 'This legacy setup code has no expiry. Generate a new one-hour code in OVOS Start.';;
+  ????????????????|????-????-????-????) :;;
+  *) fail 'That setup code is not complete. Generate a new code in OVOS Start.';;
+esac
+ovos_code=$(printf '%s' "$1" | tr '[:lower:]' '[:upper:]' | tr -d '-')
+[ "${#ovos_code}" = 16 ] || fail 'Invalid setup code.'
+ovos_alphabet=0123456789ABCDEFGHJKMNPQRSTVWXYZ
+# Decode bytes as they arrive: the 80-bit wire word never enters shell arithmetic.
+ovos_buffer=0
+ovos_bits=0
+ovos_byte_index=0
+ovos_body=0
+ovos_issued=0
+ovos_crc=0
+ovos_supplied_crc=0
+ovos_rest=$ovos_code
+while [ -n "$ovos_rest" ]; do
+  ovos_char=${ovos_rest%"${ovos_rest#?}"}
+  ovos_rest=${ovos_rest#?}
+  case "$ovos_alphabet" in
+    *"$ovos_char"*) ovos_prefix=${ovos_alphabet%%"$ovos_char"*}; ovos_digit=${#ovos_prefix};;
+    *) fail 'That setup code contains an unexpected character. Copy it again.';;
+  esac
+  ovos_buffer=$((ovos_buffer * 32 + ovos_digit))
+  ovos_bits=$((ovos_bits + 5))
+  if [ "$ovos_bits" -ge 8 ]; then
+    ovos_bits=$((ovos_bits - 8))
+    ovos_byte=$(((ovos_buffer >> ovos_bits) & 255))
+    ovos_buffer=$((ovos_buffer & ((1 << ovos_bits) - 1)))
+    if [ "$ovos_byte_index" -lt 4 ]; then
+      ovos_body=$((ovos_body * 256 + ovos_byte))
+    elif [ "$ovos_byte_index" -lt 9 ]; then
+      ovos_issued=$((ovos_issued * 256 + ovos_byte))
+    else
+      ovos_supplied_crc=$ovos_byte
+    fi
+    if [ "$ovos_byte_index" -lt 9 ]; then
+      ovos_crc=$((ovos_crc ^ ovos_byte))
+      ovos_bit=0
+      while [ "$ovos_bit" -lt 8 ]; do
+        if [ "$ovos_crc" -ge 128 ]; then ovos_crc=$((((ovos_crc * 2) ^ 7) & 255)); else ovos_crc=$((ovos_crc * 2)); fi
+        ovos_bit=$((ovos_bit + 1))
+      done
+    fi
+    ovos_byte_index=$((ovos_byte_index + 1))
+  fi
+done
+[ "$ovos_crc" = "$ovos_supplied_crc" ] || fail 'That setup code looks mistyped. Copy it again from OVOS Start.'
+# A checksum-verified locale can explain expiry in the chosen language.
+case "$(((ovos_body >> 18) & 15))" in
+  0) ovos_locale=en-us;; 1) ovos_locale=fr-fr;; 2) ovos_locale=de-de;; 3) ovos_locale=es-es;;
+  4) ovos_locale=it-it;; 5) ovos_locale=nl-nl;; 6) ovos_locale=pt-pt;; 7) ovos_locale=ca-es;;
+  8) ovos_locale=eu-es;; 9) ovos_locale=gl-es;; 10) ovos_locale=hi-in;; 11) ovos_locale=kab-dz;;
+esac
+[ "$((ovos_body >> 28))" = 2 ] || fail 'This setup code needs a different launcher version. Generate a new code in OVOS Start.'
+[ "$ovos_issued" -gt 0 ] || fail 'Invalid setup timestamp. Check the clock and generate a new code.'
+ovos_now=$(date +%s 2>/dev/null) || fail 'The system clock is unavailable. Correct it before using a setup code.'
+case "$ovos_now" in ''|*[!0-9]*|0*) fail 'The system clock is invalid. Correct it before using a setup code.';; esac
+[ "${#ovos_now}" -le 13 ] && [ "$ovos_now" -le 1099511627775 ] || fail 'The system clock is invalid. Correct it before using a setup code.'
+[ "$ovos_issued" -le "$ovos_now" ] || fail 'This setup code is future-dated. Check the clock and generate a new code.'
+[ "$ovos_now" -lt "$((ovos_issued + 3600))" ] || fail 'This setup code expired after one hour. Generate a new code in OVOS Start.'
+ovos_payload=$((ovos_body & 268435455))
+ovos_remaining=28
+
+# Read a fixed-width enum. Values come only from this trusted script, never eval.
+take() {
+  ovos_remaining=$((ovos_remaining - $1))
+  ovos_index=$(((ovos_payload >> ovos_remaining) & ((1 << $1) - 1)))
+  shift
+  [ "$ovos_index" -lt "$#" ] || fail 'This setup code contains an unsupported choice.'
+  while [ "$ovos_index" -gt 0 ]; do shift; ovos_index=$((ovos_index - 1)); done
+  ovos_value=$1
+}
+take 4 pi computer mark1 mark2 devkit jetson server mac windows other; ovos_device=$ovos_value
+take 2 ready tinker hub; ovos_experience=$ovos_value
+take 4 en-us fr-fr de-de es-es it-it nl-nl pt-pt ca-es eu-es gl-es hi-in kab-dz; ovos_locale=$ovos_value
+take 1 virtualenv containers; ovos_method=$ovos_value
+take 1 testing alpha; ovos_channel=$ovos_value
+take 2 guided tinker expert; ovos_expertise=$ovos_value
+take 2 auto public local; ovos_speech=$ovos_value
+take 2 unknown under8 8plus; ovos_memory=$ovos_value
+take 2 unknown arm64 avx2 intel-mac; ovos_cpu=$ovos_value
+take 2 unknown older pi5; ovos_pi=$ovos_value
+take 2 off local online; ovos_llm=$ovos_value
+take 1 false true; ovos_extra=$ovos_value
+take 1 false true; ovos_telemetry=$ovos_value
+take 1 false true; ovos_skills=$ovos_value
+take 1 false true; ovos_ha=$ovos_value
+
+invalid() { fail 'These setup choices do not fit together. Open OVOS Start and make a new setup.'; }
+case "$ovos_device:$ovos_experience" in server:ready|server:tinker|mark1:hub|mark2:hub|devkit:hub) invalid;; esac
+case "$ovos_device" in
+  mark2|devkit|mac) [ "$ovos_method:$ovos_channel" = virtualenv:alpha ] || invalid;;
+  mark1|windows) [ "$ovos_method" = virtualenv ] || invalid;;
+esac
+[ "$ovos_extra:$ovos_skills" != true:false ] || invalid
+if [ "$ovos_experience" = hub ]; then
+  [ "$ovos_speech:$ovos_ha:$ovos_llm" = auto:false:off ] || invalid
+  [ "$ovos_method:$ovos_extra" != containers:true ] || invalid
+fi
+if [ "$ovos_speech" = local ]; then
+  [ "$ovos_method:$ovos_channel:$ovos_memory" = virtualenv:alpha:8plus ] || invalid
+  case "$ovos_locale" in hi-in|kab-dz) invalid;; esac
+  case "$ovos_device" in
+    mark1|mark2|devkit) invalid;;
+    pi) [ "$ovos_pi:$ovos_cpu" = pi5:arm64 ] || invalid;;
+    jetson|mac) [ "$ovos_cpu" = arm64 ] || invalid;;
+  esac
+  case "$ovos_cpu" in arm64|avx2) :;; *) invalid;; esac
+fi
+
+scenario() {
+  printf '%s\n' '# Created with OVOS Start · contract checked 2026-10-06' 'uninstall: false' "method: $ovos_method" "channel: $ovos_channel"
+  if [ "$ovos_experience" = hub ]; then printf '%s\n' 'profile: server'; else printf '%s\n' 'profile: ovos'; fi
+  [ "$ovos_speech" = auto ] || printf '%s\n' "speech_engine: $ovos_speech"
+  ovos_gui=false
+  case "$ovos_device" in mark2|devkit) ovos_gui=true; printf '%s\n' "hardware: $ovos_device";; esac
+  ovos_has_llm=false; [ "$ovos_llm" = off ] || ovos_has_llm=true
+  printf '%s\n' 'features:' "  skills: $ovos_skills" "  extra_skills: $ovos_extra" "  gui: $ovos_gui" "  homeassistant: $ovos_ha" "  llm: $ovos_has_llm" 'raspberry_pi_tuning: false' "share_telemetry: $ovos_telemetry" 'share_usage_telemetry: false'
+}
+if [ "$ovos_mode" = decode ]; then
+  printf '{"device":"%s","experience":"%s","locale":"%s","method":"%s","channel":"%s","expertise":"%s","speech":"%s","memory":"%s","cpu":"%s","piModel":"%s","llmMode":"%s","extraSkills":%s,"telemetry":%s,"skills":%s,"homeassistant":%s}\n' "$ovos_device" "$ovos_experience" "$ovos_locale" "$ovos_method" "$ovos_channel" "$ovos_expertise" "$ovos_speech" "$ovos_memory" "$ovos_cpu" "$ovos_pi" "$ovos_llm" "$ovos_extra" "$ovos_telemetry" "$ovos_skills" "$ovos_ha"
+  exit 0
+fi
+if [ "$ovos_mode" = scenario ]; then scenario; exit 0; fi
+
+# The reviewed macOS contract supports Intel and Apple Silicon. Current main
+# changes that promise; keep Mac defaults on the same pinned source as preview.
+ovos_installer=main
+if [ "$ovos_speech" != auto ] || [ "$ovos_device" = mac ]; then ovos_installer=pinned; fi
+say checking
+[ "$(id -u)" -ne 0 ] || fail_message regular
+if [ "$ovos_device" = mac ]; then
+  [ "$(uname -s)" = Darwin ] || fail_message mac
+else
+  [ "$(uname -s)" = Linux ] || fail_message linux
+fi
+for ovos_program in curl git sudo; do command -v "$ovos_program" >/dev/null 2>&1 || { say dependency >&2; printf '%s\n' "$ovos_program" >&2; exit 1; }; done
+[ ! -e "$HOME/ovos-installer" ] && [ ! -L "$HOME/ovos-installer" ] || fail_message existing
+say download
+if [ "$ovos_installer" = pinned ]; then say preview; fi
+umask 077
+ovos_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ovos-start.XXXXXX")
+trap 'rm -rf "$ovos_tmp"' 0
+trap 'exit 130' INT
+trap 'exit 143' TERM
+ovos_source="$ovos_tmp/installer.sh"
+if [ "$ovos_installer" = pinned ]; then
+  ovos_source="$ovos_tmp/source"
+  mkdir "$ovos_source"
+  git -C "$ovos_source" init --quiet || fail_message downloadFailed
+  git -C "$ovos_source" fetch --quiet --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git 6ffd465028bac299e5235d619819bfdc734af073 || fail_message downloadFailed
+  git -C "$ovos_source" checkout --quiet --detach FETCH_HEAD || fail_message downloadFailed
+  [ "$(git -C "$ovos_source" rev-parse HEAD)" = 6ffd465028bac299e5235d619819bfdc734af073 ] || fail_message revision
+else
+  curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o "$ovos_source" || fail_message downloadFailed
+fi
+ovos_cfg="$HOME/.config/ovos-installer"
+mkdir -p "$ovos_cfg"
+if [ -e "$ovos_cfg/scenario.yaml" ] || [ -L "$ovos_cfg/scenario.yaml" ]; then
+  ovos_backup=$(mktemp "$ovos_cfg/scenario.yaml.backup.XXXXXX")
+  cp -p "$ovos_cfg/scenario.yaml" "$ovos_backup"
+  say backup; printf '%s\n' "$ovos_backup"
+fi
+scenario > "$ovos_tmp/scenario.yaml"
+write_messages > "$ovos_tmp/runtime.sh"
+cat >> "$ovos_tmp/runtime.sh" <<'OVOS_RUNTIME'
+# @RUNTIME@
+OVOS_RUNTIME
+# A private, durable checker survives reboots and never invokes installation.
+{
+  printf '%s\n' '#!/bin/sh' 'set -eu' 'set +x'
+  printf "ovos_locale='%s'\novos_device='%s'\novos_experience='%s'\novos_method='%s'\novos_skills='%s'\n" "$ovos_locale" "$ovos_device" "$ovos_experience" "$ovos_method" "$ovos_skills"
+  cat "$ovos_tmp/runtime.sh"
+  printf '%s\n' 'check_setup'
+} > "$ovos_tmp/check-setup.sh"
+chmod 700 "$ovos_tmp/check-setup.sh"
+mv "$ovos_tmp/check-setup.sh" "$ovos_cfg/check-setup.sh"
+say resume
+# shellcheck disable=SC2016
+printf '  sh "$HOME/.config/ovos-installer/check-setup.sh"\n'
+cat > "$ovos_tmp/launch.sh" <<'OVOS_LAUNCH'
+#!/bin/sh
+set -eu
+set +x
+umask 077
+ovos_source=$1
+ovos_home=$2
+ovos_scenario=$3
+export LOCALE="$4"
+ovos_installer=$5
+ovos_ha=$6
+ovos_llm=$7
+ovos_tty=''
+ovos_locale=$LOCALE
+. "$8"
+cleanup_launcher() {
+  restore_tty
+  if [ "$ovos_installer" = pinned ]; then
+    case "$ovos_source" in */ovos-start.??????/source) cd /; rm -rf "$ovos_source";; esac
+  fi
+}
+trap cleanup_launcher 0
+trap 'exit 130' INT
+trap 'exit 143' TERM
+if [ "$ovos_installer" = pinned ]; then
+  cd "$ovos_source"
+  . ./utils/bash_runtime.sh
+  ovos_bash=$(resolve_bash_runtime 4 || true)
+  [ -n "$ovos_bash" ] || { say bash >&2; exit 1; }
+fi
+if [ "$ovos_ha" = true ] || [ "$ovos_llm" != off ]; then
+  if ! ( : < /dev/tty ) 2>/dev/null; then say closed >&2; exit 1; fi
+  say cancelHint > /dev/tty
+fi
+if [ "$ovos_ha" = true ]; then
+  read_field haUrl url; HOMEASSISTANT_URL=$ovos_answer
+  read_field haToken secret; HOMEASSISTANT_API_KEY=$ovos_answer
+  export HOMEASSISTANT_URL HOMEASSISTANT_API_KEY
+fi
+if [ "$ovos_llm" != off ]; then
+  if [ "$ovos_llm" = local ]; then say llmLocal > /dev/tty; else say llmOnline > /dev/tty; fi
+  read_field llmUrl url; LLM_API_URL=$ovos_answer
+  read_field llmModel text; LLM_MODEL=$ovos_answer
+  read_field llmKey secret; LLM_API_KEY=$ovos_answer
+  case "$LOCALE" in
+    en-us) ovos_language='English (US)';; fr-fr) ovos_language='Français';; de-de) ovos_language='Deutsch';;
+    es-es) ovos_language='Español';; it-it) ovos_language='Italiano';; nl-nl) ovos_language='Nederlands';;
+    pt-pt) ovos_language='Português';; ca-es) ovos_language='Català';; eu-es) ovos_language='Euskara';;
+    gl-es) ovos_language='Galego';; hi-in) ovos_language='हिन्दी';; kab-dz) ovos_language='Taqbaylit';;
+  esac
+  LLM_PERSONA="Respond concisely in $ovos_language for a voice assistant. Use plain spoken language without Markdown or emojis."
+  LLM_MAX_TOKENS=300; LLM_TEMPERATURE=0.2; LLM_TOP_P=0.1
+  export LLM_API_URL LLM_API_KEY LLM_MODEL LLM_PERSONA LLM_MAX_TOKENS LLM_TEMPERATURE LLM_TOP_P
+fi
+say installing
+mv "$ovos_scenario" "$ovos_home/.config/ovos-installer/scenario.yaml"
+if [ "$ovos_installer" = pinned ]; then
+  export RUN_AS="$SUDO_USER"
+  export RUN_AS_HOME="$ovos_home"
+  "$ovos_bash" setup.sh
+else
+  sh "$ovos_source"
+fi
+OVOS_LAUNCH
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh"; then
+  say installReturned
+  # Incomplete verification is not an installer failure. The checker itself
+  # returns 3 to distinguish it from a user-confirmed first voice response.
+  sh "$ovos_cfg/check-setup.sh" || :
+else
+  ovos_result=$?
+  if [ "$ovos_result" -ne 130 ]; then say installFailed >&2; say help >&2; fi
+  exit "$ovos_result"
+fi

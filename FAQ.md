@@ -1,6 +1,26 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Explain one-hour expiry, legacy choice recovery, clock failures and security limits.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Document localized recovery, durable verification and pinned Mac support in 2.1.0.
 
 # Frequently asked questions
+
+## Can I correct a URL or missing token without starting again?
+
+Yes. The launcher retries only the current field and retains earlier valid fields in memory. HTTP(S) addresses need a host and valid optional port, without whitespace, passwords embedded in the address or URL fragments. `:cancel` in any field or Ctrl+C stops before the new scenario is activated; secrets remain masked even while retrying. See [`read_field`](lib/runtime.sh#L28) and Python [`test_all_locales_retry_missing_credentials_without_losing_valid_url`](test/test_launcher.py#L682).
+
+## How do I check OVOS after restarting?
+
+Run `sh "$HOME/.config/ovos-installer/check-setup.sh"` as the same regular user. The launcher saves this private helper before starting installation. It only checks services and offers sound/voice tests; it does not download or reinstall OVOS and does not need an unexpired setup code. It can be removed after verification. See [`check_setup`](lib/runtime.sh#L131) and [`test_durable_checker_is_private_read_only_and_honest_about_unverified_voice`](test/test_launcher.py#L763).
+
+## What does verification actually confirm?
+
+The helper reports expected service state separately from speaker and microphone tests. If you choose a sound test, it sends a short localized sample through the installed OVOS MessageBus API. You must confirm hearing it, then try a spoken command and confirm the reply. Missing tools, unfinished checks, unavailable services or server-only setups never produce an automatic success claim. A server requires a connected satellite. The shell check returns 0 only after you confirm a voice response, otherwise 3 for an unfinished check.
+
+## Does the terminal use my chosen language?
+
+All launcher-owned prompts and recovery messages have catalogs for English, French, German, Spanish, Italian, Dutch, Portuguese, Catalan, Basque, Galician, Hindi and Kabyle. These are independent of upstream installer messages, which may contain English. The locale comes from a checksum-verified code when possible and from the terminal environment before decoding. Fluent human review remains necessary; automated parity does not certify translation quality.
+
+## Why does default Mac installation also use the reviewed preview?
+
+The reviewed [PR648 revision](https://github.com/OpenVoiceOS/ovos-installer/blob/6ffd465028bac299e5235d619819bfdc734af073/docs/supported-systems.md) documents Intel and Apple Silicon support. Current main changed that contract. Pinning Mac installation preserves the wizard's architecture promise; choosing default speech still leaves speech selection to that installer and adds no `speech_engine` override.
 
 ## Do setup codes expire?
 

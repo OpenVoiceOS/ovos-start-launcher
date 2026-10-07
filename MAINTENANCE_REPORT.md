@@ -1,6 +1,20 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Record version 2 expiry implementation, independent test evidence and AI transparency.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Document localized recovery, durable verification and pinned Mac support in 2.1.0.
 
 # Maintenance report
+
+## 2026-10-07 — Version 2.1.0
+
+Implemented 12-locale terminal messages, field-specific retries, literal credential forwarding, strict common HTTP(S) syntax checks, cancellation, four real install stages and a durable private verification helper. Added systemd/launchd/Compose checks, optional real MessageBus sound output and explicit human confirmation of a supported voice response. Zero installer exit and active services do not mark speech complete. All Mac routes now share the tested Intel/Apple Silicon PR648 pin while retaining upstream-selected speech when `speech=auto`.
+
+Generated both public scripts from [`lib/launcher.sh.in`](lib/launcher.sh.in), [`lib/runtime.sh`](lib/runtime.sh) and [`locales/messages.json`](locales/messages.json) using Python [`build`](scripts/build-launcher.py#L11). Sources contain no runtime language fetch. The chosen catalog alone is embedded in the helper so the downloaded script remains within the one-line command's shell argument limit. During verification, corrected an early prompt/terminal-echo race and duplicate catalog size before release.
+
+Verification: **436 pytest cases and 38 Node tests pass**, shell syntax/parity and ShellCheck pass (existing cosmetic SC1112 excluded). New tests cover all-language retries and expiry, invalid URL recovery, cancellation, retained backups, durable read-only checks, emitted sound metadata and human confirmation. All installers, network clients, privilege tools, service managers and message transport are local fakes. Exact pinned upstream service definitions and Mac support documentation were read; current Compose names were verified against upstream source.
+
+### Transparency Report
+
+- **AI Model:** Codex, GPT-6.
+- **Actions Taken:** Implemented launcher/runtime/catalogs and generated artifacts, authored regression and PTY tests, inspected upstream contracts, wrote documentation, and prepared the release for coordinating-agent publication.
+- **Oversight:** User explicitly requested implementation of all audit recommendations. The coordinating agent owns wizard UX and release integration and approved pinning default Mac installation to the reviewed support contract. No real OVOS installation, microphone recording or user-service mutation occurred. Human hardware and native-language review remain pending.
 
 ## 2026-10-07 — Version 2.0.0
 

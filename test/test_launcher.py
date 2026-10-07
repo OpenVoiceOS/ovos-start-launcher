@@ -62,6 +62,11 @@ if name == 'getconf':
     print(value); sys.exit(0)
 if name == 'id': print(os.environ.get('FAKE_UID', '1000')); sys.exit(0)
 if name == 'uname': print(os.environ.get('FAKE_OS', 'Linux')); sys.exit(0)
+if name in ('systemctl', 'launchctl', 'docker'):
+    if os.environ.get('FAKE_HEALTH') != 'running': sys.exit(3)
+    if name == 'launchctl': print('state = running')
+    if name == 'docker': print('ovos_messagebus\novos_core\novos_audio\novos_listener\nhivemind_listener')
+    sys.exit(0)
 with (home / 'calls.jsonl').open('a') as log:
     log.write(json.dumps({'command': name, 'args': args}) + '\n')
 if name == 'curl':
@@ -155,7 +160,7 @@ def sandbox(tmp_path: Path, request: pytest.FixtureRequest) -> Sandbox:
         "}\n",
         encoding="utf-8",
     )
-    for name in ("date", "getconf", "id", "uname", "curl", "git", "sudo"):
+    for name in ("date", "getconf", "id", "uname", "curl", "git", "sudo", "systemctl", "launchctl", "docker"):
         target = binary / name
         target.write_text(f"#!{sys.executable}\n{FAKE_COMMAND}", encoding="utf-8")
         target.chmod(0o700)
@@ -461,7 +466,7 @@ def test_incompatible_choices_fail_before_effects(sandbox: Sandbox, overrides: d
     """Raw valid-CRC codes cannot bypass cross-field eligibility and hardware rules."""
     result = run_launcher(sandbox, raw_code(overrides))
     assert result.returncode != 0
-    assert "do not fit together" in result.stderr
+    assert "do not fit together" in result.stderr if overrides.get("locale", "en-us") == "en-us" else "सेटअप कोड" in result.stderr
     assert_untouched(sandbox)
 
 
@@ -561,14 +566,15 @@ def test_preview_runtime_search_handles_missing_candidates(sandbox: Sandbox, run
     assert not list(sandbox.temp.iterdir())
 
 
-def run_interactive(sandbox: Sandbox, code: str, answers: list[tuple[bytes, bytes]]) -> tuple[int, bytes]:
+def run_interactive(sandbox: Sandbox, code: str | None, answers: list[tuple[bytes, bytes]]) -> tuple[int, bytes]:
     """Drive real terminal reads and masking while every install command stays mocked."""
     pid, fd = pty.fork()
     if pid == 0:
         os.chdir(sandbox.home)
-        os.execve("/bin/sh", ["/bin/sh", str(sandbox.launcher), code], sandbox.env)
+        os.execve("/bin/sh", ["/bin/sh", str(sandbox.launcher), *([code] if code is not None else [])], sandbox.env)
     output = b""
     sent = 0
+    cursor = 0
     reaped = False
     deadline = time.monotonic() + 15
     try:
@@ -583,7 +589,8 @@ def run_interactive(sandbox: Sandbox, code: str, answers: list[tuple[bytes, byte
                 if not chunk:
                     break
                 output += chunk
-                if sent < len(answers) and answers[sent][0] in output:
+                if sent < len(answers) and answers[sent][0] in output[cursor:]:
+                    cursor = len(output)
                     os.write(fd, answers[sent][1] + b"\n")
                     sent += 1
         else:
@@ -610,11 +617,12 @@ def test_real_tty_preserves_special_characters_and_masks_credentials(sandbox: Sa
     secret = b"literal'$(touch PWNED)&token\\with space"
     model = b"model'$(touch MODEL_PWNED)&literal"
     answers = [
-        (b"Home Assistant URL: ", b"http://homeassistant.local:8123"),
-        (b"long-lived token: ", secret),
-        (b"API URL: ", b"http://localhost:11434/v1"),
-        (b"Model name: ", model),
-        (b"local endpoint): ", secret),
+        ("Adresse de Home Assistant : ".encode(), b"http://homeassistant.local:8123"),
+        ("Jeton d’accès longue durée Home Assistant : ".encode(), secret),
+        ("Adresse de l’API compatible OpenAI : ".encode(), b"http://localhost:11434/v1"),
+        ("Nom du modèle : ".encode(), model),
+        ("Clé d’API (ou valeur demandée par un serveur local sans clé) : ".encode(), secret),
+        ("Suite : 1 =".encode(), b""),
     ]
     status, output = run_interactive(sandbox, code, answers)
     assert status == 0, output.decode(errors="replace")
@@ -641,7 +649,7 @@ def test_invalid_service_input_does_not_activate_scenario(sandbox: Sandbox, url:
     """Cancelled or invalid integration input leaves existing configuration active."""
     sandbox.seed_scenario()
     _, code = recipe({"homeassistant": True})
-    status, _ = run_interactive(sandbox, code, [(b"Home Assistant URL: ", url), (b"long-lived token: ", b"token")])
+    status, _ = run_interactive(sandbox, code, [(b"Home Assistant URL: ", url), (b"Try again" if not url else b"Enter a complete", b":cancel")])
     assert status != 0
     assert sandbox.scenario.read_text() == "original-user-settings\n"
     assert not (sandbox.home / "received.json").exists()
@@ -665,3 +673,216 @@ def test_short_bootstrap_never_executes_partial_failed_download(sandbox: Sandbox
     else:
         assert result.returncode == 0, result.stderr
         assert sandbox.received()["LOCALE"] == "en-us"
+
+
+CATALOGS = json.loads((ROOT / "locales/messages.json").read_text())
+
+
+@pytest.mark.parametrize("locale", tuple(CATALOGS))
+def test_all_locales_retry_missing_credentials_without_losing_valid_url(sandbox: Sandbox, locale: str) -> None:
+    """Every shipped language explains recovery, masks retry input and preserves the valid URL."""
+    catalog = CATALOGS[locale]
+    _, code = recipe({"locale": locale, "homeassistant": True})
+    secret = b"do-not-display-this-token"
+    status, output = run_interactive(sandbox, code, [
+        (catalog["haUrl"].encode(), b"http://homeassistant.local:8123"),
+        (catalog["haToken"].encode(), b""),
+        (catalog["required"].encode(), secret),
+        (catalog["checkMenu"].encode(), b""),
+    ])
+    assert status == 0, output.decode(errors="replace")
+    assert secret not in output
+    assert catalog["cancelHint"].encode() in output
+    assert output.count(catalog["haUrl"].encode()) == 1
+    assert sandbox.received()["HOMEASSISTANT_URL"] == "http://homeassistant.local:8123"
+    assert sandbox.received()["HOMEASSISTANT_API_KEY"] == secret.decode()
+    assert catalog["incomplete"].encode() in output
+    assert catalog["voiceOk"].encode() not in output
+
+
+@pytest.mark.parametrize("locale", tuple(CATALOGS))
+def test_expiry_uses_checksum_verified_recipe_language(sandbox: Sandbox, locale: str) -> None:
+    """A valid expired code explains recovery in its chosen language before any side effect."""
+    result = run_launcher(sandbox, raw_code({"locale": locale}), changes={"FAKE_NOW": str(ISSUED_AT + 3600)})
+    assert result.returncode != 0
+    assert ("expired after one hour" if locale == "en-us" else CATALOGS[locale]["expired"]) in result.stderr
+    assert_untouched(sandbox)
+
+
+@pytest.mark.parametrize(("url", "valid"), [
+    ("http://homeassistant.local:8123", True), ("https://example.org/v1?region=eu", True),
+    ("http://localhost", True), ("http://127.0.0.1:11434/v1", True),
+    ("http://[::1]:8123", True), ("http://[2001:db8::1]/api", True),
+    ("http://host:00080", True), ("http:// ", False), ("https://", False),
+    ("http:///path", False), ("ftp://example.org", False), ("http://user:pass@host", False),
+    ("https://example.org/#token", False), ("http://host\nother", False),
+    ("http://host:abc", False), ("http://host:65536", False), ("http://host:0", False),
+    ("http://host:", False), ("http://host:9999999999999", False),
+    ("http://[bad]:80", False), ("http://host\\path", False),
+])
+def test_url_syntax_is_validated_without_contacting_the_service(url: str, valid: bool) -> None:
+    """Reject empty/ambiguous authorities, unsafe credential placement and invalid ports locally."""
+    runtime = ROOT / "lib/runtime.sh"
+    result = subprocess.run(["/bin/sh", "-c", '. "$1"; valid_url "$2"', "fixture", str(runtime), url],
+                            capture_output=True, text=True, timeout=5)
+    assert (result.returncode == 0) == valid
+    assert result.stdout == result.stderr == ""
+
+
+def test_invalid_url_retries_before_asking_for_a_token(sandbox: Sandbox) -> None:
+    """A blank host stays in the URL field and a corrected value reaches the installer literally."""
+    _, code = recipe({"homeassistant": True})
+    status, output = run_interactive(sandbox, code, [
+        (b"Home Assistant URL: ", b"http:// "),
+        (b"Enter a complete", b"http://localhost:8123"),
+        (b"long-lived token: ", b"fixture-token"),
+        (b"Next: 1 =", b""),
+    ])
+    assert status == 0, output.decode(errors="replace")
+    assert output.index(b"Enter a complete") < output.index(b"long-lived token:")
+    assert sandbox.received()["HOMEASSISTANT_URL"] == "http://localhost:8123"
+
+
+def test_cancel_during_secret_retry_keeps_previous_settings(sandbox: Sandbox) -> None:
+    """An explicit cancel at a hidden prompt restores echo and never activates a new scenario."""
+    sandbox.seed_scenario()
+    _, code = recipe({"homeassistant": True})
+    status, output = run_interactive(sandbox, code, [
+        (b"Home Assistant URL: ", b"http://localhost:8123"),
+        (b"long-lived token: ", b""),
+        (b"This field is required", b":cancel"),
+    ])
+    assert status == 130
+    assert b"Cancelled. The installer has not started" in output
+    assert sandbox.scenario.read_text() == "original-user-settings\n"
+    assert not (sandbox.home / "received.json").exists()
+    assert not list(sandbox.temp.iterdir())
+
+
+@pytest.mark.parametrize("healthy", [False, True])
+def test_durable_checker_is_private_read_only_and_honest_about_unverified_voice(sandbox: Sandbox, healthy: bool) -> None:
+    """Service state alone cannot report first-voice success or restart installation."""
+    result = run_launcher(sandbox, raw_code(), changes={"FAKE_HEALTH": "running" if healthy else "waiting"})
+    assert result.returncode == 0
+    checker = sandbox.scenario.parent / "check-setup.sh"
+    assert checker.stat().st_mode & 0o777 == 0o700
+    before = sandbox.calls()
+    checked = subprocess.run(["/bin/sh", str(checker)], env={**sandbox.env, "FAKE_HEALTH": "running" if healthy else "waiting"},
+                             cwd=sandbox.home, capture_output=True, text=True, timeout=5)
+    assert checked.returncode == 3
+    assert ("expected services are running" if healthy else "not running yet") in checked.stdout
+    assert "First voice response confirmed" not in checked.stdout
+    assert sandbox.calls() == before
+    assert "sh \"$HOME/.config/ovos-installer/check-setup.sh\"" in result.stdout
+
+
+def test_first_voice_success_requires_explicit_human_confirmation(sandbox: Sandbox) -> None:
+    """An unavailable automatic sound test still requires a real spoken interaction and confirmation."""
+    result = run_launcher(sandbox, raw_code())
+    assert result.returncode == 0
+    checker = sandbox.scenario.parent / "check-setup.sh"
+    sandbox.env["FAKE_LAUNCHER"] = str(checker)
+    before = sandbox.calls()
+    status, output = run_interactive(sandbox, None, [
+        (b"Next: 1 =", b"1"),
+        (b"Did OVOS answer correctly?", b"1"),
+    ])
+    assert status == 0
+    assert b"sound check could not reach OVOS" in output
+    assert b"Hey Mycroft, what time is it?" in output
+    assert b"First voice response confirmed by you" in output
+    assert sandbox.calls() == before
+
+
+def test_generated_launchers_match_sources() -> None:
+    """Message parity and generated-file drift are checked without rewriting source in tests."""
+    import runpy
+    build = runpy.run_path(str(ROOT / "scripts/build-launcher.py"))["build"]
+    expected = build()
+    assert len(CATALOGS) == 12
+    assert len(expected.encode()) < 120_000  # Linux sh -c single argument ceiling is 128 KiB.
+    assert (ROOT / "v1.sh").read_text() == expected == (ROOT / "v2.sh").read_text()
+
+
+def test_installer_failure_keeps_recovery_checker_and_never_reports_success(sandbox: Sandbox) -> None:
+    """A nonzero installer exit retains diagnostics and does not retry installation automatically."""
+    sandbox.seed_scenario()
+    Path(sandbox.env["FAKE_INSTALLER"]).write_text("#!/bin/sh\nprintf 'fixture install failed\\n' >&2\nexit 23\n")
+    result = run_launcher(sandbox, raw_code())
+    assert result.returncode == 23
+    assert "Installation did not complete" in result.stderr
+    assert "installer returned successfully" not in result.stdout
+    assert "check-setup.sh" in result.stdout
+    assert (sandbox.scenario.parent / "check-setup.sh").exists()
+    assert len(list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))) == 1
+    assert [call["command"] for call in sandbox.calls()].count("sudo") == 1
+
+
+def test_sound_check_uses_installed_bus_api_and_waits_for_human_confirmation(sandbox: Sandbox) -> None:
+    """Run the actual sound-check Python against a local fake bus, never real audio or sockets."""
+    assert run_launcher(sandbox, raw_code({"locale": "fr-fr"})).returncode == 0
+    fake_modules = sandbox.home / "fake-modules"
+    fake_modules.mkdir()
+    (fake_modules / "ovos_bus_client.py").write_text('''
+import json, os
+from pathlib import Path
+class Message:
+    """Record a message without transport."""
+    def __init__(self, kind, data, context):
+        """Keep the exact utterance and locale for assertions."""
+        self.payload = {"type": kind, "data": data, "context": context}
+class Connected:
+    """Fake an already connected bus."""
+    def wait(self, timeout):
+        """Return immediately without networking."""
+        return True
+class MessageBusClient:
+    """Emulate only the API used by the production check."""
+    def __init__(self):
+        """Prepare local connection state."""
+        self.connected_event = Connected()
+    def on(self, event, handler):
+        """Remember the output-ended callback."""
+        self.handler = handler
+    def run_in_thread(self):
+        """Perform no background work."""
+        pass
+    def emit(self, message):
+        """Record emission and simulate completion of playback."""
+        Path(os.environ["HOME"], "sound-message.json").write_text(json.dumps(message.payload))
+        self.handler(None)
+    def close(self):
+        """Record clean shutdown."""
+        Path(os.environ["HOME"], "sound-closed").touch()
+''')
+    binary = sandbox.home / ".venvs/ovos/bin"
+    binary.mkdir(parents=True)
+    (binary / "python3").symlink_to(sys.executable)
+    sandbox.env["PYTHONPATH"] = str(fake_modules)
+    sandbox.env["FAKE_LAUNCHER"] = str(sandbox.scenario.parent / "check-setup.sh")
+    catalog = CATALOGS["fr-fr"]
+    status, output = run_interactive(sandbox, None, [
+        (catalog["checkMenu"].encode(), b"1"),
+        (catalog["audioQuestion"].encode(), b"1"),
+        (catalog["voiceQuestion"].encode(), b""),
+    ])
+    assert status == 3
+    assert catalog["audioOk"].encode() in output
+    assert catalog["voiceOk"].encode() not in output
+    emitted = json.loads((sandbox.home / "sound-message.json").read_text())
+    assert emitted["type"] == "speak"
+    assert emitted["data"] == {"utterance": catalog["audioTest"], "lang": "fr-fr"}
+    assert (sandbox.home / "sound-closed").exists()
+
+
+def test_mac_default_speech_preserves_pinned_intel_and_silicon_support(sandbox: Sandbox) -> None:
+    """Mac defaults use the reviewed architecture contract without forcing a speech provider."""
+    state, code = recipe({"device": "mac", "cpu": "intel-mac", "channel": "alpha"})
+    result = run_launcher(sandbox, code, changes={"FAKE_OS": "Darwin"})
+    assert result.returncode == 0, result.stderr
+    assert sandbox.scenario.read_text() == expected_scenario(state)
+    assert "speech_engine:" not in sandbox.scenario.read_text()
+    assert sandbox.received()["RUN_AS"] == "fixture-user"
+    calls = sandbox.calls()
+    assert "curl" not in [call["command"] for call in calls]
+    assert next(call for call in calls if "fetch" in call["args"])["args"][-1] == PIN

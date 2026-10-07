@@ -1,6 +1,14 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Update protocol-maintenance suggestions for v2 expiry and explicit legacy recovery.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Document localized recovery, durable verification and pinned Mac support in 2.1.0.
 
 # Suggestions
+
+## Completed: recoverable terminal handoff
+
+**Problem:** Missing fields exited silently and installation ended without verification. **Implemented:** Localized retry/cancel, common URL syntax validation, stage reporting, a durable service checker, optional sound output and explicit first-voice confirmation. **Impact:** Users can recover in place and distinguish copied/installed/running/actually heard states. Evidence: [`test_launcher.py`](test/test_launcher.py#L682), [`runtime.sh`](lib/runtime.sh).
+
+## Hardware and native-language acceptance
+
+**Remaining opportunity:** Mock tests do not prove every device or locale works in a real room. **Proposal:** Maintain physical Pi5, Intel/Apple Silicon Mac and WSL2 acceptance runs covering restart recovery, service scopes, audio output, wake word and one installed skill. Invite fluent reviewers for all terminal catalogs, especially smaller language communities. **Impact:** Detect environment and language issues that unit tests cannot establish; avoid claiming automatic completion based on service state alone.
 
 ## Preserve frozen data meanings while retiring old execution
 
@@ -14,6 +22,6 @@ Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Update protocol-maintenance sugg
 
 **Opportunity:** The initial launcher uses the goldyfruit GitHub Pages address. **Proposal:** Project maintainers can later point a short project-owned hostname at the reviewed launcher. **Impact:** Shorter terminal commands and clearer project ownership, without changing code contents.
 
-## Strengthen endpoint feedback upstream
+## Further endpoint connectivity checks upstream
 
-**Problem:** HTTP(S)-prefix checks permit malformed service endpoints. **Proposal:** Validate endpoint syntax and connectivity in the installer before committing integration configuration. **Impact:** Better target-device errors without adding questions to the wizard.
+**Problem:** Local syntax validation cannot establish DNS, TLS, authentication or endpoint compatibility. **Proposal:** Validate service connectivity in the installer before committing integration configuration. **Impact:** Better target-device errors without adding questions to the wizard.
