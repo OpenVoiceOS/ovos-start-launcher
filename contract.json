@@ -1,0 +1,60 @@
+{
+  "name": "OVOS Start compact recipe",
+  "license": "Apache-2.0",
+  "version": 1,
+  "alphabet": "0123456789ABCDEFGHJKMNPQRSTVWXYZ",
+  "wireBits": 40,
+  "codeCharacters": 8,
+  "outputFormat": "XXXX-XXXX",
+  "input": {
+    "caseInsensitive": true,
+    "groupedOrUngrouped": true,
+    "aliases": false,
+    "whitespace": false
+  },
+  "layout": [
+    { "name": "version", "width": 4, "offset": 36 },
+    { "name": "payload", "width": 28, "offset": 8 },
+    { "name": "checksum", "width": 8, "offset": 0 }
+  ],
+  "checksum": {
+    "name": "CRC-8/SMBUS",
+    "polynomial": 7,
+    "initial": 0,
+    "reflectInput": false,
+    "reflectOutput": false,
+    "xorOutput": 0,
+    "input": "Four big-endian bytes of (version << 28) | payload",
+    "authentication": false
+  },
+  "validation": {
+    "exactFields": true,
+    "typedValues": true,
+    "rejectReservedValues": true,
+    "crossFieldValidation": "Required separately in the wizard and launcher"
+  },
+  "fields": [
+    { "name": "device", "width": 4, "offset": 24, "values": ["pi", "computer", "mark1", "mark2", "devkit", "jetson", "server", "mac", "windows", "other"] },
+    { "name": "experience", "width": 2, "offset": 22, "values": ["ready", "tinker", "hub"] },
+    { "name": "locale", "width": 4, "offset": 18, "values": ["en-us", "fr-fr", "de-de", "es-es", "it-it", "nl-nl", "pt-pt", "ca-es", "eu-es", "gl-es", "hi-in", "kab-dz"] },
+    { "name": "method", "width": 1, "offset": 17, "values": ["virtualenv", "containers"] },
+    { "name": "channel", "width": 1, "offset": 16, "values": ["testing", "alpha"] },
+    { "name": "expertise", "width": 2, "offset": 14, "values": ["guided", "tinker", "expert"] },
+    { "name": "speech", "width": 2, "offset": 12, "values": ["auto", "public", "local"] },
+    { "name": "memory", "width": 2, "offset": 10, "values": ["unknown", "under8", "8plus"] },
+    { "name": "cpu", "width": 2, "offset": 8, "values": ["unknown", "arm64", "avx2", "intel-mac"] },
+    { "name": "piModel", "width": 2, "offset": 6, "values": ["unknown", "older", "pi5"] },
+    { "name": "llmMode", "width": 2, "offset": 4, "values": ["off", "local", "online"] },
+    { "name": "extraSkills", "width": 1, "offset": 3, "values": [false, true] },
+    { "name": "telemetry", "width": 1, "offset": 2, "values": [false, true] },
+    { "name": "skills", "width": 1, "offset": 1, "values": [false, true] },
+    { "name": "homeassistant", "width": 1, "offset": 0, "values": [false, true] }
+  ],
+  "vectors": [
+    { "name": "computer-default", "code": "2400-00KZ", "headerHex": "11000002", "checksumHex": "7f" },
+    { "name": "pi-local-french", "code": "202J-K0HK", "headerHex": "10052982", "checksumHex": "33" },
+    { "name": "mac-default", "code": "2W0G-00K0", "headerHex": "17010002", "checksumHex": "60" },
+    { "name": "windows-public-integrations", "code": "3001-08V9", "headerHex": "18001023", "checksumHex": "69" },
+    { "name": "container-hub", "code": "2T10-00P0", "headerHex": "16820002", "checksumHex": "c0" }
+  ]
+}
