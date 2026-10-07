@@ -731,7 +731,7 @@ esac
 [ "$ovos_issued" -gt 0 ] || fail 'Invalid setup timestamp. Check the clock and generate a new code.'
 ovos_now=$(date +%s 2>/dev/null) || fail 'The system clock is unavailable. Correct it before using a setup code.'
 case "$ovos_now" in ''|*[!0-9]*|0*) fail 'The system clock is invalid. Correct it before using a setup code.';; esac
-[ "${#ovos_now}" -le 13 ] && [ "$ovos_now" -le 1099511627775 ] || fail 'The system clock is invalid. Correct it before using a setup code.'
+if [ "${#ovos_now}" -gt 13 ] || [ "$ovos_now" -gt 1099511627775 ]; then fail 'The system clock is invalid. Correct it before using a setup code.'; fi
 [ "$ovos_issued" -le "$ovos_now" ] || fail 'This setup code is future-dated. Check the clock and generate a new code.'
 [ "$ovos_now" -lt "$((ovos_issued + 3600))" ] || fail 'This setup code expired after one hour. Generate a new code in OVOS Start.'
 ovos_payload=$((ovos_body & 268435455))
@@ -811,9 +811,9 @@ else
   [ "$(uname -s)" = Linux ] || fail_message linux
 fi
 for ovos_program in git sudo; do command -v "$ovos_program" >/dev/null 2>&1 || { say dependency >&2; printf '%s\n' "$ovos_program" >&2; exit 1; }; done
-[ -n "${HOME:-}" ] && [ -d "$HOME" ] || fail_message unsafeConfig
+if [ -z "${HOME:-}" ] || [ ! -d "$HOME" ]; then fail_message unsafeConfig; fi
 case "$HOME" in /*) :;; *) fail_message unsafeConfig;; esac
-[ ! -e "$HOME/ovos-installer" ] && [ ! -L "$HOME/ovos-installer" ] || fail_message existing
+if [ -e "$HOME/ovos-installer" ] || [ -L "$HOME/ovos-installer" ]; then fail_message existing; fi
 # Validate before downloading or replacing files: mv must not nest a helper
 # inside a directory, and cp must not wait forever on a FIFO.
 ovos_cfg="$HOME/.config/ovos-installer"
@@ -862,7 +862,7 @@ if [ "$ovos_installer" = pinned ]; then
 fi
 # The download may take time; refuse a destination whose type changed meanwhile.
 for ovos_path in "$HOME/.config" "$ovos_cfg"; do
-  [ -d "$ovos_path" ] && [ ! -L "$ovos_path" ] || { say unsafeConfig >&2; exit 1; }
+  if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then say unsafeConfig >&2; exit 1; fi
 done
 if [ -L "$ovos_cfg/scenario.yaml" ] || { [ -e "$ovos_cfg/scenario.yaml" ] && [ ! -f "$ovos_cfg/scenario.yaml" ]; }; then
   say unsafeConfig >&2; printf '%s\n' "$ovos_cfg/scenario.yaml" >&2; exit 1
@@ -890,7 +890,7 @@ run_bounded() (
   ovos_bound_command=''
   ovos_bound_watchdog=''
   # Invoked by the subshell's EXIT trap.
-  # shellcheck disable=SC2329
+  # shellcheck disable=SC2329,SC2317
   cleanup_bounded() {
     if [ -n "$ovos_bound_command" ]; then
       kill -KILL "$ovos_bound_command" 2>/dev/null || :
@@ -1165,7 +1165,7 @@ fi
 say installing
 # Recheck after interactive input, before elevated moves.
 for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
-  [ -d "$ovos_path" ] && [ ! -L "$ovos_path" ] || { say unsafeConfig >&2; exit 1; }
+  if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then say unsafeConfig >&2; exit 1; fi
 done
 for ovos_path in "$ovos_home/.config/ovos-installer/scenario.yaml" "$ovos_home/.config/ovos-installer/check-setup.sh"; do
   if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -f "$ovos_path" ]; }; then say unsafeConfig >&2; exit 1; fi

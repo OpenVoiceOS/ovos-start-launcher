@@ -12,7 +12,7 @@ run_bounded() (
   ovos_bound_command=''
   ovos_bound_watchdog=''
   # Invoked by the subshell's EXIT trap.
-  # shellcheck disable=SC2329
+  # shellcheck disable=SC2329,SC2317
   cleanup_bounded() {
     if [ -n "$ovos_bound_command" ]; then
       kill -KILL "$ovos_bound_command" 2>/dev/null || :
