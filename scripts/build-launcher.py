@@ -39,7 +39,8 @@ write_messages() {
     runtime = callbacks + "\n" + (ROOT / "lib/runtime.sh").read_text()
     launcher = (ROOT / "lib/launcher.sh.in").read_text()
     return (launcher.replace("# @MESSAGES@", messages)
-            .replace("# @CALLBACKS@", callbacks).replace("# @RUNTIME@", runtime))
+            .replace("# @CALLBACKS@", callbacks).replace("# @RUNTIME@", runtime)
+            .replace("# @ANSIBLE_PROGRESS@", (ROOT / "lib/ansible_progress.py").read_text()))
 
 
 if __name__ == "__main__":

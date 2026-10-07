@@ -1,6 +1,12 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permissions and preserve cached tools on retry in 2.2.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Frequently asked questions
+
+## How are the installation steps detected?
+
+The launcher embeds [CallbackModule](lib/ansible_progress.py) beside the fetched installer and enables it as an Ansible notification callback only for tracked installs. `v2_runner_on_ok` maps actual successful role tasks to device preparation, OVOS packages, service setup and finishing. Skipped tasks, task-start announcements, terminal text and elapsed time cannot advance a step. The first successful task in a role enters that phase; a stage can therefore appear slightly after work begins. See [real callback fixtures](test/test_ansible_progress.py).
+
+Service setup is not proof that services are running: the containers method does its service work in its container role, while the later common services role validates configuration. The separate post-install health check still reports `services_ready`; only the existing zero-exit gate reports `installed`, and only user confirmation reports `voice_ready`. Missing callbacks leave less detail, never guessed success.
 
 ## Why did PipeWire setup report permission denied for the installer Python?
 

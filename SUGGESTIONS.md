@@ -1,6 +1,14 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permissions and preserve cached tools on retry in 2.2.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Suggestions
+
+## Completed: actual installer substeps
+
+**Problem:** One long installing state gave no view of completed and remaining work. **Implemented:** [CallbackModule](lib/ansible_progress.py) maps real successful Ansible role tasks to four fixed phase events, preserves the installer terminal output, and leaves completion gated on setup exit. **Impact:** The wizard can display device preparation, package installation, service setup and finalization without parsing logs or guessing from timers. [Real play fixtures](test/test_ansible_progress.py) cover skipped branches, errors and offline delivery.
+
+## Keep the upstream phase contract checked
+
+**Opportunity:** Main can add or rename roles beyond the reviewed preview pin. **Proposal:** During installer-pin updates, compare the role sequence with `PHASES` in [ansible_progress.py](lib/ansible_progress.py), and retain the real callback-discovery test against the installer’s Ansible-core version. **Impact:** Preserves useful detail while unknown roles safely remain unreported. Measured device-specific installation durations would also improve the wizard’s estimates; this launcher does not invent timing observations.
 
 ## Completed: separate private staging from user-accessible installer tools
 

@@ -239,6 +239,14 @@ git -C "$ovos_source" -c core.hooksPath=/dev/null checkout --quiet --detach FETC
 if [ "$ovos_installer" = pinned ]; then
   [ "$(git -C "$ovos_source" rev-parse HEAD)" = "$ovos_revision" ] || fail_message revision
 fi
+# This notification plugin reads role metadata, never terminal logs or secrets.
+# It only exists for tracked runs and leaves upstream stdout callbacks intact.
+if [ -n "$ovos_track" ]; then
+  mkdir "$ovos_source/.ovos-start-callbacks"
+  cat > "$ovos_source/.ovos-start-callbacks/ovos_start_progress.py" <<'OVOS_ANSIBLE_PROGRESS'
+# @ANSIBLE_PROGRESS@
+OVOS_ANSIBLE_PROGRESS
+fi
 # The download may take time; refuse a destination whose type changed meanwhile.
 for ovos_path in "$HOME/.config" "$ovos_cfg"; do
   if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then say unsafeConfig >&2; exit 1; fi
@@ -367,6 +375,10 @@ report_status installing
 # this launcher and its tokens; upstream explicitly protects its own secrets.
 (
   umask 022
+  if [ -n "$ovos_track" ]; then
+    export ANSIBLE_CALLBACK_PLUGINS="$ovos_source/.ovos-start-callbacks${ANSIBLE_CALLBACK_PLUGINS:+:$ANSIBLE_CALLBACK_PLUGINS}"
+    export ANSIBLE_CALLBACKS_ENABLED="${ANSIBLE_CALLBACKS_ENABLED:-ansible.posix.profile_tasks},ovos_start_progress"
+  fi
   exec "$ovos_bash" setup.sh
 )
 # The pre-created receipt belongs to the regular user and remains mode0600.

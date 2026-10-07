@@ -1,6 +1,16 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permissions and preserve cached tools on retry in 2.2.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Audit
+
+## 2026-10-07 — Version 2.3.0 phase audit
+
+The new [CallbackModule.v2_runner_on_ok](lib/ansible_progress.py) reads only the fixed role identity from successful Ansible task results. Earlier/later handler ordering cannot regress its phase, each phase is attempted once, and no callback emits installed, failed or voice readiness. Skipped or failed roles cannot manufacture a phase. [test_real_ansible_callback_discovery_and_conditional_roles](test/test_ansible_progress.py) exercises real harmless plays for both install methods, including first-task failure in the selected package role; [test_real_ansible_skipped_roles_emit_no_phase](test/test_ansible_progress.py) proves an entirely skipped role sends nothing.
+
+[report_phase](lib/ansible_progress.py) rejects malformed/public/symlink/FIFO token storage, uses a fixed HTTPS endpoint, transmits the bearer through curl stdin only, disables curlrc loading and redirects, bounds transport and catches errors without printing token-bearing exceptions. [test_phase_transport_failure_is_bounded_private_and_never_retried](test/test_ansible_progress.py) and [test_phase_transport_refuses_unusable_token_files](test/test_ansible_progress.py) cover these boundaries. [test_launcher_enables_only_tracked_callback_and_preserves_native_callbacks](test/test_ansible_progress.py) proves code-only execution has no plugin, tracking does not export the bearer, token storage remains 0600 and native callback configuration is preserved.
+
+Verification completed: 31 new cases pass under both Ansible-core 2.17 and local 2.20; 38 Node tests, shell syntax, generated parity, ShellCheck and whitespace checks pass. The generated script is 116,582 bytes, below 120,000. The complete Python regression suite passes all 687 cases. No physical-device installation or live callback is run by these tests.
+
+Remaining limits: a phase starts after its first successful task, so the display can lag actual work. Role names are a narrow upstream contract; new/renamed roles yield less detail. A received stage is not hardware, speech or service-health proof. The existing three-second best-effort transport may lose events during an outage, and there is no phase retry or fabricated recovery.
 
 ## 2026-10-07 — Version 2.2.1 installer permissions audit
 

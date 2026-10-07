@@ -1,6 +1,20 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permissions and preserve cached tools on retry in 2.2.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Maintenance report
+
+## 2026-10-07 — Version 2.3.0
+
+Added a generated Ansible notification callback for tracked installation runs. Successful role tasks advance through the four fixed `stage_system`, `stage_packages`, `stage_services` and `stage_finalize` enums. Skips, failed tasks, native terminal output, role handlers returning to an earlier phase and timing cannot fabricate progress. Each phase gets at most one bounded callback attempt; failures never change the installer result. Existing zero-exit success, service health, voice confirmation, one-hour code expiry, private staging and scoped installer umask remain unchanged.
+
+The plugin is embedded in the launcher and staged only in its temporary checkout. It preserves callback search paths and an explicit enabled-callback list, or retains upstream’s `ansible.posix.profile_tasks` default. The bearer is read from the existing private token file and never exported or placed in curl arguments. Added 31 meaningful cases, including harmless real Ansible plays for both methods, branch skips, a failed package role, callback failures, native callback preservation and private token checks. CI now installs Ansible-core 2.17 alongside pytest for those integration fixtures.
+
+Verification: 31 targeted cases pass under Ansible-core 2.17 and 2.20; 38 Node tests pass. Shell syntax, Bash POSIX syntax, generated parity, ShellCheck and whitespace checks pass. v2 is 116,582 bytes, below 120,000. The complete Python regression suite passes all 687 cases. Tests use fake curl, installer and privilege tools; the real Ansible fixtures execute only harmless assertion/failure tasks. No commit, push or publication is performed by this delegated agent.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** Inspected pinned upstream role ordering and Ansible callback semantics, implemented the fixed phase emitter, added callback/transport/integration regressions, regenerated launcher entry points and updated repository documentation and CI.
+- **Oversight:** The user requested clear installation steps. The coordinating agent defined the monotonic relay phase contract, reviews this implementation, and owns UI/relay integration plus publication. Tests establish callback mechanics and failure handling; physical-device acceptance remains outstanding.
 
 ## 2026-10-07 — Version 2.2.1
 

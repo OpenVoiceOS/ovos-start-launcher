@@ -1,10 +1,10 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permissions and preserve cached tools on retry in 2.2.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Quick facts
 
 | Field | Value |
 | --- | --- |
-| Package / version | `ovos-start-launcher` / `2.2.1`; `package.json` |
+| Package / version | `ovos-start-launcher` / `2.3.0`; `package.json` |
 | License | Apache-2.0 |
 | Entry points | POSIX shell `v2.sh CODE`; `v1.sh` has identical v2 validation; ES module `encodeRecipeCode`, `decodeRecipeCode`, `decodeRecipeEnvelope`; no Python plugin entry points |
 | Runtime dependencies | 64-bit userland, POSIX sh, getconf, tr, date with `+%s`, git, sudo (curl for the wizard bootstrap); upstream platform prerequisites still apply |
@@ -22,8 +22,8 @@ Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permis
 | Preflight | 64-bit, format/checksum/version/time, compatible choices, nonroot user, correct OS, dependencies, protected existing checkout; freshness checked before side effects |
 | Installer runtime | setup.sh child uses umask022; launcher staging remains077; existing installer venv is preserved in a private sibling backup before rebuilding |
 | Secrets | Masked target /dev/tty prompts; no code/URL secrets |
-| Validation | 38 Node + 656 Python tests pass; both scripts pass sh -n and compare identically; mock installers only |
-| Python test API | [test/test_launcher.py](test/test_launcher.py): `Sandbox`, `raw_code`, `run_launcher`, `run_interactive`; no production Python classes |
+| Validation | 38 Node + 687 Python tests pass; both scripts pass sh -n and compare identically; mock installers only |
+| Python test API | [test/test_launcher.py](test/test_launcher.py): `Sandbox`, `raw_code`, `run_launcher`, `run_interactive`; production Python API: `CallbackModule`, `report_phase` in `lib/ansible_progress.py` |
 | Security limit | Public, reproducible code and local-clock freshness; no signature, encryption, per-code revocation or single-use enforcement |
 | Terminal recovery | `read_field` retries only current field; :cancel/EOF/signals cancel safely; secret echo stays off through retries |
 | Terminal locales | 53 messages × 12 languages in `locales/messages.json`; upstream installer output is separate |
@@ -37,6 +37,9 @@ Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permis
 | Progress recovery | Private `status-token` mode 0600 activated with checker after validation; empty on untracked replacement; data only, never sourced |
 | Completion receipt | Private `status-installed` mode 0600 cleared before activation, bound to current capability only after setup.sh zero; checker replays installed before health checks |
 | Preflight callbacks | Valid-code OS/user/path/dependency failure reports failed only; early architecture/invalid/expired codes and duplicate-lock rejection emit nothing |
+| Installation phases | `stage_system`, `stage_packages`, `stage_services`, `stage_finalize`; successful Ansible role-task results only; monotonic and deduplicated within one run |
+| Phase callback | [CallbackModule](lib/ansible_progress.py), notification type; tracked runs only; preserves upstream terminal/profile callbacks; first successful task starts each reported phase |
+| Phase privacy | [report_phase](lib/ansible_progress.py) reads a regular nonsymlink mode 0600 token, sends only enum, bounds curl to 3 seconds/Python wait to 4 seconds; never reports completion |
 
 See [source map](docs/index.md) and [audit](AUDIT.md).
 
