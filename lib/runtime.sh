@@ -27,8 +27,12 @@ run_bounded() (
   trap 'exit 130' INT
   trap 'exit 143' TERM
   trap 'exit 129' HUP
-  "$@" <&0 &
+  # dash redirects background stdin to /dev/null before command redirections.
+  # Save the original stream on a separate descriptor before starting the job.
+  exec 3<&0
+  "$@" <&3 3<&- &
   ovos_bound_command=$!
+  exec 3<&-
   (
     ovos_bound_sleep=''
     trap 'if [ -n "$ovos_bound_sleep" ]; then kill "$ovos_bound_sleep" 2>/dev/null || :; wait "$ovos_bound_sleep" 2>/dev/null || :; fi; exit 0' INT TERM HUP

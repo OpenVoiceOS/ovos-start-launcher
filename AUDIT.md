@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1. Preserve probe input under dash.
 
 # Audit
 
@@ -47,3 +47,6 @@ Evidence from the completed implementation checks: **38 Node tests and 350 pytes
 - **Clock and authenticity limit:** [timestamp/currentTime](codec.mjs#L59) and the [target clock check](v2.sh#L68) validate representation, not trusted wall-clock accuracy. Browser/target skew may reject fresh codes; changing a clock or recomputing a public timestamp and CRC can bypass the intended age limit. This is an operational freshness check, not authorization. No signature, encryption, per-code server record, individual revocation or single-use protection is provided. Expiry is evaluated when the launcher starts, not as a timer that interrupts an accepted installation.
 - **Trust boundary:** GitHub Pages supplies executable launcher code over HTTPS. CRC-8 only detects code transcription errors; it is not a signature. Codes contain known recipe values and an issuance timestamp, never scripts or arbitrary URLs. Replacing the public v1 endpoint does not alter copies of an older launcher already downloaded elsewhere.
 - **Coverage limit:** Mock tests do not demonstrate real installation success, physical audio behavior, or native macOS execution. Real hardware acceptance remains outstanding.
+
+
+CI caught a dash-specific background-stdin difference after the local Bash checks passed. `run_bounded` now duplicates the original input on descriptor3 before starting its child, preserving the Python audio heredoc on Ubuntu. The existing literal-input and real sound-transport regressions caught this; publication remains gated on both CI jobs.

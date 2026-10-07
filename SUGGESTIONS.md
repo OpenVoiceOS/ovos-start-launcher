@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1. Preserve probe input under dash.
 
 # Suggestions
 
@@ -33,3 +33,6 @@ Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, fail
 ## Further endpoint connectivity checks upstream
 
 **Problem:** Local syntax validation cannot establish DNS, TLS, authentication or endpoint compatibility. **Proposal:** Validate service connectivity in the installer before committing integration configuration. **Impact:** Better target-device errors without adding questions to the wizard.
+
+
+CI caught a dash-specific background-stdin difference after the local Bash checks passed. `run_bounded` now duplicates the original input on descriptor3 before starting its child, preserving the Python audio heredoc on Ubuntu. The existing literal-input and real sound-transport regressions caught this; publication remains gated on both CI jobs.

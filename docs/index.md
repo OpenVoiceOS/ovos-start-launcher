@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1. Preserve probe input under dash.
 
 # Launcher developer guide
 
@@ -75,3 +75,6 @@ The launcher checks exact configuration path types before downloading and before
 [`run_bounded`](../lib/runtime.sh#L10) supervises systemd/launchd probes (5seconds), Docker listing (10seconds) and audio dispatch (35seconds), with TERM then KILL after2seconds. Its own command and watchdog are reaped. [Runtime tests](../test/test_runtime_hardening.py) use `run_runtime` with local stalled workers; no production Python classes exist. Docker must report running services in project `ovos`. MessageBus connections close in `finally`; human voice confirmation remains required.
 
 Git disables interactive prompts and aborts sustained slow transfer, but this is not a total installation timeout. The initial wizard curl has a15-second connection and120-second total deadline. [Wizard handoff](../../ovos-start/docs/short-codes.md) explains the immutable launcher. A power loss can retain the directory lock; [deliberate recovery](../FAQ.md#why-does-it-say-a-setup-is-already-running) prevents unlocking a live installer. The CI workflow gates Pages on both Ubuntu and macOS test jobs.
+
+
+CI caught a dash-specific background-stdin difference after the local Bash checks passed. `run_bounded` now duplicates the original input on descriptor3 before starting its child, preserving the Python audio heredoc on Ubuntu. The existing literal-input and real sound-transport regressions caught this; publication remains gated on both CI jobs.

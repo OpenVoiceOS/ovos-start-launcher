@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1. Preserve probe input under dash.
 
 # Frequently asked questions
 
@@ -83,3 +83,6 @@ The launcher protects `~/ovos-installer` and creates a scenario backup. Invalid,
 ## Is local speech fully offline?
 
 No such guarantee is made. The reviewed preview retains online STT fallback. Language, hardware and actual installer checks still apply.
+
+
+CI caught a dash-specific background-stdin difference after the local Bash checks passed. `run_bounded` now duplicates the original input on descriptor3 before starting its child, preserving the Python audio heredoc on Ubuntu. The existing literal-input and real sound-transport regressions caught this; publication remains gated on both CI jobs.
