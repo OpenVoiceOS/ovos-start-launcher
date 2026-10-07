@@ -1,8 +1,8 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
 
 # OVOS Start launcher
 
-A short setup code carries the choices made in OVOS Start and expires one hour after issuance. The launcher checks it on the target device and prepares the existing OVOS installer. No recipe database, upload or login is needed.
+A short setup code carries the choices made in OVOS Start and expires one hour after issuance. The launcher checks it on the target device and prepares the existing OVOS installer. Recipe decoding does not require a database, upload or login. The wizard can also supply a separate private capability for optional installation progress.
 
 Copy the complete command from your finished wizard and run it as your regular user on the target device. It downloads the launcher fully before executing it. Do not prepend sudo; the launcher requests administrator access when needed.
 
@@ -19,9 +19,11 @@ Expiry relies on the browser and target clocks. The timestamp and CRC are editab
 
 This repository is maintained under the goldyfruit account; its hosting address is not an OpenVoiceOS-owned domain.
 
+`v2.sh CODE --track TOKEN` reports minimal installation stages to the wizard's fixed HTTPS relay. It never uploads logs, voice recordings, API keys or device identifiers. Failed status requests do not fail installation. The private recovery checker can resume progress after a restart, and only explicit human confirmation reports a working voice response. The tracked command contains a status-write capability; keep the full command private. See [callback behavior and limits](docs/index.md#optional-installation-progress-220).
+
 ## Development
 
-Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, `sh -n v1.sh`, `sh -n v2.sh`, and `cmp v1.sh v2.sh`. The latest checks passed **38 Node tests and 524 Python tests**. The Python [Sandbox](test/test_launcher.py#L94), `run_launcher` and `run_interactive` helpers use fake installers and real local terminal tests; they never perform an OVOS installation.
+Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, `sh -n v1.sh`, `sh -n v2.sh`, and `cmp v1.sh v2.sh`. The latest checks passed **38 Node tests and 638 Python tests**. The Python [Sandbox](test/test_launcher.py#L94), `run_launcher` and `run_interactive` helpers use fake installers and real local terminal tests; they never perform an OVOS installation or contact the live relay.
 
 PRs target `dev`. GitHub Actions tests both entry points, checks that they match, and packages only `index.html`, `v1.sh`, `v2.sh` and `.nojekyll` for Pages. The wizard is not part of that artifact.
 

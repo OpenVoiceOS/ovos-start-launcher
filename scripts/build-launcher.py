@@ -35,9 +35,11 @@ write_messages() {
   printf '%s\\n' 'say() { message "$1"; printf "\\n"; }'
 }
 '''.replace("@KEYS@", " ".join(sorted(keys)))
-    runtime = (ROOT / "lib/runtime.sh").read_text()
+    callbacks = (ROOT / "lib/callback.sh").read_text()
+    runtime = callbacks + "\n" + (ROOT / "lib/runtime.sh").read_text()
     launcher = (ROOT / "lib/launcher.sh.in").read_text()
-    return launcher.replace("# @MESSAGES@", messages).replace("# @RUNTIME@", runtime)
+    return (launcher.replace("# @MESSAGES@", messages)
+            .replace("# @CALLBACKS@", callbacks).replace("# @RUNTIME@", runtime))
 
 
 if __name__ == "__main__":

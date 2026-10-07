@@ -70,6 +70,10 @@ if name in ('systemctl', 'launchctl', 'docker'):
 with (home / 'calls.jsonl').open('a') as log:
     log.write(json.dumps({'command': name, 'args': args}) + '\n')
 if name == 'curl':
+    if '--config' in args:
+        with (home / 'callbacks.jsonl').open('a') as log:
+            log.write(json.dumps({'args': args, 'config': sys.stdin.read()}) + '\n')
+        sys.exit(int(os.environ.get('FAKE_CALLBACK_STATUS', '0')))
     if '-o' not in args:
         if os.environ.get('FAIL_BOOTSTRAP'):
             print('printf executed > "$HOME/truncated-ran"'); sys.exit(22)
@@ -566,12 +570,13 @@ def test_preview_runtime_search_handles_missing_candidates(sandbox: Sandbox, run
     assert not list(sandbox.temp.iterdir())
 
 
-def run_interactive(sandbox: Sandbox, code: str | None, answers: list[tuple[bytes, bytes]]) -> tuple[int, bytes]:
+def run_interactive(sandbox: Sandbox, code: str | None, answers: list[tuple[bytes, bytes]],
+                    *, extra_args: tuple[str, ...] = ()) -> tuple[int, bytes]:
     """Drive real terminal reads and masking while every install command stays mocked."""
     pid, fd = pty.fork()
     if pid == 0:
         os.chdir(sandbox.home)
-        os.execve("/bin/sh", ["/bin/sh", str(sandbox.launcher), *([code] if code is not None else [])], sandbox.env)
+        os.execve("/bin/sh", ["/bin/sh", str(sandbox.launcher), *([code] if code is not None else []), *extra_args], sandbox.env)
     output = b""
     sent = 0
     cursor = 0

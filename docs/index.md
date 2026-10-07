@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1. Preserve probe input under dash.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
 
 # Launcher developer guide
 
@@ -14,7 +14,23 @@ Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, fail
 | [test_launcher.py](../test/test_launcher.py) | Python `Sandbox`, `run_launcher` and `run_interactive` fixture helpers and PTY tests; fake installer commands only |
 | [pages.yml](../.github/workflows/pages.yml) | Tests, syntax/parity checks, then minimal GitHub Pages artifact with both shell endpoints |
 
-No production Python classes or OVOS plugin entry points exist. The caller is the OVOS Start wizard, whose `buildShortCommand` and `readSetupFragment` use this codec and whose `validateState` applies matching compatibility rules. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
+No production Python classes or OVOS plugin entry points exist. The caller is the [OVOS Start wizard](../../ovos-start/docs/index.md), whose `buildShortCommand` and `readSetupFragment` use this codec and whose `validateState` applies matching compatibility rules. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
+
+## Optional installation progress (2.2.0)
+
+`v2.sh CODE --track TOKEN` accepts a separate 64-character lowercase hexadecimal write capability. `CODE` and its one-hour validation remain unchanged. Unknown arguments or malformed capabilities fail before file/network effects. `--decode` and `--scenario` never send progress or persist the capability. Plain `v2.sh CODE` remains supported without callbacks.
+
+[`report_status`](../lib/callback.sh#L3) sends only `{"event":"EVENT"}` to the fixed HTTPS relay at `https://ovos-install-status.goldyfruit.chatgpt.site/v1/events`. Allowed events are `started`, `downloading`, `installing`, `installed`, `services_ready`, `voice_ready`, `needs_attention`, `failed` and `cancelled`. The token goes in the Authorization header through curl config stdin, never curl's argv. Curl disables automatic `.curlrc` loading, permits HTTPS only, does not follow redirects or retry, and limits connection/total time to 2/3 seconds. Missing curl and every transport failure are ignored. No logs, answers, device identifiers or installer secrets are uploaded. The copyable terminal command contains a private status-write capability; do not publish that complete command.
+
+The relay, separately maintained by the wizard, enforces capability lifetime (24 hours). This expiry does not renew or replace the one-hour recipe start deadline. Do not treat the recipe checksum as callback authentication. Reports are best effort and can arrive with earlier events missing. A relay outage, expired token, reboot or power loss can leave the browser behind the terminal; the terminal remains authoritative. There is no inbound listener on the device.
+
+The launcher writes `status-token` with mode 0600 beside the mode 0700 durable checker. It rejects symlink/nonregular destinations and activates both only after installer runtime and prompted inputs pass validation. [`load_status_token`](../lib/callback.sh#L21) reads the file as data, with parent/type checks; no token file is sourced. An untracked later install replaces it with an empty file. Removing `~/.config/ovos-installer/status-token` stops future reports from that checker; relay-side retention/deletion is a separate service concern.
+
+The private mode 0600 `status-installed` receipt is cleared when a validated attempt activates and replaced with the current capability only after `setup.sh` returns zero. [`report_saved_install`](../lib/callback.sh#L32) re-sends `installed` from a regular, nonsymlink receipt matching the loaded token before recovery checks. This recovers a lost completion callback without inferring installation from pre-existing services. It intentionally sends an idempotent duplicate when the first callback already arrived. Receipt persistence is best effort and cannot change a successful installer exit.
+
+Once the code, freshness and optional capability are validated, OS/user/dependency/path preflight rejection sends only `failed`; it does not send `started`. A pre-existing launcher lock suppresses callbacks so a double paste cannot fail the already-running session. Early 32-bit rejection precedes timestamp arithmetic and therefore remains callback-free, as do invalid/expired codes and missing curl. Generate a fresh tracked command for a deliberate retry after failure; an old failed/cancelled relay session is not renewed by executing its token again.
+
+`installed` means only that `setup.sh` returned zero. `services_ready` requires every expected service to be running; it does not prove audio readiness. `voice_ready` is sent only when the person explicitly confirms a real spoken response. Noninteractive/unfinished verification reports `needs_attention`, preserving installer success. Before installation completes, trapped HUP/INT/TERM and installer exit statuses 129/130/143 report `cancelled`; other failures report `failed` without changing the exit result. [`test_callbacks.py`](../test/test_callbacks.py) contains Python `tracked_run`, `callbacks` and `events` helpers plus 114 isolated transport, storage, signal, opt-out and confirmation regressions. [`build`](../scripts/build-launcher.py#L11) embeds the trusted callback/runtime sources in both generated entry points.
 
 ## Protocol
 
@@ -66,7 +82,7 @@ The outer launcher writes a private `~/.config/ovos-installer/check-setup.sh` be
 
 [`sound_check`](../lib/runtime.sh#L94) uses installed `ovos_bus_client.MessageBusClient` / `Message` to emit a localized `speak` message only after a user chooses the test. It waits at most eight seconds for connection, fifteen for playback notification, with a thirty-second Python alarm. See [`ovos-bus-client: scripts.py`](../../ovos-bus-client/ovos_bus_client/scripts.py), specifically `ovos_speak`, for the existing API contract. Docker uses the installed `ovos_audio` container; virtualenv routes use `~/.venvs/ovos/bin/python3`. User confirmation of an audible response remains separate from transport events.
 
-[`check_setup`](../lib/runtime.sh#L131) returns0 only after a human confirms a spoken response; return3 means unfinished or satellite-dependent. The installer return code is not a voice-health signal. The parent installation command does not convert an unfinished optional check into an installation failure. It prints safe log/community recovery on an actual nonzero installer exit. No callback is sent to the browser, no inbound server is opened and no logs are uploaded. Physical installation and fluent language review remain outside mock-test evidence.
+[`check_setup`](../lib/runtime.sh#L225) returns0 only after a human confirms a spoken response; return3 means unfinished or satellite-dependent. The installer return code is not a voice-health signal. The parent installation command does not convert an unfinished optional check into an installation failure. It prints safe log/community recovery on an actual nonzero installer exit. With a tracking capability, fixed progress events update the wizard through its relay; no inbound server is opened and no logs are uploaded. Physical installation and fluent language review remain outside mock-test evidence.
 
 ## Safe activation and bounded recovery (2.1.1)
 

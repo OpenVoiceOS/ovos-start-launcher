@@ -138,7 +138,7 @@ check_services() {
       if ! run_bounded 5 systemctl --user is-active --quiet "$ovos_service.service" 2>/dev/null && ! run_bounded 5 systemctl is-active --quiet "$ovos_service.service" 2>/dev/null; then ovos_health=waiting; fi
     done
   fi
-  case "$ovos_health" in running) say servicesOk;; waiting) say servicesMissing;; *) say servicesUnknown;; esac
+  case "$ovos_health" in running) say servicesOk; report_status services_ready;; waiting) say servicesMissing;; *) say servicesUnknown;; esac
 }
 
 # Locale/method are initialized by the validated launcher/checker header.
@@ -184,7 +184,7 @@ OVOS_SOUND
 
 # Experience/skills are initialized by the validated launcher/checker header.
 # shellcheck disable=SC2154
-check_setup() {
+check_setup_inner() {
   printf '\n'; say health; check_services
   say resume
   # Expand HOME when the user later pastes the recovery command.
@@ -215,9 +215,15 @@ check_setup() {
   while :; do
     terminal_choice voiceQuestion || { say incomplete; return 3; }
     case "$ovos_answer" in
-      1) say voiceOk; return 0;;
+      1) say voiceOk; report_status voice_ready; return 0;;
       2) say voiceIntro; [ "$ovos_skills" != true ] || say voicePhrase;;
       *) say incomplete; say help; return 3;;
     esac
   done
+}
+
+check_setup() {
+  if check_setup_inner; then return 0; fi
+  report_status needs_attention
+  return 3
 }

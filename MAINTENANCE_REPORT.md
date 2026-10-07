@@ -1,6 +1,20 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1. Preserve probe input under dash.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
 
 # Maintenance report
+
+## 2026-10-07 — Version 2.2.0
+
+Added optional `CODE --track TOKEN` progress callbacks without changing the recipe codec or its one-hour deadline. The generated launchers send only fixed event names to a fixed HTTPS relay using a separate write capability. Added private delayed token activation, durable checker callbacks after restart, strict input/path guards, disabled curlrc loading, bounded transport and exact failure/signal preservation. Plain and read-only execution remain callback-free. Documented the command-history limitation and the separation between installer completion, running services and human-confirmed voice response.
+
+Coordinating-agent review added a private success receipt, bound to the current token and written only after zero installer exit, so a later checker can recover a dropped completion event. Added generic reporting for validated preflight rejection while suppressing duplicate-lock events to protect an active browser session. Early architecture/invalid/expired-code gates remain callback-free. Receipt write errors never alter an actual successful installer result.
+
+Verification: **638 pytest cases and 38 Node cases pass**, including 114 new callback cases. POSIX/Bash syntax, generated parity, diff checks and ShellCheck 0.11/0.9 pass. Generated v2 is 110,196 bytes, below 120,000. No real installer, administrator escalation, network callback or physical microphone/speaker operation was performed. Coordinating-agent relay/browser integration and live deployment verification remain separate.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** Implemented callback transport, launcher/runtime hooks, private token persistence, generated artifacts, regression/PTY/signal tests, CI coverage and documentation.
+- **Oversight:** The user explicitly requested webhook-based installation progress. The coordinating agent specified the relay contract and owns server/UI integration, review and publication. Tests substituted local fakes for every network/installer/service operation; human hardware testing remains outstanding.
 
 ## 2026-10-07 — Version 2.1.1
 

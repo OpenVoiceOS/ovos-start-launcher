@@ -1,6 +1,14 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1. Preserve probe input under dash.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
 
 # Suggestions
+
+## Completed: optional browser progress
+
+**Problem:** The browser could not tell installation from successful voice setup. **Implemented:** Separate status-write capabilities, minimal fixed events, private restart recovery, bounded best-effort HTTPS callbacks and human-confirmed voice completion. **Impact:** The wizard can show meaningful progress without collecting logs or blocking an install when the browser/relay is unavailable. Evidence: [`test_callbacks.py`](test/test_callbacks.py) and [callback audit](AUDIT.md#2026-10-07--version-220-callback-audit).
+
+## Exercise relay interruptions on real hardware
+
+**Remaining opportunity:** Mock transport tests cannot prove reboots, offline periods and proxy behavior in a real household. **Proposal:** Validate an actual Pi installation with the relay temporarily unreachable, a reboot before voice confirmation, and later `check-setup.sh` recovery in the selected language. Confirm the browser never treats missing status as proof of success or failure. **Impact:** Verifies the complete device-to-browser contract while retaining installation independence from tracking.
 
 ## Completed: reliable activation and failure handling
 

@@ -22,7 +22,8 @@ def run_runtime(tmp_path: Path, source: str, *, shell: str = "/bin/sh",
     environment = {"HOME": str(tmp_path), "PATH": "/usr/bin:/bin", "LC_ALL": "C",
                    **(changes or {})}
     return subprocess.run(
-        [shell, "-c", 'set -eu; . "$1"; ' + source, "runtime", str(ROOT / "lib/runtime.sh")],
+        [shell, "-c", 'set -eu; . "$2"; . "$1"; ' + source, "runtime",
+         str(ROOT / "lib/runtime.sh"), str(ROOT / "lib/callback.sh")],
         cwd=tmp_path, env=environment, input=input_text, capture_output=True,
         text=True, timeout=timeout,
     )

@@ -29,7 +29,15 @@ ovos_mode=install
 case "${1:-}" in
   --decode|--scenario) ovos_mode=${1#--}; shift;;
 esac
-[ "$#" = 1 ] || fail 'Paste the complete command from OVOS Start, including your setup code.'
+ovos_track=''
+if [ "$#" = 3 ] && [ "$2" = --track ]; then
+  ovos_track=$3
+  [ "${#ovos_track}" = 64 ] || fail 'Invalid installation status token. Copy the command again.'
+  case "$ovos_track" in *[!0-9a-f]*) fail 'Invalid installation status token. Copy the command again.';; esac
+elif [ "$#" != 1 ]; then
+  fail 'Paste the complete command from OVOS Start, including your setup code.'
+fi
+# @CALLBACKS@
 case "$1" in
   ????????|????-????) fail 'This legacy setup code has no expiry. Generate a new one-hour code in OVOS Start.';;
   ????????????????|????-????-????-????) :;;
@@ -157,6 +165,22 @@ if [ "$ovos_mode" = decode ]; then
 fi
 if [ "$ovos_mode" = scenario ]; then scenario; exit 0; fi
 
+ovos_tmp=''
+ovos_lock=''
+ovos_installed=false
+ovos_cleanup_result=0
+cleanup() {
+  if [ "$ovos_installed" != true ] && [ "$1" -ne 0 ]; then
+    case "$1" in 129|130|143) report_status cancelled;; *) report_status failed;; esac
+  fi
+  [ -z "$ovos_tmp" ] || rm -rf "$ovos_tmp" || :
+  [ -z "$ovos_lock" ] || rmdir "$ovos_lock" 2>/dev/null || :
+}
+trap 'ovos_cleanup_result=$?; cleanup "$ovos_cleanup_result"; exit "$ovos_cleanup_result"' 0
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+
 # The reviewed macOS contract supports Intel and Apple Silicon. Current main
 # changes that promise; keep Mac defaults on the same pinned source as preview.
 ovos_installer=main
@@ -180,7 +204,7 @@ for ovos_path in "$HOME/.config" "$ovos_cfg"; do
     say unsafeConfig >&2; printf '%s\n' "$ovos_path" >&2; exit 1
   fi
 done
-for ovos_path in "$ovos_cfg/scenario.yaml" "$ovos_cfg/check-setup.sh"; do
+for ovos_path in "$ovos_cfg/scenario.yaml" "$ovos_cfg/check-setup.sh" "$ovos_cfg/status-token" "$ovos_cfg/status-installed"; do
   if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -f "$ovos_path" ]; }; then
     say unsafeConfig >&2; printf '%s\n' "$ovos_path" >&2; exit 1
   fi
@@ -189,21 +213,18 @@ umask 077
 mkdir -p "$ovos_cfg"
 chmod 700 "$ovos_cfg"
 # Upstream locks only after our handoff. Protect settings before activation too.
-ovos_lock="$ovos_cfg/.launcher-lock"
-if ! mkdir "$ovos_lock" 2>/dev/null; then
-  say locked >&2; printf '%s\n' "$ovos_lock" >&2; exit 1
+ovos_pending_lock="$ovos_cfg/.launcher-lock"
+if ! mkdir "$ovos_pending_lock" 2>/dev/null; then
+  # A double paste may carry the active install's capability. Do not poison its
+  # browser session with a failure belonging only to this refused second run.
+  ovos_track=''
+  say locked >&2; printf '%s\n' "$ovos_pending_lock" >&2; exit 1
 fi
-ovos_tmp=''
-cleanup() {
-  [ -z "$ovos_tmp" ] || rm -rf "$ovos_tmp" || :
-  rmdir "$ovos_lock" 2>/dev/null || :
-}
-trap cleanup 0
-trap 'exit 130' INT
-trap 'exit 143' TERM
-trap 'exit 129' HUP
+ovos_lock=$ovos_pending_lock
 ovos_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ovos-start.XXXXXX")
+report_status started
 say download
+report_status downloading
 ovos_revision=main
 if [ "$ovos_installer" = pinned ]; then
   ovos_revision=6ffd465028bac299e5235d619819bfdc734af073
@@ -232,6 +253,10 @@ if [ -e "$ovos_cfg/scenario.yaml" ] || [ -L "$ovos_cfg/scenario.yaml" ]; then
   say backup; printf '%s\n' "$ovos_backup"
 fi
 scenario > "$ovos_tmp/scenario.yaml"
+printf '%s\n' "$ovos_track" > "$ovos_tmp/status-token"
+printf '%s\n' "$ovos_track" > "$ovos_tmp/status-installed"
+: > "$ovos_tmp/status-installed-empty"
+chmod 600 "$ovos_tmp/status-token" "$ovos_tmp/status-installed" "$ovos_tmp/status-installed-empty"
 write_messages > "$ovos_tmp/runtime.sh"
 cat >> "$ovos_tmp/runtime.sh" <<'OVOS_RUNTIME'
 # @RUNTIME@
@@ -241,7 +266,7 @@ OVOS_RUNTIME
   printf '%s\n' '#!/bin/sh' 'set -eu' 'set +x'
   printf "ovos_locale='%s'\novos_device='%s'\novos_experience='%s'\novos_method='%s'\novos_skills='%s'\n" "$ovos_locale" "$ovos_device" "$ovos_experience" "$ovos_method" "$ovos_skills"
   cat "$ovos_tmp/runtime.sh"
-  printf '%s\n' 'check_setup'
+  printf '%s\n' 'load_status_token' 'report_saved_install' 'check_setup'
 } > "$ovos_tmp/check-setup.sh"
 chmod 700 "$ovos_tmp/check-setup.sh"
 say resume
@@ -302,18 +327,38 @@ say installing
 for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
   if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then say unsafeConfig >&2; exit 1; fi
 done
-for ovos_path in "$ovos_home/.config/ovos-installer/scenario.yaml" "$ovos_home/.config/ovos-installer/check-setup.sh"; do
+for ovos_path in "$ovos_home/.config/ovos-installer/scenario.yaml" "$ovos_home/.config/ovos-installer/check-setup.sh" "$ovos_home/.config/ovos-installer/status-token" "$ovos_home/.config/ovos-installer/status-installed"; do
   if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -f "$ovos_path" ]; }; then say unsafeConfig >&2; exit 1; fi
 done
+# Clear an earlier receipt before activating any new attempt, including when
+# someone explicitly reruns the same tracking token and installation fails.
+mv "${11}" "$ovos_home/.config/ovos-installer/status-installed"
 mv "$ovos_scenario" "$ovos_home/.config/ovos-installer/scenario.yaml"
 mv "$9" "$ovos_home/.config/ovos-installer/check-setup.sh"
+mv "${10}" "$ovos_home/.config/ovos-installer/status-token"
+# sudo may use root's HOME; load only the validated original account's file.
+ovos_track=''
+IFS= read -r ovos_track < "$ovos_home/.config/ovos-installer/status-token" || ovos_track=''
 export RUN_AS="$SUDO_USER"
 export RUN_AS_HOME="$ovos_home"
 # The upstream bootstrap can hide setup.sh's failure and delete a HOME checkout.
 # Execute the resolved setup directly and preserve its exact result.
+report_status installing
 "$ovos_bash" setup.sh
+# The pre-created receipt belongs to the regular user and remains mode0600.
+# Recheck after the installer ran; failure to persist progress never changes
+# an actual zero installer result. A checker only replays a matching receipt.
+ovos_receipt_safe=true
+for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
+  if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then ovos_receipt_safe=false; fi
+done
+ovos_receipt="$ovos_home/.config/ovos-installer/status-installed"
+if [ -L "$ovos_receipt" ] || { [ -e "$ovos_receipt" ] && [ ! -f "$ovos_receipt" ]; }; then ovos_receipt_safe=false; fi
+if [ "$ovos_receipt_safe" = true ]; then mv "${12}" "$ovos_receipt" || :; fi
+report_status installed
 OVOS_LAUNCH
-if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh"; then
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed"; then
+  ovos_installed=true
   say installReturned
   # Incomplete verification is not an installer failure. The checker itself
   # returns 3 to distinguish it from a user-confirmed first voice response.

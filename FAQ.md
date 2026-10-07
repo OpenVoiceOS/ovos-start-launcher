@@ -1,6 +1,18 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1. Preserve probe input under dash.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
 
 # Frequently asked questions
+
+## How does the wizard follow installation?
+
+The wizard can append `--track` and a private status-write capability to the command. The launcher sends fixed progress names to a fixed HTTPS relay, never installation logs, voice recordings, API keys or device identifiers. Keep the complete command private. The ordinary short setup code contains no secret. See [`report_status`](lib/callback.sh#L3) and [protocol details](docs/index.md#optional-installation-progress-220).
+
+## What if the browser closes, the relay is down or the device restarts?
+
+Installation continues independently. Each status request has a three-second total limit; failed requests never fail installation. The private checker resumes updates after a restart while its capability is valid. The relay expires tracking after 24 hours; the code must still be used within its original one-hour window. Requests are not automatically retried, but the checker re-sends a saved, matching installation-success receipt before checking services. The browser can lag behind the terminal. Run `sh "$HOME/.config/ovos-installer/check-setup.sh"` for current service and voice checks. See [`test_transport_failures_do_not_change_success_or_echo_secrets`](test/test_callbacks.py#L70).
+
+## Can I stop reporting installation progress?
+
+Yes. Omit `--track` when running the launcher, or delete `~/.config/ovos-installer/status-token` to stop reports from the already-installed checker. No running installer process is stopped by deleting that file. A fresh untracked run replaces an old capability with an empty private file, so it cannot update an earlier browser session. See [`test_untracked_install_clears_old_capability_without_network`](test/test_callbacks.py#L276).
 
 ## Why does it say a setup is already running?
 
@@ -58,7 +70,7 @@ The browser supplies the issuance timestamp; the target reads `date +%s`. Both n
 
 ## Is the one-hour expiry a security token or server-side deletion?
 
-No server stores a per-code record. The timestamp is public and CRC-8 detects transcription errors, not forgery. Someone can change their clock or regenerate a code and checksum. A code is reusable within its valid period; there is no signature, individual revocation, encryption or single-use guarantee. The check helps users avoid running stale instructions. Launcher availability, downloaded upstream code and the target's actual compatibility remain separate requirements.
+Recipe decoding has no server-side authorization record; optional tracking uses a separate relay capability. The timestamp is public and CRC-8 detects transcription errors, not forgery. Someone can change their clock or regenerate a code and checksum. A code is reusable within its valid period; there is no signature, individual revocation, encryption or single-use guarantee. The check helps users avoid running stale instructions. Launcher availability, downloaded upstream code and the target's actual compatibility remain separate requirements.
 
 ## Does the browser upload settings to a paste service?
 
