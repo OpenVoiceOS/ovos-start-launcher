@@ -344,6 +344,10 @@ export RUN_AS_HOME="$ovos_home"
 # The upstream bootstrap can hide setup.sh's failure and delete a HOME checkout.
 # Execute the resolved setup directly and preserve its exact result.
 report_status installing
+# The installer creates what other accounts run: the user runs its virtualenv and
+# services read its units. Under this launcher's own 077 the virtualenv came out
+# root's alone, and the first task run as the user failed with "Permission denied".
+umask 022
 "$ovos_bash" setup.sh
 # The pre-created receipt belongs to the regular user and remains mode0600.
 # Recheck after the installer ran; failure to persist progress never changes
