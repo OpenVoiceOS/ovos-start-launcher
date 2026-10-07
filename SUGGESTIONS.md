@@ -1,6 +1,14 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Document localized recovery, durable verification and pinned Mac support in 2.1.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
 
 # Suggestions
+
+## Completed: reliable activation and failure handling
+
+**Problem:** The main bootstrap hid failures; ambiguous destination paths, concurrent launches and stalled service tools could break recovery. **Implemented:** Direct setup execution, exact-path validation, private backups, per-account locking, delayed checker replacement, bounded probes and Linux/macOS CI. **Impact:** Failures remain visible, competing launchers preserve settings, and health checks return instead of waiting indefinitely. [Audit evidence](AUDIT.md#2026-10-07--version-211-reliability-audit).
+
+## Keep interrupted-lock recovery deliberate
+
+**Problem:** An uncatchable interruption can retain the launcher lock. **Proposal:** Keep the explicit inactive-process check and `rmdir` recovery documented; add automatic stale-lock recovery only with a portable process/boot identity design and race tests. **Impact:** Prevents accidentally unlocking a still-running installation.
 
 ## Completed: recoverable terminal handoff
 

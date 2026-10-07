@@ -57,6 +57,8 @@ message() {
     en-us:help) printf '%s' 'Need a hand? Community chat: https://matrix.to/#/#openvoiceos:matrix.org';;
     en-us:closed) printf '%s' 'No interactive terminal is available. Run the check command in a terminal when you are ready.';;
     en-us:preview) printf '%s' 'Uses the reviewed experimental speech installer (PR #648).';;
+    en-us:unsafeConfig) printf '%s' 'The setup folder contains an unexpected file or link. Move it aside, then try again. Your settings were not replaced.';;
+    en-us:locked) printf '%s' 'A setup is running, or an interrupted attempt left a lock. First make sure no setup is running. Then remove this lock folder and try again:';;
     fr-fr:bits) printf '%s' 'OVOS nécessite un système 64 bits. Aucune modification n’a été faite.';;
     fr-fr:invalid) printf '%s' 'Ce code est incorrect ou incomplet. Copiez une nouvelle commande depuis le guide.';;
     fr-fr:expired) printf '%s' 'Ce code a expiré au bout d’une heure. Générez-en un nouveau dans le guide.';;
@@ -107,6 +109,8 @@ message() {
     fr-fr:help) printf '%s' 'Besoin d’un coup de main ? Discussion communautaire : https://matrix.to/#/#openvoiceos:matrix.org';;
     fr-fr:closed) printf '%s' 'Aucun terminal interactif n’est disponible. Lancez la commande de vérification dans un terminal lorsque vous serez prêt.';;
     fr-fr:preview) printf '%s' 'Utilise la version expérimentale vérifiée du programme d’installation vocal (PR #648).';;
+    fr-fr:unsafeConfig) printf '%s' 'Le dossier de configuration contient un fichier ou un lien inattendu. Déplacez-le, puis réessayez. Vos réglages n’ont pas été remplacés.';;
+    fr-fr:locked) printf '%s' 'Une installation est en cours, ou une tentative interrompue a laissé un verrou. Vérifiez d’abord qu’aucune installation ne tourne. Supprimez ensuite ce dossier de verrouillage, puis réessayez :';;
     de-de:bits) printf '%s' 'OVOS benötigt ein 64-Bit-Betriebssystem. Es wurde nichts geändert.';;
     de-de:invalid) printf '%s' 'Dieser Einrichtungscode ist ungültig oder unvollständig. Kopiere einen neuen Befehl aus dem Assistenten.';;
     de-de:expired) printf '%s' 'Dieser Code ist nach einer Stunde abgelaufen. Erstelle im Assistenten einen neuen.';;
@@ -157,6 +161,8 @@ message() {
     de-de:help) printf '%s' 'Brauchst du Hilfe? Community-Chat: https://matrix.to/#/#openvoiceos:matrix.org';;
     de-de:closed) printf '%s' 'Kein interaktives Terminal verfügbar. Führe den Prüfbefehl später in einem Terminal aus.';;
     de-de:preview) printf '%s' 'Verwendet das geprüfte experimentelle Sprach-Installationsprogramm (PR #648).';;
+    de-de:unsafeConfig) printf '%s' 'Im Einrichtungsordner liegt eine unerwartete Datei oder Verknüpfung. Verschiebe sie und versuche es erneut. Deine Einstellungen wurden nicht ersetzt.';;
+    de-de:locked) printf '%s' 'Eine Einrichtung läuft noch oder hat nach einem Abbruch eine Sperre hinterlassen. Prüfe zuerst, dass keine Einrichtung mehr läuft. Entferne dann diesen Sperrordner und versuche es erneut:';;
     es-es:bits) printf '%s' 'OVOS necesita un sistema operativo de 64 bits. No se ha cambiado nada.';;
     es-es:invalid) printf '%s' 'El código no es válido o está incompleto. Copia un comando nuevo del asistente.';;
     es-es:expired) printf '%s' 'Este código ha caducado tras una hora. Genera uno nuevo en el asistente.';;
@@ -207,6 +213,8 @@ message() {
     es-es:help) printf '%s' '¿Necesitas ayuda? Chat de la comunidad: https://matrix.to/#/#openvoiceos:matrix.org';;
     es-es:closed) printf '%s' 'No hay un terminal interactivo. Ejecuta el comando de comprobación en un terminal cuando quieras continuar.';;
     es-es:preview) printf '%s' 'Utiliza el instalador experimental de voz revisado (PR #648).';;
+    es-es:unsafeConfig) printf '%s' 'La carpeta de configuración contiene un archivo o enlace inesperado. Muévelo a otro lugar y vuelve a intentarlo. No se han sustituido tus ajustes.';;
+    es-es:locked) printf '%s' 'Hay una instalación en curso o un intento interrumpido ha dejado un bloqueo. Primero comprueba que no haya ninguna instalación en marcha. Después elimina esta carpeta de bloqueo y vuelve a intentarlo:';;
     it-it:bits) printf '%s' 'OVOS richiede un sistema operativo a 64 bit. Non è stato modificato nulla.';;
     it-it:invalid) printf '%s' 'Il codice non è valido o è incompleto. Copia un nuovo comando dalla procedura guidata.';;
     it-it:expired) printf '%s' 'Questo codice è scaduto dopo un’ora. Creane uno nuovo nella procedura guidata.';;
@@ -257,6 +265,8 @@ message() {
     it-it:help) printf '%s' 'Serve aiuto? Chat della comunità: https://matrix.to/#/#openvoiceos:matrix.org';;
     it-it:closed) printf '%s' 'Non è disponibile un terminale interattivo. Esegui il comando di verifica in un terminale quando sei pronto.';;
     it-it:preview) printf '%s' 'Usa il programma di installazione vocale sperimentale verificato (PR #648).';;
+    it-it:unsafeConfig) printf '%s' 'La cartella di configurazione contiene un file o collegamento inatteso. Spostalo altrove e riprova. Le tue impostazioni non sono state sostituite.';;
+    it-it:locked) printf '%s' 'È in corso un’installazione, oppure un tentativo interrotto ha lasciato un blocco. Prima verifica che non ci siano installazioni in corso. Poi rimuovi questa cartella di blocco e riprova:';;
     nl-nl:bits) printf '%s' 'OVOS heeft een 64-bits besturingssysteem nodig. Er is niets gewijzigd.';;
     nl-nl:invalid) printf '%s' 'Deze instelcode is ongeldig of onvolledig. Kopieer een nieuw commando uit de wizard.';;
     nl-nl:expired) printf '%s' 'Deze code is na een uur verlopen. Maak een nieuwe code in de wizard.';;
@@ -307,6 +317,8 @@ message() {
     nl-nl:help) printf '%s' 'Hulp nodig? Communitychat: https://matrix.to/#/#openvoiceos:matrix.org';;
     nl-nl:closed) printf '%s' 'Er is geen interactieve terminal. Voer het controlecommando later in een terminal uit.';;
     nl-nl:preview) printf '%s' 'Gebruikt de beoordeelde experimentele spraakinstaller (PR #648).';;
+    nl-nl:unsafeConfig) printf '%s' 'De instelmap bevat een onverwacht bestand of een onverwachte koppeling. Verplaats dit naar een andere plek en probeer het opnieuw. Je instellingen zijn niet vervangen.';;
+    nl-nl:locked) printf '%s' 'Er loopt een installatie, of een onderbroken poging heeft een vergrendeling achtergelaten. Controleer eerst of er geen installatie meer draait. Verwijder daarna deze vergrendelingsmap en probeer het opnieuw:';;
     pt-pt:bits) printf '%s' 'O OVOS precisa de um sistema operativo de 64 bits. Não foi feita nenhuma alteração.';;
     pt-pt:invalid) printf '%s' 'O código é inválido ou está incompleto. Copia um novo comando do assistente.';;
     pt-pt:expired) printf '%s' 'Este código expirou ao fim de uma hora. Gera outro no assistente.';;
@@ -357,6 +369,8 @@ message() {
     pt-pt:help) printf '%s' 'Precisas de ajuda? Conversa da comunidade: https://matrix.to/#/#openvoiceos:matrix.org';;
     pt-pt:closed) printf '%s' 'Não há um terminal interativo disponível. Executa o comando de verificação num terminal quando quiseres continuar.';;
     pt-pt:preview) printf '%s' 'Usa o instalador experimental de voz revisto (PR #648).';;
+    pt-pt:unsafeConfig) printf '%s' 'A pasta de configuração contém um ficheiro ou uma ligação inesperados. Move-os para outro local e tenta novamente. As tuas definições não foram substituídas.';;
+    pt-pt:locked) printf '%s' 'Está a decorrer uma instalação, ou uma tentativa interrompida deixou um bloqueio. Primeiro, confirma que não está a decorrer nenhuma instalação. Depois remove esta pasta de bloqueio e tenta novamente:';;
     ca-es:bits) printf '%s' 'OVOS necessita un sistema operatiu de 64 bits. No s’ha canviat res.';;
     ca-es:invalid) printf '%s' 'El codi no és vàlid o és incomplet. Copia una ordre nova de l’assistent.';;
     ca-es:expired) printf '%s' 'Aquest codi ha caducat al cap d’una hora. Genera’n un de nou a l’assistent.';;
@@ -407,6 +421,8 @@ message() {
     ca-es:help) printf '%s' 'Et cal ajuda? Xat de la comunitat: https://matrix.to/#/#openvoiceos:matrix.org';;
     ca-es:closed) printf '%s' 'No hi ha cap terminal interactiu disponible. Executa l’ordre de comprovació en un terminal quan vulguis continuar.';;
     ca-es:preview) printf '%s' 'Fa servir l’instal·lador experimental de veu revisat (PR #648).';;
+    ca-es:unsafeConfig) printf '%s' 'La carpeta de configuració conté un fitxer o un enllaç inesperat. Mou-lo a un altre lloc i torna-ho a provar. Els ajustos no s’han substituït.';;
+    ca-es:locked) printf '%s' 'Hi ha una instal·lació en curs, o un intent interromput ha deixat un bloqueig. Primer comprova que no hi hagi cap instal·lació en marxa. Després elimina aquesta carpeta de bloqueig i torna-ho a provar:';;
     eu-es:bits) printf '%s' 'OVOSek 64 biteko sistema eragilea behar du. Ez da ezer aldatu.';;
     eu-es:invalid) printf '%s' 'Konfigurazio-kodea ez da baliozkoa edo osatu gabe dago. Kopiatu beste komando bat morroitik.';;
     eu-es:expired) printf '%s' 'Kodea ordubete igarota iraungi da. Sortu beste bat morroian.';;
@@ -457,6 +473,8 @@ message() {
     eu-es:help) printf '%s' 'Laguntza behar duzu? Komunitatearen txata: https://matrix.to/#/#openvoiceos:matrix.org';;
     eu-es:closed) printf '%s' 'Ez dago terminal interaktiborik. Prest zaudenean, exekutatu egiaztapen-komandoa terminal batean.';;
     eu-es:preview) printf '%s' 'Berrikusitako ahots-instalatzaile esperimentala erabiltzen du (PR #648).';;
+    eu-es:unsafeConfig) printf '%s' 'Konfigurazio-karpetan espero ez zen fitxategi edo esteka bat dago. Mugitu beste toki batera eta saiatu berriro. Ezarpenak ez dira ordeztu.';;
+    eu-es:locked) printf '%s' 'Instalazio bat martxan dago, edo etendako saiakera batek blokeoa utzi du. Lehenik, ziurtatu ez dagoela instalaziorik martxan. Ondoren, ezabatu blokeo-karpeta hau eta saiatu berriro:';;
     gl-es:bits) printf '%s' 'OVOS precisa un sistema operativo de 64 bits. Non se cambiou nada.';;
     gl-es:invalid) printf '%s' 'O código non é válido ou está incompleto. Copia un comando novo do asistente.';;
     gl-es:expired) printf '%s' 'Este código caducou ao cabo dunha hora. Xera outro no asistente.';;
@@ -507,6 +525,8 @@ message() {
     gl-es:help) printf '%s' 'Precisas axuda? Chat da comunidade: https://matrix.to/#/#openvoiceos:matrix.org';;
     gl-es:closed) printf '%s' 'Non hai un terminal interactivo dispoñible. Executa o comando de comprobación nun terminal cando queiras continuar.';;
     gl-es:preview) printf '%s' 'Usa o instalador experimental de voz revisado (PR #648).';;
+    gl-es:unsafeConfig) printf '%s' 'O cartafol de configuración contén un ficheiro ou unha ligazón inesperados. Móveos a outro lugar e téntao de novo. Non se substituíron os teus axustes.';;
+    gl-es:locked) printf '%s' 'Hai unha instalación en curso ou un intento interrompido deixou un bloqueo. Primeiro comproba que non haxa ningunha instalación en marcha. Despois elimina este cartafol de bloqueo e téntao de novo:';;
     hi-in:bits) printf '%s' 'OVOS के लिए 64-बिट ऑपरेटिंग सिस्टम चाहिए। कोई बदलाव नहीं किया गया।';;
     hi-in:invalid) printf '%s' 'सेटअप कोड गलत या अधूरा है। विज़ार्ड से नया कमांड कॉपी करें।';;
     hi-in:expired) printf '%s' 'एक घंटा पूरा होने पर यह कोड समाप्त हो गया। विज़ार्ड में नया कोड बनाएँ।';;
@@ -557,6 +577,8 @@ message() {
     hi-in:help) printf '%s' 'मदद चाहिए? समुदाय से बात करें: https://matrix.to/#/#openvoiceos:matrix.org';;
     hi-in:closed) printf '%s' 'इंटरैक्टिव टर्मिनल उपलब्ध नहीं है। तैयार होने पर जाँच वाला कमांड किसी टर्मिनल में चलाएँ।';;
     hi-in:preview) printf '%s' 'जाँचे गए प्रयोगात्मक वॉइस इंस्टॉलर का उपयोग करता है (PR #648)।';;
+    hi-in:unsafeConfig) printf '%s' 'सेटअप फ़ोल्डर में कोई अनपेक्षित फ़ाइल या लिंक है। उसे दूसरी जगह ले जाएँ, फिर कोशिश करें। आपकी सेटिंग नहीं बदली गई हैं।';;
+    hi-in:locked) printf '%s' 'कोई इंस्टॉलेशन चल रहा है, या बीच में रुके प्रयास का लॉक रह गया है। पहले सुनिश्चित करें कि कोई इंस्टॉलेशन नहीं चल रहा है। फिर यह लॉक फ़ोल्डर हटाएँ और दोबारा कोशिश करें:';;
     kab-dz:bits) printf '%s' 'OVOS yesra anagraw n wammud 64 ibiten. Ulac abeddel i yettwaxedmen.';;
     kab-dz:invalid) printf '%s' 'Tangalt n usbeddi mačči d tameɣtut neɣ ur temmid ara. Nɣel taladna tamaynut seg umallal.';;
     kab-dz:expired) printf '%s' 'Tangalt-a tfukk seld yiwen n usrag. Snulfu-d tayeḍ deg umallal.';;
@@ -607,6 +629,8 @@ message() {
     kab-dz:help) printf '%s' 'Tesriḍ tallalt? Asqerdec n tmezdagnut: https://matrix.to/#/#openvoiceos:matrix.org';;
     kab-dz:closed) printf '%s' 'Ulac tadiwent amyigawant. Selkem taladna n usenqed deg tadiwent mi ara theggiḍ.';;
     kab-dz:preview) printf '%s' 'Yesseqdac asebdad n taɣect armitan yettwasenqden (PR #648).';;
+    kab-dz:unsafeConfig) printf '%s' 'Akaram n useɣwer yesɛa afaylu neɣ aseɣwen ur nettwarǧi ara. Senkez-it ɣer umḍiq-nniḍen, syen ɛreḍ tikkelt-nniḍen. Iɣewwaren-ik ur ttwasemselsin ara.';;
+    kab-dz:locked) printf '%s' 'Asbeddi la iteddu, neɣ asbeddi yeḥbes yeǧǧa akaram n usekṛu. Senqed qbel belli ulac asbeddi iteddun. Syen kkes akaram-a n usekṛu, ɛreḍ tikkelt-nniḍen:';;
     *) printf '%s' 'OVOS: unknown message';;
   esac
 }
@@ -615,7 +639,7 @@ say() { message "$1"; printf '\n'; }
 # shellcheck disable=SC2016
 write_messages() {
   printf '%s\n' 'message() {' '  case "$1" in'
-  for ovos_key in audioFailed audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl mac preview regular required resume revision servicesMissing servicesOk servicesUnknown urlError voiceIntro voiceOk voicePhrase voiceQuestion; do
+  for ovos_key in audioFailed audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac preview regular required resume revision servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceOk voicePhrase voiceQuestion; do
     printf '%s' "    $ovos_key) printf '%s' '"
     message "$ovos_key" | sed "s/'/'\\\\''/g"
     printf '%s\n' "';;"
@@ -786,31 +810,67 @@ if [ "$ovos_device" = mac ]; then
 else
   [ "$(uname -s)" = Linux ] || fail_message linux
 fi
-for ovos_program in curl git sudo; do command -v "$ovos_program" >/dev/null 2>&1 || { say dependency >&2; printf '%s\n' "$ovos_program" >&2; exit 1; }; done
+for ovos_program in git sudo; do command -v "$ovos_program" >/dev/null 2>&1 || { say dependency >&2; printf '%s\n' "$ovos_program" >&2; exit 1; }; done
+[ -n "${HOME:-}" ] && [ -d "$HOME" ] || fail_message unsafeConfig
+case "$HOME" in /*) :;; *) fail_message unsafeConfig;; esac
 [ ! -e "$HOME/ovos-installer" ] && [ ! -L "$HOME/ovos-installer" ] || fail_message existing
-say download
-if [ "$ovos_installer" = pinned ]; then say preview; fi
+# Validate before downloading or replacing files: mv must not nest a helper
+# inside a directory, and cp must not wait forever on a FIFO.
+ovos_cfg="$HOME/.config/ovos-installer"
+for ovos_path in "$HOME/.config" "$ovos_cfg"; do
+  if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -d "$ovos_path" ]; }; then
+    say unsafeConfig >&2; printf '%s\n' "$ovos_path" >&2; exit 1
+  fi
+done
+for ovos_path in "$ovos_cfg/scenario.yaml" "$ovos_cfg/check-setup.sh"; do
+  if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -f "$ovos_path" ]; }; then
+    say unsafeConfig >&2; printf '%s\n' "$ovos_path" >&2; exit 1
+  fi
+done
 umask 077
-ovos_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ovos-start.XXXXXX")
-trap 'rm -rf "$ovos_tmp"' 0
+mkdir -p "$ovos_cfg"
+chmod 700 "$ovos_cfg"
+# Upstream locks only after our handoff. Protect settings before activation too.
+ovos_lock="$ovos_cfg/.launcher-lock"
+if ! mkdir "$ovos_lock" 2>/dev/null; then
+  say locked >&2; printf '%s\n' "$ovos_lock" >&2; exit 1
+fi
+ovos_tmp=''
+cleanup() {
+  [ -z "$ovos_tmp" ] || rm -rf "$ovos_tmp" || :
+  rmdir "$ovos_lock" 2>/dev/null || :
+}
+trap cleanup 0
 trap 'exit 130' INT
 trap 'exit 143' TERM
-ovos_source="$ovos_tmp/installer.sh"
+trap 'exit 129' HUP
+ovos_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ovos-start.XXXXXX")
+say download
+ovos_revision=main
 if [ "$ovos_installer" = pinned ]; then
-  ovos_source="$ovos_tmp/source"
-  mkdir "$ovos_source"
-  git -C "$ovos_source" init --quiet || fail_message downloadFailed
-  git -C "$ovos_source" fetch --quiet --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git 6ffd465028bac299e5235d619819bfdc734af073 || fail_message downloadFailed
-  git -C "$ovos_source" checkout --quiet --detach FETCH_HEAD || fail_message downloadFailed
-  [ "$(git -C "$ovos_source" rev-parse HEAD)" = 6ffd465028bac299e5235d619819bfdc734af073 ] || fail_message revision
-else
-  curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o "$ovos_source" || fail_message downloadFailed
+  ovos_revision=6ffd465028bac299e5235d619819bfdc734af073
+  say preview
 fi
-ovos_cfg="$HOME/.config/ovos-installer"
-mkdir -p "$ovos_cfg"
+ovos_source="$ovos_tmp/source"
+mkdir "$ovos_source"
+git -C "$ovos_source" init --quiet --template= || fail_message downloadFailed
+# Never wait for an unexpected Git credential prompt; abort a stalled transfer.
+GIT_TERMINAL_PROMPT=0 git -C "$ovos_source" -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git "$ovos_revision" || fail_message downloadFailed
+git -C "$ovos_source" -c core.hooksPath=/dev/null checkout --quiet --detach FETCH_HEAD || fail_message downloadFailed
+if [ "$ovos_installer" = pinned ]; then
+  [ "$(git -C "$ovos_source" rev-parse HEAD)" = "$ovos_revision" ] || fail_message revision
+fi
+# The download may take time; refuse a destination whose type changed meanwhile.
+for ovos_path in "$HOME/.config" "$ovos_cfg"; do
+  [ -d "$ovos_path" ] && [ ! -L "$ovos_path" ] || { say unsafeConfig >&2; exit 1; }
+done
+if [ -L "$ovos_cfg/scenario.yaml" ] || { [ -e "$ovos_cfg/scenario.yaml" ] && [ ! -f "$ovos_cfg/scenario.yaml" ]; }; then
+  say unsafeConfig >&2; printf '%s\n' "$ovos_cfg/scenario.yaml" >&2; exit 1
+fi
 if [ -e "$ovos_cfg/scenario.yaml" ] || [ -L "$ovos_cfg/scenario.yaml" ]; then
   ovos_backup=$(mktemp "$ovos_cfg/scenario.yaml.backup.XXXXXX")
   cp -p "$ovos_cfg/scenario.yaml" "$ovos_backup"
+  chmod 600 "$ovos_backup"
   say backup; printf '%s\n' "$ovos_backup"
 fi
 scenario > "$ovos_tmp/scenario.yaml"
@@ -818,12 +878,56 @@ write_messages > "$ovos_tmp/runtime.sh"
 cat >> "$ovos_tmp/runtime.sh" <<'OVOS_RUNTIME'
 # Shared, embedded terminal helpers. No fetched or user-supplied shell is sourced.
 cancel_input() { say cancelled >&2; exit 130; }
-restore_tty() { [ -z "${ovos_tty:-}" ] || stty "$ovos_tty" < /dev/tty; }
+restore_tty() {
+  # A disconnected terminal must not abort EXIT cleanup or hide the real status.
+  [ -z "${ovos_tty:-}" ] || { stty "$ovos_tty" < /dev/tty; } 2>/dev/null || :
+}
+
+# Bound external probes on Linux and macOS without requiring GNU timeout. The
+# watchdog owns its sleep process, so cancellation leaves no timer behind.
+run_bounded() (
+  ovos_bound_seconds=$1; shift
+  ovos_bound_command=''
+  ovos_bound_watchdog=''
+  # Invoked by the subshell's EXIT trap.
+  # shellcheck disable=SC2329
+  cleanup_bounded() {
+    if [ -n "$ovos_bound_command" ]; then
+      kill -KILL "$ovos_bound_command" 2>/dev/null || :
+      wait "$ovos_bound_command" 2>/dev/null || :
+    fi
+    if [ -n "$ovos_bound_watchdog" ]; then
+      kill -TERM "$ovos_bound_watchdog" 2>/dev/null || :
+      wait "$ovos_bound_watchdog" 2>/dev/null || :
+    fi
+  }
+  trap cleanup_bounded 0
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  trap 'exit 129' HUP
+  "$@" <&0 &
+  ovos_bound_command=$!
+  (
+    ovos_bound_sleep=''
+    trap 'if [ -n "$ovos_bound_sleep" ]; then kill "$ovos_bound_sleep" 2>/dev/null || :; wait "$ovos_bound_sleep" 2>/dev/null || :; fi; exit 0' INT TERM HUP
+    sleep "$ovos_bound_seconds" & ovos_bound_sleep=$!
+    wait "$ovos_bound_sleep" || exit 0
+    kill -TERM "$ovos_bound_command" 2>/dev/null || exit 0
+    sleep 2 & ovos_bound_sleep=$!
+    wait "$ovos_bound_sleep" || exit 0
+    kill -KILL "$ovos_bound_command" 2>/dev/null || :
+  ) &
+  ovos_bound_watchdog=$!
+  ovos_bound_status=0
+  wait "$ovos_bound_command" || ovos_bound_status=$?
+  ovos_bound_command=''
+  exit "$ovos_bound_status"
+)
 
 # Validate syntax locally; never send a token to a URL just to validate input.
 valid_url() {
   case "$1" in http://?*|https://?*) :;; *) return 1;; esac
-  case "$1" in *[[:space:][:cntrl:]]*|*'@'*|*'#'*|*'\'*) return 1;; esac
+  case "$1" in *[[:space:][:cntrl:]]*|*'@'*|*'#'*|*\\*) return 1;; esac
   ovos_host=${1#*://}; ovos_host=${ovos_host%%[/?]*}
   case "$ovos_host" in
     '['*']'*)
@@ -873,6 +977,8 @@ terminal_choice() {
   [ "$ovos_answer" != :cancel ]
 }
 
+# These route values are initialized by the validated launcher/checker header.
+# shellcheck disable=SC2154
 check_services() {
   ovos_services='ovos-messagebus ovos-core'
   if [ "$ovos_experience" = hub ]; then
@@ -884,7 +990,7 @@ check_services() {
   if [ "$ovos_method" = containers ]; then
     # Compose service names come from installed OVOS Docker; do not infer health
     # from unrelated running containers or launch a privileged Docker command.
-    if command -v docker >/dev/null 2>&1 && ovos_running=$(docker ps --filter label=com.docker.compose.project=ovos --format '{{.Label "com.docker.compose.service"}}' 2>/dev/null); then
+    if command -v docker >/dev/null 2>&1 && ovos_running=$(run_bounded 10 docker ps --filter label=com.docker.compose.project=ovos --filter status=running --format '{{.Label "com.docker.compose.service"}}' 2>/dev/null); then
       ovos_health=running
       for ovos_service in $ovos_services; do
         ovos_compose_service=$(printf '%s' "$ovos_service" | tr '-' '_')
@@ -897,18 +1003,20 @@ check_services() {
       for ovos_service in $ovos_services; do
         ovos_label="com.openvoiceos.$ovos_service"
         [ "$ovos_service" != ovos-core ] || ovos_label=com.ovos.service
-        if ! launchctl print "gui/$(id -u)/$ovos_label" 2>/dev/null | grep -q 'state = running'; then ovos_health=waiting; fi
+        if ! run_bounded 5 launchctl print "gui/$(id -u)/$ovos_label" 2>/dev/null | grep -q 'state = running'; then ovos_health=waiting; fi
       done
     fi
   elif command -v systemctl >/dev/null 2>&1; then
     ovos_health=running
     for ovos_service in $ovos_services; do
-      if ! systemctl --user is-active --quiet "$ovos_service.service" 2>/dev/null && ! systemctl is-active --quiet "$ovos_service.service" 2>/dev/null; then ovos_health=waiting; fi
+      if ! run_bounded 5 systemctl --user is-active --quiet "$ovos_service.service" 2>/dev/null && ! run_bounded 5 systemctl is-active --quiet "$ovos_service.service" 2>/dev/null; then ovos_health=waiting; fi
     done
   fi
   case "$ovos_health" in running) say servicesOk;; waiting) say servicesMissing;; *) say servicesUnknown;; esac
 }
 
+# Locale/method are initialized by the validated launcher/checker header.
+# shellcheck disable=SC2154
 sound_check() {
   # The installed virtualenv has the real OVOS configuration and MessageBus API.
   # Limit connection/event waits; a queued utterance never counts as audible.
@@ -920,14 +1028,15 @@ sound_check() {
     [ -x "$ovos_python" ] || return 1
   fi
   run_sound_python() {
-    if [ "$ovos_method" = containers ]; then docker exec -i ovos_audio python3 "$@";
-    else "$ovos_python" "$@"; fi
+    if [ "$ovos_method" = containers ]; then run_bounded 35 docker exec -i ovos_audio python3 "$@";
+    else run_bounded 35 "$ovos_python" "$@"; fi
   }
   run_sound_python - "$ovos_locale" "$(message audioTest)" <<'OVOS_SOUND'
 import sys
 import threading
 import signal
 signal.alarm(30)
+client = None
 try:
     from ovos_bus_client import MessageBusClient, Message
     client = MessageBusClient()
@@ -935,20 +1044,25 @@ try:
     client.on("recognizer_loop:audio_output_end", lambda _: ended.set())
     client.run_in_thread()
     if not client.connected_event.wait(8):
-        client.close()
         raise SystemExit(1)
     client.emit(Message("speak", {"utterance": sys.argv[2], "lang": sys.argv[1]},
                         {"source": "ovos-start-check"}))
     ended.wait(15)
-    client.close()
 except Exception:
     raise SystemExit(1)
+finally:
+    if client is not None:
+        client.close()
 OVOS_SOUND
 }
 
+# Experience/skills are initialized by the validated launcher/checker header.
+# shellcheck disable=SC2154
 check_setup() {
   printf '\n'; say health; check_services
   say resume
+  # Expand HOME when the user later pastes the recovery command.
+  # shellcheck disable=SC2016
   printf '  sh "$HOME/.config/ovos-installer/check-setup.sh"\n'
   if [ "$ovos_experience" = hub ]; then say hub; say help; return 3; fi
   if ! ( : < /dev/tty ) 2>/dev/null; then say closed; return 3; fi
@@ -991,7 +1105,6 @@ OVOS_RUNTIME
   printf '%s\n' 'check_setup'
 } > "$ovos_tmp/check-setup.sh"
 chmod 700 "$ovos_tmp/check-setup.sh"
-mv "$ovos_tmp/check-setup.sh" "$ovos_cfg/check-setup.sh"
 say resume
 # shellcheck disable=SC2016
 printf '  sh "$HOME/.config/ovos-installer/check-setup.sh"\n'
@@ -1004,7 +1117,6 @@ ovos_source=$1
 ovos_home=$2
 ovos_scenario=$3
 export LOCALE="$4"
-ovos_installer=$5
 ovos_ha=$6
 ovos_llm=$7
 ovos_tty=''
@@ -1012,19 +1124,16 @@ ovos_locale=$LOCALE
 . "$8"
 cleanup_launcher() {
   restore_tty
-  if [ "$ovos_installer" = pinned ]; then
-    case "$ovos_source" in */ovos-start.??????/source) cd /; rm -rf "$ovos_source";; esac
-  fi
+  case "$ovos_source" in */ovos-start.??????/source) cd /; rm -rf "$ovos_source" || :;; esac
 }
 trap cleanup_launcher 0
 trap 'exit 130' INT
 trap 'exit 143' TERM
-if [ "$ovos_installer" = pinned ]; then
-  cd "$ovos_source"
-  . ./utils/bash_runtime.sh
-  ovos_bash=$(resolve_bash_runtime 4 || true)
-  [ -n "$ovos_bash" ] || { say bash >&2; exit 1; }
-fi
+trap 'exit 129' HUP
+cd "$ovos_source"
+. ./utils/bash_runtime.sh
+ovos_bash=$(resolve_bash_runtime 4 || true)
+[ -n "$ovos_bash" ] || { say bash >&2; exit 1; }
 if [ "$ovos_ha" = true ] || [ "$ovos_llm" != off ]; then
   if ! ( : < /dev/tty ) 2>/dev/null; then say closed >&2; exit 1; fi
   say cancelHint > /dev/tty
@@ -1050,16 +1159,22 @@ if [ "$ovos_llm" != off ]; then
   export LLM_API_URL LLM_API_KEY LLM_MODEL LLM_PERSONA LLM_MAX_TOKENS LLM_TEMPERATURE LLM_TOP_P
 fi
 say installing
+# Recheck after interactive input, before elevated moves.
+for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
+  [ -d "$ovos_path" ] && [ ! -L "$ovos_path" ] || { say unsafeConfig >&2; exit 1; }
+done
+for ovos_path in "$ovos_home/.config/ovos-installer/scenario.yaml" "$ovos_home/.config/ovos-installer/check-setup.sh"; do
+  if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -f "$ovos_path" ]; }; then say unsafeConfig >&2; exit 1; fi
+done
 mv "$ovos_scenario" "$ovos_home/.config/ovos-installer/scenario.yaml"
-if [ "$ovos_installer" = pinned ]; then
-  export RUN_AS="$SUDO_USER"
-  export RUN_AS_HOME="$ovos_home"
-  "$ovos_bash" setup.sh
-else
-  sh "$ovos_source"
-fi
+mv "$9" "$ovos_home/.config/ovos-installer/check-setup.sh"
+export RUN_AS="$SUDO_USER"
+export RUN_AS_HOME="$ovos_home"
+# The upstream bootstrap can hide setup.sh's failure and delete a HOME checkout.
+# Execute the resolved setup directly and preserve its exact result.
+"$ovos_bash" setup.sh
 OVOS_LAUNCH
-if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh"; then
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh"; then
   say installReturned
   # Incomplete verification is not an installer failure. The checker itself
   # returns 3 to distinguish it from a user-confirmed first voice response.

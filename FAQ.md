@@ -1,6 +1,18 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Document localized recovery, durable verification and pinned Mac support in 2.1.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
 
 # Frequently asked questions
+
+## Why does it say a setup is already running?
+
+A private lock prevents two commands from replacing the same settings. Let the active setup and its optional checks finish. A forced reboot, power loss or SIGKILL can leave the empty lock behind. **Only after confirming no installer or launcher is running**, remove it with `rmdir "$HOME/.config/ovos-installer/.launcher-lock"`, then copy a fresh command. `rmdir` refuses a nonempty directory; never recursively delete an unfamiliar lock. The recovery checker works independently of this lock. See [concurrency tests](test/test_storage_hardening.py#L181).
+
+## Why was a configuration path refused?
+
+Setup expects ordinary `.config`/`ovos-installer` directories and regular scenario/checker files. Symlinks, directories in place of files, FIFOs and other unexpected paths are refused before downloads to protect existing content. The message prints the path. Move that object aside yourself, keeping its contents, before retrying. [Storage tests](test/test_storage_hardening.py#L39) verify refusal and preservation.
+
+## Are installer errors and stalled service checks handled?
+
+Both main and preview run `setup.sh` directly, so its failure status reaches the caller. Running services still do not prove working speech. The checker limits systemd/launchd probes to5seconds, Docker listing to10seconds and sound dispatch to35seconds, with up to2seconds to terminate an unresponsive process. An unavailable check stays incomplete. Source: [`run_bounded`](lib/runtime.sh#L10), [`check_services`](lib/runtime.sh#L104) and [runtime tests](test/test_runtime_hardening.py).
 
 ## Can I correct a URL or missing token without starting again?
 

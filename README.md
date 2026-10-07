@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Document localized recovery, durable verification and pinned Mac support in 2.1.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
 
 # OVOS Start launcher
 
@@ -21,7 +21,7 @@ This repository is maintained under the goldyfruit account; its hosting address 
 
 ## Development
 
-Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, `sh -n v1.sh`, `sh -n v2.sh`, and `cmp v1.sh v2.sh`. The latest checks passed **38 Node tests and 436 Python tests**. The Python [Sandbox](test/test_launcher.py#L94), `run_launcher` and `run_interactive` helpers use fake installers and real local terminal tests; they never perform an OVOS installation.
+Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, `sh -n v1.sh`, `sh -n v2.sh`, and `cmp v1.sh v2.sh`. The latest checks passed **38 Node tests and 524 Python tests**. The Python [Sandbox](test/test_launcher.py#L94), `run_launcher` and `run_interactive` helpers use fake installers and real local terminal tests; they never perform an OVOS installation.
 
 PRs target `dev`. GitHub Actions tests both entry points, checks that they match, and packages only `index.html`, `v1.sh`, `v2.sh` and `.nojekyll` for Pages. The wizard is not part of that artifact.
 

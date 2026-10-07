@@ -12,9 +12,16 @@ concurrency:
   cancel-in-progress: false
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
       - name: Verify generated launcher sources
         run: |
           python3 scripts/build-launcher.py
@@ -29,15 +36,19 @@ jobs:
         run: |
           sh -n v1.sh
           sh -n v2.sh
+          bash --posix -n v2.sh
           cmp v1.sh v2.sh
+      - name: ShellCheck
+        if: runner.os == 'Linux'
+        run: shellcheck -s sh -e SC1112 v1.sh v2.sh lib/runtime.sh
       - name: Package public files only
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && runner.os == 'Linux'
         run: |
           mkdir _site
           cp v1.sh v2.sh index.html _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && runner.os == 'Linux'
         with:
           path: _site
   deploy:

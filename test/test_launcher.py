@@ -78,7 +78,10 @@ if name == 'curl':
     sys.exit(22 if os.environ.get('FAIL_CURL') else 0)
 if name == 'git':
     assert args[0] == '-C', args
-    source, operation = pathlib.Path(args[1]), args[2]
+    source = pathlib.Path(args[1])
+    operation_args = args[2:]
+    while operation_args and operation_args[0] == '-c': operation_args = operation_args[2:]
+    operation = operation_args[0]
     if os.environ.get('FAIL_GIT') == operation: sys.exit(23)
     if operation == 'checkout':
         (source / 'utils').mkdir()
@@ -503,8 +506,8 @@ def test_existing_checkout_is_never_replaced(sandbox: Sandbox, kind: str) -> Non
 
 
 @pytest.mark.parametrize(("speech", "changes"), [
-    ("auto", {"FAIL_CURL": "1"}),
-    *(("public", {"FAIL_GIT": operation}) for operation in ("init", "fetch", "checkout", "rev-parse")),
+    *((speech, {"FAIL_GIT": operation}) for speech in ("auto", "public") for operation in ("init", "fetch", "checkout")),
+    ("public", {"FAIL_GIT": "rev-parse"}),
     ("public", {"FAKE_SHA": "0" * 40}),
 ])
 def test_failed_download_or_pin_check_preserves_active_configuration(
@@ -538,14 +541,11 @@ def test_auto_and_preview_installers_back_up_and_receive_exact_recipe(
     assert sandbox.received()["LOCALE"] == "fr-fr"
     calls = sandbox.calls()
     assert calls[-1]["command"] == "sudo"
-    if state["speech"] == "auto":
-        assert [call["command"] for call in calls] == ["curl", "sudo"]
-    else:
-        fetch = next(call for call in calls if "fetch" in call["args"])
-        assert fetch["args"][-1] == PIN
-        assert sandbox.received()["RUN_AS"] == "fixture-user"
-        assert sandbox.received()["RUN_AS_HOME"] == str(sandbox.home)
-        assert "curl" not in [call["command"] for call in calls]
+    fetch = next(call for call in calls if "fetch" in call["args"])
+    assert fetch["args"][-1] == ("main" if state["speech"] == "auto" else PIN)
+    assert sandbox.received()["RUN_AS"] == "fixture-user"
+    assert sandbox.received()["RUN_AS_HOME"] == str(sandbox.home)
+    assert "curl" not in [call["command"] for call in calls]
     assert not list(sandbox.temp.iterdir())
 
 
@@ -804,11 +804,12 @@ def test_generated_launchers_match_sources() -> None:
     assert (ROOT / "v1.sh").read_text() == expected == (ROOT / "v2.sh").read_text()
 
 
-def test_installer_failure_keeps_recovery_checker_and_never_reports_success(sandbox: Sandbox) -> None:
+@pytest.mark.parametrize("speech", ("auto", "public"))
+def test_installer_failure_keeps_recovery_checker_and_never_reports_success(sandbox: Sandbox, speech: str) -> None:
     """A nonzero installer exit retains diagnostics and does not retry installation automatically."""
     sandbox.seed_scenario()
     Path(sandbox.env["FAKE_INSTALLER"]).write_text("#!/bin/sh\nprintf 'fixture install failed\\n' >&2\nexit 23\n")
-    result = run_launcher(sandbox, raw_code())
+    result = run_launcher(sandbox, raw_code({"speech": speech}))
     assert result.returncode == 23
     assert "Installation did not complete" in result.stderr
     assert "installer returned successfully" not in result.stdout
@@ -816,6 +817,8 @@ def test_installer_failure_keeps_recovery_checker_and_never_reports_success(sand
     assert (sandbox.scenario.parent / "check-setup.sh").exists()
     assert len(list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))) == 1
     assert [call["command"] for call in sandbox.calls()].count("sudo") == 1
+    assert "curl" not in [call["command"] for call in sandbox.calls()]
+    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == ("main" if speech == "auto" else PIN)
 
 
 def test_sound_check_uses_installed_bus_api_and_waits_for_human_confirmation(sandbox: Sandbox) -> None:
@@ -886,3 +889,21 @@ def test_mac_default_speech_preserves_pinned_intel_and_silicon_support(sandbox: 
     calls = sandbox.calls()
     assert "curl" not in [call["command"] for call in calls]
     assert next(call for call in calls if "fetch" in call["args"])["args"][-1] == PIN
+
+
+@pytest.mark.parametrize("speech", ("auto", "public"))
+def test_failed_privileged_cleanup_preserves_the_installer_status(sandbox: Sandbox, speech: str) -> None:
+    """Cleanup errors cannot disguise setup failure as a different exit status."""
+    binary = Path(sandbox.env["PATH"].split(":", 1)[0])
+    cleanup = binary / "rm"
+    cleanup.write_text(
+        '#!/bin/sh\ncase "$*" in */source) exit 17;; esac\nexec /bin/rm "$@"\n'
+    )
+    cleanup.chmod(0o700)
+    Path(sandbox.env["FAKE_INSTALLER"]).write_text("#!/bin/sh\nexit 23\n")
+    result = run_launcher(sandbox, raw_code({"speech": speech}))
+    assert result.returncode == 23
+    assert "Installation did not complete" in result.stderr
+    assert "installer step has finished" not in result.stdout
+    assert not list(sandbox.temp.iterdir())
+    assert not (sandbox.scenario.parent / ".launcher-lock").exists()

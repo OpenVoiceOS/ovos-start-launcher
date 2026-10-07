@@ -1,6 +1,18 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Document localized recovery, durable verification and pinned Mac support in 2.1.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Harden launcher activation, failure propagation, recovery and bounded health checks in 2.1.1.
 
 # Maintenance report
+
+## 2026-10-07 — Version 2.1.1
+
+Replaced the error-swallowing main bootstrap with direct setup execution from a private Git checkout; retained main/PR648 selection and preview SHA. Added exact-path guards, private backups, per-account launcher locking, delayed checker activation and HUP cleanup. Privileged cleanup cannot replace the install exit status. Added localized interrupted-lock guidance, noninteractive low-speed-bounded Git fetching, bounded service/audio probes, strict Docker running-state checks and guaranteed MessageBus cleanup. Expanded CI to Ubuntu/macOS and ShellCheck. Wizard integration updates the immutable launcher URL and adds connection/total limits to its initial curl.
+
+Verification: 38 Node tests passed. 524 Python cases passed. Added64 storage/concurrency cases and14 runtime cases, plus main/preview failure and cleanup regressions. All network, installer, privilege and service commands used by tests are local fakes. ShellCheck, shell syntax, generated-source parity and diff whitespace checks pass; v2 remains below120,000bytes. Independent shell/message matrices passed. Physical-device acceptance remains outstanding.
+
+### Transparency Report
+
+- **AI Model:** Codex, GPT-6.
+- **Actions Taken:** Reviewed launcher/build/protocol sources; delegated independent security/runtime/portability reviews; reproduced failure modes; implemented fixes, regression tests, CI and documentation; integrated the hardened release into the wizard.
+- **Oversight:** User requested hardening. The coordinating agent reviewed delegated changes and verification evidence. No OVOS installation, real administrator escalation, microphone test or credential collection was performed.
 
 ## 2026-10-07 — Version 2.1.0
 
