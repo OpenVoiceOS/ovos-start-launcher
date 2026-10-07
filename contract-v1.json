@@ -1,11 +1,11 @@
 {
   "name": "OVOS Start compact recipe",
   "license": "Apache-2.0",
-  "version": 2,
+  "version": 1,
   "alphabet": "0123456789ABCDEFGHJKMNPQRSTVWXYZ",
-  "wireBits": 80,
-  "codeCharacters": 16,
-  "outputFormat": "XXXX-XXXX-XXXX-XXXX",
+  "wireBits": 40,
+  "codeCharacters": 8,
+  "outputFormat": "XXXX-XXXX",
   "input": {
     "caseInsensitive": true,
     "groupedOrUngrouped": true,
@@ -16,16 +16,11 @@
     {
       "name": "version",
       "width": 4,
-      "offset": 76
+      "offset": 36
     },
     {
       "name": "payload",
       "width": 28,
-      "offset": 48
-    },
-    {
-      "name": "issuedAt",
-      "width": 40,
       "offset": 8
     },
     {
@@ -41,7 +36,7 @@
     "reflectInput": false,
     "reflectOutput": false,
     "xorOutput": 0,
-    "input": "Nine big-endian bytes: header32 ((version << 28) | payload), then issuedAt40 (Unix seconds)",
+    "input": "Four big-endian bytes of (version << 28) | payload",
     "authentication": false
   },
   "validation": {
@@ -216,53 +211,33 @@
   "vectors": [
     {
       "name": "computer-default",
-      "code": "4400-00G0-CN9Z-2055",
-      "headerHex": "21000002",
-      "checksumHex": "a5",
-      "issuedAt": 1700000000,
-      "expiresAt": 1700003600
+      "code": "2400-00KZ",
+      "headerHex": "11000002",
+      "checksumHex": "7f"
     },
     {
       "name": "pi-local-french",
-      "code": "402J-K0G0-CN9Z-207V",
-      "headerHex": "20052982",
-      "checksumHex": "fb",
-      "issuedAt": 1700000000,
-      "expiresAt": 1700003600
+      "code": "202J-K0HK",
+      "headerHex": "10052982",
+      "checksumHex": "33"
     },
     {
       "name": "mac-default",
-      "code": "4W0G-00G0-CN9Z-2057",
-      "headerHex": "27010002",
-      "checksumHex": "a7",
-      "issuedAt": 1700000000,
-      "expiresAt": 1700003600
+      "code": "2W0G-00K0",
+      "headerHex": "17010002",
+      "checksumHex": "60"
     },
     {
       "name": "windows-public-integrations",
-      "code": "5001-08R0-CN9Z-206W",
-      "headerHex": "28001023",
-      "checksumHex": "dc",
-      "issuedAt": 1700000000,
-      "expiresAt": 1700003600
+      "code": "3001-08V9",
+      "headerHex": "18001023",
+      "checksumHex": "69"
     },
     {
       "name": "container-hub",
-      "code": "4T10-00G0-CN9Z-202M",
-      "headerHex": "26820002",
-      "checksumHex": "54",
-      "issuedAt": 1700000000,
-      "expiresAt": 1700003600
+      "code": "2T10-00P0",
+      "headerHex": "16820002",
+      "checksumHex": "c0"
     }
-  ],
-  "expiry": {
-    "ttlSeconds": 3600,
-    "expiresAt": "issuedAt + 3600",
-    "validWhen": "0 < issuedAt <= now < expiresAt",
-    "clock": "Positive integer Unix seconds no greater than 1099511627775; device clock required",
-    "futureDated": "rejected",
-    "legacyV1": "Rejected by launchers; explicit codec allowLegacy recovers choices only",
-    "expiredRecovery": "Explicit codec allowExpired recovers choices only; never accepted by launchers",
-    "authentication": false
-  }
+  ]
 }

@@ -22,12 +22,15 @@ jobs:
           python3 -m pip install pytest
           python3 -m pytest test/ -q
       - name: Check shell syntax
-        run: sh -n v1.sh
+        run: |
+          sh -n v1.sh
+          sh -n v2.sh
+          cmp v1.sh v2.sh
       - name: Package public files only
         if: github.event_name != 'pull_request'
         run: |
           mkdir _site
-          cp v1.sh index.html _site/
+          cp v1.sh v2.sh index.html _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         if: github.event_name != 'pull_request'

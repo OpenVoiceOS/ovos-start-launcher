@@ -9,6 +9,7 @@ from pathlib import Path
 import pty
 import select
 import signal
+import shutil
 import subprocess
 import sys
 import time
@@ -18,6 +19,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PIN = "6ffd465028bac299e5235d619819bfdc734af073"
 ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+ISSUED_AT = 1_700_000_000
+MAX_TIMESTAMP = (1 << 40) - 1
 DEFAULTS: dict[str, object] = {
     "device": "pi", "experience": "ready", "locale": "en-us",
     "method": "virtualenv", "channel": "testing", "expertise": "guided",
@@ -49,6 +52,10 @@ FAKE_COMMAND = r'''
 import json, os, pathlib, shutil, sys
 name, args = pathlib.Path(sys.argv[0]).name, sys.argv[1:]
 home = pathlib.Path(os.environ['HOME'])
+if name == 'date':
+    assert args == ['+%s'], args
+    sys.stdout.write(os.environ['FAKE_NOW'] + '\n')
+    sys.exit(int(os.environ.get('FAKE_DATE_STATUS', '0')))
 if name == 'getconf':
     value = os.environ.get('FAKE_BITS', '64')
     if value == 'error': sys.exit(1)
@@ -92,6 +99,11 @@ class Sandbox:
     env: dict[str, str]
 
     @property
+    def launcher(self) -> Path:
+        """Return the public launcher entry point selected for this test."""
+        return Path(self.env["FAKE_LAUNCHER"])
+
+    @property
     def scenario(self) -> Path:
         """Return the active scenario inside the isolated user directory."""
         return self.home / ".config/ovos-installer/scenario.yaml"
@@ -111,8 +123,8 @@ class Sandbox:
         return json.loads((self.home / "received.json").read_text())
 
 
-@pytest.fixture
-def sandbox(tmp_path: Path) -> Sandbox:
+@pytest.fixture(params=("v1.sh", "v2.sh"))
+def sandbox(tmp_path: Path, request: pytest.FixtureRequest) -> Sandbox:
     """Shadow every network or privileged command; preserve no user environment."""
     home, binary, temp = (tmp_path / part for part in ("test home", "bin", "temp"))
     for folder in (home, binary, temp):
@@ -143,7 +155,7 @@ def sandbox(tmp_path: Path) -> Sandbox:
         "}\n",
         encoding="utf-8",
     )
-    for name in ("getconf", "id", "uname", "curl", "git", "sudo"):
+    for name in ("date", "getconf", "id", "uname", "curl", "git", "sudo"):
         target = binary / name
         target.write_text(f"#!{sys.executable}\n{FAKE_COMMAND}", encoding="utf-8")
         target.chmod(0o700)
@@ -151,21 +163,24 @@ def sandbox(tmp_path: Path) -> Sandbox:
         "HOME": str(home), "TMPDIR": str(temp), "PATH": f"{binary}:/usr/bin:/bin",
         "LC_ALL": "C.UTF-8", "FAKE_PYTHON": sys.executable,
         "FAKE_RECORDER": str(recorder), "FAKE_INSTALLER": str(installer),
-        "FAKE_RUNTIME_FILE": str(runtime), "FAKE_LAUNCHER": str(ROOT / "v1.sh"),
+        "FAKE_RUNTIME_FILE": str(runtime), "FAKE_LAUNCHER": str(ROOT / request.param),
+        "FAKE_NOW": str(ISSUED_AT),
     }
     return Sandbox(home, temp, env)
 
 
-def recipe(overrides: dict[str, object] | None = None) -> tuple[dict[str, object], str]:
+def recipe(overrides: dict[str, object] | None = None, *,
+           issued_at: int = ISSUED_AT) -> tuple[dict[str, object], str]:
     """Encode and decode a complete recipe through the independent Node codec."""
     state = {**DEFAULTS, **(overrides or {})}
     script = (
         "import {encodeRecipeCode,decodeRecipeCode} from './codec.mjs';"
-        "const state=JSON.parse(process.argv[1]);const code=encodeRecipeCode(state);"
-        "console.log(JSON.stringify({code,state:decodeRecipeCode(code)}));"
+        "const state=JSON.parse(process.argv[1]);const issuedAt=Number(process.argv[2]);"
+        "const code=encodeRecipeCode(state,{issuedAt});"
+        "console.log(JSON.stringify({code,state:decodeRecipeCode(code,{now:issuedAt})}));"
     )
     result = subprocess.run(
-        ["node", "--input-type=module", "-e", script, json.dumps(state)],
+        ["node", "--input-type=module", "-e", script, json.dumps(state), str(issued_at)],
         cwd=ROOT, capture_output=True, text=True, check=True, timeout=10,
     )
     encoded = json.loads(result.stdout)
@@ -173,28 +188,35 @@ def recipe(overrides: dict[str, object] | None = None) -> tuple[dict[str, object
     return state, encoded["code"]
 
 
-def raw_code(overrides: dict[str, object] | None = None, *, version: int = 1,
-             indices: dict[str, int] | None = None) -> str:
-    """Construct checksum-valid malformed cases without asking codec to allow them."""
+def raw_code(overrides: dict[str, object] | None = None, *, version: int = 2,
+             indices: dict[str, int] | None = None, issued_at: int = ISSUED_AT,
+             legacy: bool = False) -> str:
+    """Encode independent big-endian vectors, including malformed but valid-CRC codes."""
     state = {**DEFAULTS, **(overrides or {})}
     payload = 0
     for key, width, values in FIELDS:
         index = (indices or {}).get(key, values.index(state[key]))
         payload = (payload << width) | index
-    body = (version << 28) | payload
+    header = (version << 28) | payload
+    body = header.to_bytes(4, "big")
+    if not legacy:
+        body += issued_at.to_bytes(5, "big")
     crc = 0
-    for byte in body.to_bytes(4, "big"):
+    for byte in body:
         crc ^= byte
         for _ in range(8):
             crc = ((crc << 1) ^ (7 if crc & 128 else 0)) & 255
-    word = (body << 8) | crc
-    return "".join(ALPHABET[(word >> shift) & 31] for shift in range(35, -1, -5))
+    word = int.from_bytes(body + bytes((crc,)), "big")
+    bit_count = (len(body) + 1) * 8
+    compact = "".join(ALPHABET[(word >> shift) & 31]
+                      for shift in range(bit_count - 5, -1, -5))
+    return "-".join(compact[offset:offset + 4] for offset in range(0, len(compact), 4))
 
 
 def run_launcher(sandbox: Sandbox, code: str, mode: str | None = None,
                  changes: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     """Run the real shell with only fixture external commands available."""
-    args = ["/bin/sh", str(ROOT / "v1.sh"), *([mode] if mode else []), code]
+    args = ["/bin/sh", str(sandbox.launcher), *([mode] if mode else []), code]
     return subprocess.run(args, cwd=sandbox.home, env={**sandbox.env, **(changes or {})},
                           capture_output=True, text=True, timeout=15)
 
@@ -236,6 +258,148 @@ CASES = [
 ]
 
 
+# Frozen protocol fixtures are intentionally literal, not produced by the JS codec.
+GOLDEN_VECTORS = (
+    ({}, 1_700_000_000, "4000-00G0-CN9Z-206W"),
+    ({"device": "computer", "locale": "fr-fr", "homeassistant": True},
+     1_700_000_001, "4420-00R0-CN9Z-20E7"),
+    ({**LOCAL, "experience": "tinker", "expertise": "expert", "extraSkills": True,
+      "telemetry": True, "homeassistant": True, "llmMode": "online"},
+     1_700_000_123, "410T-KBR0-CN9Z-2YVY"),
+    ({"device": "server", "experience": "hub", "method": "containers", "skills": False},
+     1_700_003_600, "4T10-0000-CN9Z-Y450"),
+    ({}, MAX_TIMESTAMP, "4000-00QZ-ZZZZ-ZZXR"),
+    ({}, 1, "4000-00G0-0000-00AR"),
+)
+
+
+def node_decode(code: str, now: int) -> subprocess.CompletedProcess[str]:
+    """Check JavaScript freshness with an explicit clock, independently of the shell."""
+    script = (
+        "import {decodeRecipeCode} from './codec.mjs';"
+        "console.log(JSON.stringify(decodeRecipeCode(process.argv[1],"
+        "{now:Number(process.argv[2])})));"
+    )
+    return subprocess.run(
+        ["node", "--input-type=module", "-e", script, code, str(now)],
+        cwd=ROOT, capture_output=True, text=True, timeout=10,
+    )
+
+
+@pytest.mark.parametrize(("overrides", "issued_at", "expected"), GOLDEN_VECTORS)
+def test_frozen_vectors_match_python_javascript_and_shell(
+    sandbox: Sandbox, overrides: dict[str, object], issued_at: int, expected: str
+) -> None:
+    """Freeze 80-bit ordering, timestamp range, CRC and grouped Crockford encoding."""
+    assert raw_code(overrides, issued_at=issued_at) == expected
+    state, actual = recipe(overrides, issued_at=issued_at)
+    assert actual == expected
+    for code in (expected, expected.replace("-", "").lower()):
+        decoded = run_launcher(sandbox, code, "--decode", {"FAKE_NOW": str(issued_at)})
+        assert decoded.returncode == 0, decoded.stderr
+        assert json.loads(decoded.stdout) == state
+    scenario = run_launcher(sandbox, expected, "--scenario", {"FAKE_NOW": str(issued_at)})
+    assert scenario.returncode == 0, scenario.stderr
+    assert scenario.stdout == expected_scenario(state)
+    assert_untouched(sandbox)
+
+
+@pytest.mark.parametrize("mode", (None, "--decode", "--scenario"))
+@pytest.mark.parametrize("age", (-1, 0, 3599, 3600, 3601))
+def test_timestamp_boundaries_match_javascript_in_every_mode(
+    sandbox: Sandbox, mode: str | None, age: int
+) -> None:
+    """Codes work for one hour, rejecting the exact deadline and future issue times."""
+    code = raw_code()
+    now = ISSUED_AT + age
+    result = run_launcher(sandbox, code, mode, {"FAKE_NOW": str(now)})
+    javascript = node_decode(code, now)
+    accepted = 0 <= age < 3600
+    assert (result.returncode == 0) == accepted, result.stderr
+    assert (javascript.returncode == 0) == accepted, javascript.stderr
+    if not accepted:
+        assert_untouched(sandbox)
+    elif mode == "--decode":
+        assert json.loads(result.stdout) == json.loads(javascript.stdout) == DEFAULTS
+        assert_untouched(sandbox)
+    elif mode == "--scenario":
+        assert result.stdout == expected_scenario(DEFAULTS)
+        assert_untouched(sandbox)
+    else:
+        assert sandbox.scenario.read_text() == expected_scenario(DEFAULTS)
+        assert sandbox.received()["LOCALE"] == "en-us"
+
+
+@pytest.mark.parametrize("mode", (None, "--decode", "--scenario"))
+@pytest.mark.parametrize("code", ("2000-00K9", "200000K9", "2000-00k9"))
+def test_legacy_codes_require_regeneration_before_any_effects(
+    sandbox: Sandbox, mode: str | None, code: str
+) -> None:
+    """Frozen v1 codes never activate an untimed install through either public URL."""
+    assert raw_code(version=1, legacy=True) == "2000-00K9"
+    result = run_launcher(sandbox, code, mode)
+    assert result.returncode != 0
+    diagnostic = result.stderr.lower()
+    assert "generate" in diagnostic and "new" in diagnostic
+    assert_untouched(sandbox)
+
+
+@pytest.mark.parametrize("mode", (None, "--decode", "--scenario"))
+@pytest.mark.parametrize("clock", (
+    "", "0", "-1", "+1700000000", "01700000000", "1700000000.0", "1.7e9",
+    "NaN", " 1700000000", "1700000000 ", "1700000000\t", "1700000000\n1",
+    str(MAX_TIMESTAMP + 1), "999999999999999999999999999999999999999999",
+))
+def test_invalid_clock_rejects_before_any_effects(
+    sandbox: Sandbox, mode: str | None, clock: str
+) -> None:
+    """The date probe must yield one positive canonical 40-bit decimal timestamp."""
+    result = run_launcher(sandbox, raw_code(), mode, {"FAKE_NOW": clock})
+    assert result.returncode != 0
+    assert_untouched(sandbox)
+
+
+@pytest.mark.parametrize("mode", (None, "--decode", "--scenario"))
+@pytest.mark.parametrize("status", (1, 127))
+def test_failed_clock_command_rejects_even_with_valid_output(
+    sandbox: Sandbox, mode: str | None, status: int
+) -> None:
+    """A failed date command cannot authenticate freshness using its partial output."""
+    result = run_launcher(sandbox, raw_code(), mode, {"FAKE_DATE_STATUS": str(status)})
+    assert result.returncode != 0
+    assert_untouched(sandbox)
+
+
+@pytest.mark.parametrize("mode", (None, "--decode", "--scenario"))
+def test_missing_clock_command_rejects_before_any_effects(
+    sandbox: Sandbox, mode: str | None
+) -> None:
+    """A PATH without date reports a safe failure without falling back to real time."""
+    binary = Path(sandbox.env["PATH"].split(os.pathsep)[0])
+    (binary / "date").unlink()
+    tr = shutil.which("tr")
+    assert tr is not None
+    (binary / "tr").symlink_to(tr)
+    result = run_launcher(sandbox, raw_code(), mode, {"PATH": str(binary)})
+    assert result.returncode != 0
+    assert_untouched(sandbox)
+
+
+@pytest.mark.parametrize("mode", (None, "--decode", "--scenario"))
+def test_invalid_freshness_preserves_existing_scenario(
+    sandbox: Sandbox, mode: str | None
+) -> None:
+    """Expiry leaves existing user configuration and installer state completely alone."""
+    sandbox.seed_scenario()
+    result = run_launcher(sandbox, raw_code(), mode, {"FAKE_NOW": str(ISSUED_AT + 3600)})
+    assert result.returncode != 0
+    assert sandbox.scenario.read_text() == "original-user-settings\n"
+    assert list(sandbox.scenario.parent.iterdir()) == [sandbox.scenario]
+    assert sandbox.calls() == []
+    assert not (sandbox.home / "received.json").exists()
+    assert not list(sandbox.temp.iterdir())
+
+
 @pytest.mark.parametrize("overrides", CASES)
 def test_node_codes_decode_all_fields_and_emit_expected_scenario(
     sandbox: Sandbox, overrides: dict[str, object]
@@ -251,7 +415,12 @@ def test_node_codes_decode_all_fields_and_emit_expected_scenario(
     assert_untouched(sandbox)
 
 
-@pytest.mark.parametrize("code", ["", "1234567", "123456789", "IIIIIIII", "0000_0000", "$(id)xxx", "00000000"])
+@pytest.mark.parametrize("code", [
+    "", "1234567", "123456789", "IIIIIIII", "0000_0000", "$(id)xxx", "00000000",
+    "123456789ABCDEF", "123456789ABCDEFGH", "IIIIIIIIIIIIIIII",
+    "4000_00G0_CN9Z_206W", "400000G0-CN9Z206W", " 4000-00G0-CN9Z-206W",
+    "4000-00G0-CN9Z-206W\n", "4000-00G0-CN9Z-206O",
+])
 def test_malformed_codes_fail_before_effects(sandbox: Sandbox, code: str) -> None:
     """Malformed text cannot trigger shell substitution, fetches or configuration writes."""
     result = run_launcher(sandbox, code)
@@ -264,7 +433,7 @@ def test_checksum_corruption_and_unknown_version_fail_before_effects(sandbox: Sa
     _, code = recipe()
     compact = code.replace("-", "").upper()
     corrupted = compact[:-1] + ALPHABET[(ALPHABET.index(compact[-1]) + 1) % 32]
-    for invalid in (corrupted, raw_code(version=2)):
+    for invalid in (corrupted, raw_code(version=3)):
         assert run_launcher(sandbox, invalid).returncode != 0
         assert_untouched(sandbox)
 
@@ -397,7 +566,7 @@ def run_interactive(sandbox: Sandbox, code: str, answers: list[tuple[bytes, byte
     pid, fd = pty.fork()
     if pid == 0:
         os.chdir(sandbox.home)
-        os.execve("/bin/sh", ["/bin/sh", str(ROOT / "v1.sh"), code], sandbox.env)
+        os.execve("/bin/sh", ["/bin/sh", str(sandbox.launcher), code], sandbox.env)
     output = b""
     sent = 0
     reaped = False
@@ -483,7 +652,8 @@ def test_invalid_service_input_does_not_activate_scenario(sandbox: Sandbox, url:
 def test_short_bootstrap_never_executes_partial_failed_download(sandbox: Sandbox, failed: bool) -> None:
     """The copyable command uses curl's exit status before evaluating downloaded text."""
     _, code = recipe()
-    script = '(ovos=$(curl -fsSL https://goldyfruit.github.io/ovos-start-launcher/v1.sh) && sh -c "$ovos" -- "$1")'
+    script = (f'(ovos=$(curl -fsSL https://goldyfruit.github.io/ovos-start-launcher/{sandbox.launcher.name}) '
+              '&& sh -c "$ovos" -- "$1")')
     result = subprocess.run(["/bin/sh", "-c", script, "fixture", code], cwd=sandbox.home,
                             env={**sandbox.env, **({"FAIL_BOOTSTRAP": "1"} if failed else {})},
                             capture_output=True, text=True, timeout=15)

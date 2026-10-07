@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-// Version 1 is a frozen wire contract. Change the version before changing its layout.
+// Versions 1 and 2 retain the same frozen recipe payload. Version 2 adds expiry.
 
-export const COMPACT_VERSION = 1;
+export const COMPACT_VERSION = 2;
 export const COMPACT_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+export const RECIPE_TTL_SECONDS = 3600;
+export const MAX_RECIPE_TIMESTAMP = 2 ** 40 - 1;
 
 /** @typedef {string | boolean} RecipeValue */
 /** @typedef {Record<string, RecipeValue>} RecipeState */
@@ -28,18 +30,19 @@ export const COMPACT_FIELDS = Object.freeze([
 ]);
 
 const FIELD_NAMES = new Set(COMPACT_FIELDS.map(field => field.name));
-const CODE_FORMAT = /^(?:[0-9A-HJKMNP-TV-Z]{8}|[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4})$/i;
+const CODE_FORMAT = /^(?:[0-9A-HJKMNP-TV-Z]{8}|[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}|[0-9A-HJKMNP-TV-Z]{16}|[0-9A-HJKMNP-TV-Z]{4}(?:-[0-9A-HJKMNP-TV-Z]{4}){3})$/i;
 
 /**
- * Compute CRC-8/SMBUS over four big-endian header bytes, without reflection.
+ * Compute CRC-8/SMBUS over the specified big-endian bytes, without reflection.
  * The checksum catches transcription mistakes; it is not authentication.
- * @param {number} header Unsigned 32-bit version and payload header.
+ * @param {bigint} body Version/payload, followed by the v2 timestamp when present.
+ * @param {number} byteCount Four bytes for v1; nine bytes for v2.
  * @returns {number} Eight-bit checksum.
  */
-function checksum(header) {
+function checksum(body, byteCount) {
   let crc = 0;
-  for (const shift of [24, 16, 8, 0]) {
-    crc ^= (header >>> shift) & 0xff;
+  for (let byte = byteCount - 1; byte >= 0; byte -= 1) {
+    crc ^= Number((body >> BigInt(byte * 8)) & 255n);
     for (let bit = 0; bit < 8; bit += 1) {
       crc = ((crc << 1) ^ ((crc & 0x80) ? 0x07 : 0)) & 0xff;
     }
@@ -48,19 +51,45 @@ function checksum(header) {
 }
 
 /**
- * Encode all and only the frozen recipe fields into an XXXX-XXXX recipe code.
+ * Check a positive, exact Unix timestamp representable in the forty-bit field.
+ * @param {unknown} value Unix seconds, without implicit string coercion.
+ * @param {string} label Description used in the validation error.
+ * @returns {number} Validated timestamp.
+ */
+function timestamp(value, label) {
+  if (!Number.isSafeInteger(value) || value <= 0 || value > MAX_RECIPE_TIMESTAMP) {
+    throw new RangeError(`Invalid ${label}; a working clock with Unix seconds is required.`);
+  }
+  return value;
+}
+
+/** Read the browser/system clock without accepting unavailable clock values.
+ * @returns {number} Current Unix seconds.
+ */
+function currentTime() {
+  let value;
+  try { value = Math.floor(Date.now() / 1000); } catch {
+    throw new RangeError('Invalid clock; a working clock with Unix seconds is required.');
+  }
+  return timestamp(value, 'clock');
+}
+
+/**
+ * Encode all frozen recipe fields into a code that expires one hour after issuance.
  * Cross-field compatibility must be checked separately by the wizard/launcher.
  * @param {RecipeState} state Complete non-secret recipe choices.
- * @returns {string} Eight uppercase Crockford Base32 characters with a hyphen.
+ * @param {{issuedAt?: number}} options Issuance time in Unix seconds; defaults to now.
+ * @returns {string} Sixteen uppercase Crockford characters grouped XXXX-XXXX-XXXX-XXXX.
  * @throws {TypeError | RangeError} When fields or typed enum values are invalid.
  */
-export function encodeRecipeCode(state) {
+export function encodeRecipeCode(state, { issuedAt = currentTime() } = {}) {
+  timestamp(issuedAt, 'issuance timestamp');
   if (!state || typeof state !== 'object' || Array.isArray(state)) {
     throw new TypeError('Recipe must be an object containing every compact field.');
   }
   const keys = Reflect.ownKeys(state);
   if (keys.length !== COMPACT_FIELDS.length || keys.some(key => !FIELD_NAMES.has(key))) {
-    throw new TypeError('Recipe must contain exactly the version 1 compact fields.');
+    throw new TypeError('Recipe must contain exactly the frozen compact fields.');
   }
   let payload = 0n;
   for (const field of COMPACT_FIELDS) {
@@ -72,39 +101,58 @@ export function encodeRecipeCode(state) {
     payload |= BigInt(index) << BigInt(field.offset);
   }
   const header = (BigInt(COMPACT_VERSION) << 28n) | payload;
-  let wire = (header << 8n) | BigInt(checksum(Number(header)));
+  const body = (header << 40n) | BigInt(issuedAt);
+  let wire = (body << 8n) | BigInt(checksum(body, 9));
   let code = '';
-  for (let digit = 0; digit < 8; digit += 1) {
+  for (let digit = 0; digit < 16; digit += 1) {
     code = COMPACT_ALPHABET[Number(wire & 31n)] + code;
     wire >>= 5n;
   }
-  return `${code.slice(0, 4)}-${code.slice(4)}`;
+  return code.match(/.{4}/g).join('-');
 }
 
 /**
- * Decode an exact grouped or ungrouped recipe code, accepting ASCII letter case.
- * Ambiguous aliases (O/I/L), whitespace, unknown versions and reserved values fail.
- * Returns raw typed choices; callers must apply their compatibility validation.
- * @param {string} input An eight-character code, optionally grouped XXXX-XXXX.
- * @returns {RecipeState} A new object containing every frozen compact field.
+ * Decode and validate a recipe, including its issue time and one-hour expiration.
+ * Recovery flags restore choices only; launchers never accept legacy/expired codes.
+ * Future codes and invalid clocks always fail, including in recovery mode.
+ * @param {string} input A v2 code (or a v1 code for explicit legacy recovery).
+ * @param {{now?: number, allowLegacy?: boolean, allowExpired?: boolean}} options Validation/recovery controls.
+ * @returns {{version: number, issuedAt: number|null, expiresAt: number|null, state: RecipeState}} Recipe and timing metadata.
  * @throws {TypeError | RangeError} When format, checksum or the wire contract fails.
  */
-export function decodeRecipeCode(input) {
-  if (typeof input !== 'string' || !CODE_FORMAT.test(input)) {
-    throw new TypeError('Recipe code must be eight Base32 characters, optionally XXXX-XXXX.');
+export function decodeRecipeEnvelope(input, { now = currentTime(), allowLegacy = false, allowExpired = false } = {}) {
+  timestamp(now, 'clock');
+  if (typeof allowLegacy !== 'boolean' || typeof allowExpired !== 'boolean') {
+    throw new TypeError('Recipe recovery flags must be booleans.');
   }
-  const code = input.toUpperCase().replace('-', '');
+  if (typeof input !== 'string' || !CODE_FORMAT.test(input)) {
+    throw new TypeError('Recipe code must be 16 Base32 characters grouped XXXX-XXXX-XXXX-XXXX.');
+  }
+  const code = input.toUpperCase().replaceAll('-', '');
   let wire = 0n;
   for (const character of code) {
     wire = (wire << 5n) | BigInt(COMPACT_ALPHABET.indexOf(character));
   }
-  const header = wire >> 8n;
-  if (Number(wire & 255n) !== checksum(Number(header))) {
+  const legacy = code.length === 8;
+  const body = wire >> 8n;
+  const header = legacy ? body : body >> 40n;
+  if (Number(wire & 255n) !== checksum(body, legacy ? 4 : 9)) {
     throw new RangeError('Recipe code checksum does not match.');
   }
   const version = Number(header >> 28n);
-  if (version !== COMPACT_VERSION) {
+  if (version !== (legacy ? 1 : COMPACT_VERSION)) {
     throw new RangeError(`Unsupported recipe code version: ${version}.`);
+  }
+  if (legacy && !allowLegacy) {
+    throw new RangeError('This legacy recipe has no expiry. Generate a new one-hour code in OVOS Start.');
+  }
+  const issuedAt = legacy ? null : timestamp(Number(body & 0xffffffffffn), 'issuance timestamp');
+  const expiresAt = legacy ? null : issuedAt + RECIPE_TTL_SECONDS;
+  if (!legacy && issuedAt > now) {
+    throw new RangeError('Recipe code is future-dated. Check the device clock and generate a new code.');
+  }
+  if (!legacy && now >= expiresAt && !allowExpired) {
+    throw new RangeError('Recipe code expired after one hour. Generate a new code in OVOS Start.');
   }
   const payload = header & 0x0fffffffn;
   const state = {};
@@ -116,5 +164,16 @@ export function decodeRecipeCode(input) {
     }
     state[field.name] = field.values[index];
   }
-  return state;
+  return { version, issuedAt, expiresAt, state };
+}
+
+/**
+ * Decode raw typed choices using the same time validation as decodeRecipeEnvelope.
+ * Callers still apply the wizard's cross-field compatibility validation.
+ * @param {string} input Grouped or ungrouped recipe code.
+ * @param {{now?: number, allowLegacy?: boolean, allowExpired?: boolean}} options Validation/recovery controls.
+ * @returns {RecipeState} A new object containing every frozen compact field.
+ */
+export function decodeRecipeCode(input, options = {}) {
+  return decodeRecipeEnvelope(input, options).state;
 }

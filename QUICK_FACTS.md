@@ -1,20 +1,28 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Introduce the tested versioned compact-code launcher and GitHub Pages publication.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Record version 2 expiry, decoder APIs, legacy recovery and 38 Node/350 Python validation.
 
 # Quick facts
 
 | Field | Value |
 | --- | --- |
-| Package / version | `ovos-start-launcher` / `1.0.0`; `package.json` |
+| Package / version | `ovos-start-launcher` / `2.0.0`; `package.json` |
 | License | Apache-2.0 |
-| Entry points | POSIX shell `v1.sh CODE`; ES module `encodeRecipeCode`, `decodeRecipeCode`; no Python plugin entry points |
-| Runtime dependencies | 64-bit userland, POSIX sh, getconf, tr, curl, git, sudo; upstream platform prerequisites still apply |
-| Protocol | 40-bit wire word: 4 version bits, 28 choice bits, 8 CRC bits; 8 Crockford Base32 characters, grouped XXXX-XXXX |
-| Code data | All 15 fixed enum/boolean wizard fields; no credentials, arbitrary text or executable payload |
-| Hosting | GitHub Pages, `dev` workflow; only index.html and v1.sh |
+| Entry points | POSIX shell `v2.sh CODE`; `v1.sh` has identical v2 validation; ES module `encodeRecipeCode`, `decodeRecipeCode`, `decodeRecipeEnvelope`; no Python plugin entry points |
+| Runtime dependencies | 64-bit userland, POSIX sh, getconf, tr, date with `+%s`, curl, git, sudo; upstream platform prerequisites still apply |
+| Protocol | 80-bit word: version4 + choices28 + issuedAt40 + CRC8; 16 Crockford Base32 characters grouped XXXX-XXXX-XXXX-XXXX |
+| Code data | All 15 frozen enum/boolean wizard fields plus Unix issuance seconds; no credentials, arbitrary text or executable payload |
+| Checksum | CRC-8/SMBUS over nine big-endian bytes; polynomial 0x07, init/xorout 0, no reflection; not authentication |
+| Lifetime | `RECIPE_TTL_SECONDS = 3600`; valid only when `0 < issuedAt <= now < issuedAt + 3600`; exact deadline rejected |
+| Clock bounds | Integer Unix seconds 1–1099511627775; target `date +%s`; invalid/unavailable clocks and future codes rejected |
+| Legacy handling | Eight-character v1 refused by both shell endpoints; explicit JS `allowLegacy` restores choices only |
+| Expired recovery | Explicit JS `allowExpired` restores expired v2 choices; future codes, bad clocks and malformed data still rejected |
+| Protocol records | `contract.json` is v2; `contract-v1.json` preserves the old layout and vectors |
+| Hosting | GitHub Pages, `dev` workflow; only index.html, v1.sh, v2.sh and .nojekyll |
 | Preview pin | `6ffd465028bac299e5235d619819bfdc734af073` for explicit speech |
 | Default speech | Existing upstream main installer.sh bootstrap |
-| Preflight | 64-bit, valid code, compatible choices, nonroot user, correct OS, dependencies, protected existing checkout |
+| Preflight | 64-bit, format/checksum/version/time, compatible choices, nonroot user, correct OS, dependencies, protected existing checkout; freshness checked before side effects |
 | Secrets | Masked target /dev/tty prompts; no code/URL secrets |
-| Validation | 30 Node + 83 Python tests pass; sh -n passes; mock installers only |
+| Validation | 38 Node + 350 Python tests pass; both scripts pass sh -n and compare identically; mock installers only |
+| Python test API | [test/test_launcher.py](test/test_launcher.py): `Sandbox`, `raw_code`, `run_launcher`, `run_interactive`; no production Python classes |
+| Security limit | Public, reproducible code and local-clock freshness; no signature, encryption, per-code revocation or single-use enforcement |
 
 See [source map](docs/index.md) and [audit](AUDIT.md).

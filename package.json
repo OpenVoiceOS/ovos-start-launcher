@@ -1,1 +1,10 @@
-{"name":"ovos-start-launcher","version":"1.0.0","private":true,"type":"module","license":"Apache-2.0","scripts":{"test":"node --test test/*.test.mjs"}}
+{
+  "name": "ovos-start-launcher",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
