@@ -100,6 +100,27 @@ def test_failed_rerun_clears_prior_success_receipt_even_with_same_token(sandbox:
     assert events(sandbox)[before:] == ["services_ready", "needs_attention"]
 
 
+def test_failed_runtime_retry_preserves_backup_and_reports_only_failure(sandbox: Sandbox) -> None:
+    """Refreshing cached tools must not turn a permission failure into success."""
+    runtime = sandbox.home / ".venvs/ovos-installer"
+    runtime.mkdir(parents=True)
+    previous = runtime / "keep"
+    previous.write_text("previous installer tools\n")
+    previous.chmod(0o600)
+    Path(sandbox.env["FAKE_INSTALLER"]).write_text("#!/bin/sh\nexit 126\n")
+
+    result = tracked_run(sandbox)
+
+    assert result.returncode == 126
+    assert events(sandbox) == ["started", "downloading", "installing", "failed"]
+    backups = list(runtime.parent.glob("ovos-installer.backup.*/runtime/keep"))
+    assert len(backups) == 1
+    assert backups[0].read_text() == "previous installer tools\n"
+    assert backups[0].stat().st_mode & 0o777 == 0o600
+    assert (sandbox.scenario.parent / "status-installed").read_text() == ""
+    assert (sandbox.scenario.parent / "status-token").stat().st_mode & 0o777 == 0o600
+
+
 @pytest.mark.parametrize("kind", ("missing", "wrong-token", "symlink", "fifo", "directory"))
 def test_checker_never_infers_install_success_from_unsafe_or_stale_receipt(sandbox: Sandbox, kind: str) -> None:
     """Only the current capability's regular private success receipt is replayed."""

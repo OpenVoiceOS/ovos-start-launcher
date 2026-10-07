@@ -323,6 +323,23 @@ if [ "$ovos_llm" != off ]; then
   export LLM_API_URL LLM_API_KEY LLM_MODEL LLM_PERSONA LLM_MAX_TOKENS LLM_TEMPERATURE LLM_TOP_P
 fi
 say installing
+# An interrupted older launcher may have left a root-only installer venv.
+# Preserve that exact disposable runtime before asking upstream to rebuild it.
+# Do not force REUSE_CACHED_ARTIFACTS=false: upstream also clears shared caches.
+ovos_venvs="$ovos_home/.venvs"
+ovos_installer_runtime="$ovos_venvs/ovos-installer"
+for ovos_path in "$ovos_venvs" "$ovos_installer_runtime"; do
+  if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -d "$ovos_path" ]; }; then say unsafeConfig >&2; exit 1; fi
+done
+if [ -d "$ovos_installer_runtime" ]; then
+  ovos_runtime_backup=$(mktemp -d "$ovos_venvs/ovos-installer.backup.XXXXXX")
+  if ! mv "$ovos_installer_runtime" "$ovos_runtime_backup/runtime"; then
+    rmdir "$ovos_runtime_backup" 2>/dev/null || :
+    exit 1
+  fi
+  say runtimeBackup
+  printf '  %s\n' "$ovos_runtime_backup/runtime"
+fi
 # Recheck after interactive input, before elevated moves.
 for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
   if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then say unsafeConfig >&2; exit 1; fi
@@ -344,7 +361,14 @@ export RUN_AS_HOME="$ovos_home"
 # The upstream bootstrap can hide setup.sh's failure and delete a HOME checkout.
 # Execute the resolved setup directly and preserve its exact result.
 report_status installing
-"$ovos_bash" setup.sh
+# Installer dependencies are created as root but also used by Ansible tasks
+# running as the regular account. Do not pass our private staging umask to
+# that child: it would make venv bin/lib directories root-only. Keep 077 for
+# this launcher and its tokens; upstream explicitly protects its own secrets.
+(
+  umask 022
+  exec "$ovos_bash" setup.sh
+)
 # The pre-created receipt belongs to the regular user and remains mode0600.
 # Recheck after the installer ran; failure to persist progress never changes
 # an actual zero installer result. A checker only replays a matching receipt.

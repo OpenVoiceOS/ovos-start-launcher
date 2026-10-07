@@ -51,7 +51,8 @@
     "closed": "No interactive terminal is available. Run the check command in a terminal when you are ready.",
     "preview": "Uses the reviewed experimental speech installer (PR #648).",
     "unsafeConfig": "The setup folder contains an unexpected file or link. Move it aside, then try again. Your settings were not replaced.",
-    "locked": "A setup is running, or an interrupted attempt left a lock. First make sure no setup is running. Then remove this lock folder and try again:"
+    "locked": "A setup is running, or an interrupted attempt left a lock. First make sure no setup is running. Then remove this lock folder and try again:",
+    "runtimeBackup": "Previous installer tools saved to:"
   },
   "fr-fr": {
     "bits": "OVOS nécessite un système 64 bits. Aucune modification n’a été faite.",
@@ -105,7 +106,8 @@
     "closed": "Aucun terminal interactif n’est disponible. Lancez la commande de vérification dans un terminal lorsque vous serez prêt.",
     "preview": "Utilise la version expérimentale vérifiée du programme d’installation vocal (PR #648).",
     "unsafeConfig": "Le dossier de configuration contient un fichier ou un lien inattendu. Déplacez-le, puis réessayez. Vos réglages n’ont pas été remplacés.",
-    "locked": "Une installation est en cours, ou une tentative interrompue a laissé un verrou. Vérifiez d’abord qu’aucune installation ne tourne. Supprimez ensuite ce dossier de verrouillage, puis réessayez :"
+    "locked": "Une installation est en cours, ou une tentative interrompue a laissé un verrou. Vérifiez d’abord qu’aucune installation ne tourne. Supprimez ensuite ce dossier de verrouillage, puis réessayez :",
+    "runtimeBackup": "Anciens outils d’installation sauvegardés ici :"
   },
   "de-de": {
     "bits": "OVOS benötigt ein 64-Bit-Betriebssystem. Es wurde nichts geändert.",
@@ -159,7 +161,8 @@
     "closed": "Kein interaktives Terminal verfügbar. Führe den Prüfbefehl später in einem Terminal aus.",
     "preview": "Verwendet das geprüfte experimentelle Sprach-Installationsprogramm (PR #648).",
     "unsafeConfig": "Im Einrichtungsordner liegt eine unerwartete Datei oder Verknüpfung. Verschiebe sie und versuche es erneut. Deine Einstellungen wurden nicht ersetzt.",
-    "locked": "Eine Einrichtung läuft noch oder hat nach einem Abbruch eine Sperre hinterlassen. Prüfe zuerst, dass keine Einrichtung mehr läuft. Entferne dann diesen Sperrordner und versuche es erneut:"
+    "locked": "Eine Einrichtung läuft noch oder hat nach einem Abbruch eine Sperre hinterlassen. Prüfe zuerst, dass keine Einrichtung mehr läuft. Entferne dann diesen Sperrordner und versuche es erneut:",
+    "runtimeBackup": "Bisherige Installationstools gesichert unter:"
   },
   "es-es": {
     "bits": "OVOS necesita un sistema operativo de 64 bits. No se ha cambiado nada.",
@@ -213,7 +216,8 @@
     "closed": "No hay un terminal interactivo. Ejecuta el comando de comprobación en un terminal cuando quieras continuar.",
     "preview": "Utiliza el instalador experimental de voz revisado (PR #648).",
     "unsafeConfig": "La carpeta de configuración contiene un archivo o enlace inesperado. Muévelo a otro lugar y vuelve a intentarlo. No se han sustituido tus ajustes.",
-    "locked": "Hay una instalación en curso o un intento interrumpido ha dejado un bloqueo. Primero comprueba que no haya ninguna instalación en marcha. Después elimina esta carpeta de bloqueo y vuelve a intentarlo:"
+    "locked": "Hay una instalación en curso o un intento interrumpido ha dejado un bloqueo. Primero comprueba que no haya ninguna instalación en marcha. Después elimina esta carpeta de bloqueo y vuelve a intentarlo:",
+    "runtimeBackup": "Herramientas del instalador anteriores guardadas en:"
   },
   "it-it": {
     "bits": "OVOS richiede un sistema operativo a 64 bit. Non è stato modificato nulla.",
@@ -267,7 +271,8 @@
     "closed": "Non è disponibile un terminale interattivo. Esegui il comando di verifica in un terminale quando sei pronto.",
     "preview": "Usa il programma di installazione vocale sperimentale verificato (PR #648).",
     "unsafeConfig": "La cartella di configurazione contiene un file o collegamento inatteso. Spostalo altrove e riprova. Le tue impostazioni non sono state sostituite.",
-    "locked": "È in corso un’installazione, oppure un tentativo interrotto ha lasciato un blocco. Prima verifica che non ci siano installazioni in corso. Poi rimuovi questa cartella di blocco e riprova:"
+    "locked": "È in corso un’installazione, oppure un tentativo interrotto ha lasciato un blocco. Prima verifica che non ci siano installazioni in corso. Poi rimuovi questa cartella di blocco e riprova:",
+    "runtimeBackup": "Strumenti di installazione precedenti salvati in:"
   },
   "nl-nl": {
     "bits": "OVOS heeft een 64-bits besturingssysteem nodig. Er is niets gewijzigd.",
@@ -321,7 +326,8 @@
     "closed": "Er is geen interactieve terminal. Voer het controlecommando later in een terminal uit.",
     "preview": "Gebruikt de beoordeelde experimentele spraakinstaller (PR #648).",
     "unsafeConfig": "De instelmap bevat een onverwacht bestand of een onverwachte koppeling. Verplaats dit naar een andere plek en probeer het opnieuw. Je instellingen zijn niet vervangen.",
-    "locked": "Er loopt een installatie, of een onderbroken poging heeft een vergrendeling achtergelaten. Controleer eerst of er geen installatie meer draait. Verwijder daarna deze vergrendelingsmap en probeer het opnieuw:"
+    "locked": "Er loopt een installatie, of een onderbroken poging heeft een vergrendeling achtergelaten. Controleer eerst of er geen installatie meer draait. Verwijder daarna deze vergrendelingsmap en probeer het opnieuw:",
+    "runtimeBackup": "Vorige installatiehulpmiddelen bewaard in:"
   },
   "pt-pt": {
     "bits": "O OVOS precisa de um sistema operativo de 64 bits. Não foi feita nenhuma alteração.",
@@ -375,7 +381,8 @@
     "closed": "Não há um terminal interativo disponível. Executa o comando de verificação num terminal quando quiseres continuar.",
     "preview": "Usa o instalador experimental de voz revisto (PR #648).",
     "unsafeConfig": "A pasta de configuração contém um ficheiro ou uma ligação inesperados. Move-os para outro local e tenta novamente. As tuas definições não foram substituídas.",
-    "locked": "Está a decorrer uma instalação, ou uma tentativa interrompida deixou um bloqueio. Primeiro, confirma que não está a decorrer nenhuma instalação. Depois remove esta pasta de bloqueio e tenta novamente:"
+    "locked": "Está a decorrer uma instalação, ou uma tentativa interrompida deixou um bloqueio. Primeiro, confirma que não está a decorrer nenhuma instalação. Depois remove esta pasta de bloqueio e tenta novamente:",
+    "runtimeBackup": "Ferramentas de instalação anteriores guardadas em:"
   },
   "ca-es": {
     "bits": "OVOS necessita un sistema operatiu de 64 bits. No s’ha canviat res.",
@@ -429,7 +436,8 @@
     "closed": "No hi ha cap terminal interactiu disponible. Executa l’ordre de comprovació en un terminal quan vulguis continuar.",
     "preview": "Fa servir l’instal·lador experimental de veu revisat (PR #648).",
     "unsafeConfig": "La carpeta de configuració conté un fitxer o un enllaç inesperat. Mou-lo a un altre lloc i torna-ho a provar. Els ajustos no s’han substituït.",
-    "locked": "Hi ha una instal·lació en curs, o un intent interromput ha deixat un bloqueig. Primer comprova que no hi hagi cap instal·lació en marxa. Després elimina aquesta carpeta de bloqueig i torna-ho a provar:"
+    "locked": "Hi ha una instal·lació en curs, o un intent interromput ha deixat un bloqueig. Primer comprova que no hi hagi cap instal·lació en marxa. Després elimina aquesta carpeta de bloqueig i torna-ho a provar:",
+    "runtimeBackup": "Eines d’instal·lació anteriors desades a:"
   },
   "eu-es": {
     "bits": "OVOSek 64 biteko sistema eragilea behar du. Ez da ezer aldatu.",
@@ -483,7 +491,8 @@
     "closed": "Ez dago terminal interaktiborik. Prest zaudenean, exekutatu egiaztapen-komandoa terminal batean.",
     "preview": "Berrikusitako ahots-instalatzaile esperimentala erabiltzen du (PR #648).",
     "unsafeConfig": "Konfigurazio-karpetan espero ez zen fitxategi edo esteka bat dago. Mugitu beste toki batera eta saiatu berriro. Ezarpenak ez dira ordeztu.",
-    "locked": "Instalazio bat martxan dago, edo etendako saiakera batek blokeoa utzi du. Lehenik, ziurtatu ez dagoela instalaziorik martxan. Ondoren, ezabatu blokeo-karpeta hau eta saiatu berriro:"
+    "locked": "Instalazio bat martxan dago, edo etendako saiakera batek blokeoa utzi du. Lehenik, ziurtatu ez dagoela instalaziorik martxan. Ondoren, ezabatu blokeo-karpeta hau eta saiatu berriro:",
+    "runtimeBackup": "Aurreko instalazio-tresnak hemen gorde dira:"
   },
   "gl-es": {
     "bits": "OVOS precisa un sistema operativo de 64 bits. Non se cambiou nada.",
@@ -537,7 +546,8 @@
     "closed": "Non hai un terminal interactivo dispoñible. Executa o comando de comprobación nun terminal cando queiras continuar.",
     "preview": "Usa o instalador experimental de voz revisado (PR #648).",
     "unsafeConfig": "O cartafol de configuración contén un ficheiro ou unha ligazón inesperados. Móveos a outro lugar e téntao de novo. Non se substituíron os teus axustes.",
-    "locked": "Hai unha instalación en curso ou un intento interrompido deixou un bloqueo. Primeiro comproba que non haxa ningunha instalación en marcha. Despois elimina este cartafol de bloqueo e téntao de novo:"
+    "locked": "Hai unha instalación en curso ou un intento interrompido deixou un bloqueo. Primeiro comproba que non haxa ningunha instalación en marcha. Despois elimina este cartafol de bloqueo e téntao de novo:",
+    "runtimeBackup": "Ferramentas de instalación anteriores gardadas en:"
   },
   "hi-in": {
     "bits": "OVOS के लिए 64-बिट ऑपरेटिंग सिस्टम चाहिए। कोई बदलाव नहीं किया गया।",
@@ -591,7 +601,8 @@
     "closed": "इंटरैक्टिव टर्मिनल उपलब्ध नहीं है। तैयार होने पर जाँच वाला कमांड किसी टर्मिनल में चलाएँ।",
     "preview": "जाँचे गए प्रयोगात्मक वॉइस इंस्टॉलर का उपयोग करता है (PR #648)।",
     "unsafeConfig": "सेटअप फ़ोल्डर में कोई अनपेक्षित फ़ाइल या लिंक है। उसे दूसरी जगह ले जाएँ, फिर कोशिश करें। आपकी सेटिंग नहीं बदली गई हैं।",
-    "locked": "कोई इंस्टॉलेशन चल रहा है, या बीच में रुके प्रयास का लॉक रह गया है। पहले सुनिश्चित करें कि कोई इंस्टॉलेशन नहीं चल रहा है। फिर यह लॉक फ़ोल्डर हटाएँ और दोबारा कोशिश करें:"
+    "locked": "कोई इंस्टॉलेशन चल रहा है, या बीच में रुके प्रयास का लॉक रह गया है। पहले सुनिश्चित करें कि कोई इंस्टॉलेशन नहीं चल रहा है। फिर यह लॉक फ़ोल्डर हटाएँ और दोबारा कोशिश करें:",
+    "runtimeBackup": "इंस्टॉल करने वाले पिछले टूल यहाँ सुरक्षित हैं:"
   },
   "kab-dz": {
     "bits": "OVOS yesra anagraw n wammud 64 ibiten. Ulac abeddel i yettwaxedmen.",
@@ -645,6 +656,7 @@
     "closed": "Ulac tadiwent amyigawant. Selkem taladna n usenqed deg tadiwent mi ara theggiḍ.",
     "preview": "Yesseqdac asebdad n taɣect armitan yettwasenqden (PR #648).",
     "unsafeConfig": "Akaram n useɣwer yesɛa afaylu neɣ aseɣwen ur nettwarǧi ara. Senkez-it ɣer umḍiq-nniḍen, syen ɛreḍ tikkelt-nniḍen. Iɣewwaren-ik ur ttwasemselsin ara.",
-    "locked": "Asbeddi la iteddu, neɣ asbeddi yeḥbes yeǧǧa akaram n usekṛu. Senqed qbel belli ulac asbeddi iteddun. Syen kkes akaram-a n usekṛu, ɛreḍ tikkelt-nniḍen:"
+    "locked": "Asbeddi la iteddu, neɣ asbeddi yeḥbes yeǧǧa akaram n usekṛu. Senqed qbel belli ulac asbeddi iteddun. Syen kkes akaram-a n usekṛu, ɛreḍ tikkelt-nniḍen:",
+    "runtimeBackup": "Allalen n usebded iqburen ttwaskelsen deg:"
   }
 }

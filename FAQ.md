@@ -1,6 +1,12 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permissions and preserve cached tools on retry in 2.2.1.
 
 # Frequently asked questions
+
+## Why did PipeWire setup report permission denied for the installer Python?
+
+Launcher 2.2.0 passed its private `umask077` into the elevated installer. Python then created root-only directories inside `~/.venvs/ovos-installer`, while Ansible later ran its sound task as the regular user. Version 2.2.1 gives only the installer child the normal `umask022`; launcher tokens and configuration stay private. See [`test_installer_venv_is_accessible_without_exposing_launcher_secrets`](test/test_storage_hardening.py#L144).
+
+Copy a fresh command from the updated wizard after the failed attempt has ended. The launcher preserves an existing installer runtime at the printed `~/.venvs/ovos-installer.backup.XXXXXX/runtime` path, then lets upstream create a fresh one. This does not recursively change permissions or replace `~/.venvs/ovos`. The backup is retained even if the retry fails. Unusual linked runtime directories are refused instead of followed; see [`test_unsafe_installer_runtime_is_not_archived_or_followed`](test/test_storage_hardening.py#L190).
 
 ## How does the wizard follow installation?
 

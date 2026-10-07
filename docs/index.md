@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permissions and preserve cached tools on retry in 2.2.1.
 
 # Launcher developer guide
 
@@ -15,6 +15,14 @@ Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installatio
 | [pages.yml](../.github/workflows/pages.yml) | Tests, syntax/parity checks, then minimal GitHub Pages artifact with both shell endpoints |
 
 No production Python classes or OVOS plugin entry points exist. The caller is the [OVOS Start wizard](../../ovos-start/docs/index.md), whose `buildShortCommand` and `readSetupFragment` use this codec and whose `validateState` applies matching compatibility rules. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
+
+## Installer permissions and retry recovery (2.2.1)
+
+The launcher keeps `umask077` while staging configuration, credentials, callbacks and the private checker. Its [`setup.sh` child](../lib/launcher.sh.in#L369) alone uses `umask022`, because the root-created installer Python venv must also be executable by Ansible tasks that become the regular user. Upstream protects its secret extra-vars files explicitly; the launcher's existing scenario/token modes remain 0600 and checker mode 0700.
+
+Before invoking setup, the [runtime guard](../lib/launcher.sh.in#L329) rejects linked or non-directory `.venvs` and `ovos-installer` paths. An existing installer runtime is moved into a unique mode 0700 sibling backup and the location is printed in the selected language. The backup remains after success or failure. The installer creates its missing runtime normally; the launcher does not force upstream's broader cache-refresh setting or change permissions recursively. Application environments such as `~/.venvs/ovos` remain untouched by this preparation.
+
+Python tests [`test_installer_venv_is_accessible_without_exposing_launcher_secrets`](../test/test_storage_hardening.py#L144) create real local venvs and cover fresh/cached 0700 directories, private launcher state and retained app files. [`test_failed_runtime_retry_preserves_backup_and_reports_only_failure`](../test/test_callbacks.py#L103) confirms an exit 126 retry retains its backup, emits only `failed` after `installing` and leaves the success receipt empty. These tests use fake sudo/install/service/network commands; they do not prove operation on physical MarkII hardware.
 
 ## Optional installation progress (2.2.0)
 
@@ -60,7 +68,7 @@ Expiry is a local freshness policy. Browser/target clocks can disagree, and time
 
 ## Verification and publication
 
-The current checks passed **38 Node tests and 524 Python cases**. Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, both `sh -n` checks and `cmp v1.sh v2.sh`. Python [Sandbox](../test/test_launcher.py#L94) owns isolated paths; `raw_code` supplies an independent wire encoder, `run_launcher` exercises the actual shell, and `run_interactive` checks real PTY reads with fake curl/git/sudo and installer commands. [test_timestamp_boundaries_match_javascript_in_every_mode](../test/test_launcher.py#L309) compares the JavaScript and shell deadlines. No production Python classes or live installation are part of the test suite.
+The current checks passed **38 Node tests and 656 Python cases**. Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, both `sh -n` checks and `cmp v1.sh v2.sh`. Python [Sandbox](../test/test_launcher.py#L94) owns isolated paths; `raw_code` supplies an independent wire encoder, `run_launcher` exercises the actual shell, and `run_interactive` checks real PTY reads with fake curl/git/sudo and installer commands. [test_timestamp_boundaries_match_javascript_in_every_mode](../test/test_launcher.py#L309) compares the JavaScript and shell deadlines. No production Python classes or live installation are part of the test suite.
 
 The `dev` workflow tests pull requests and packages `index.html`, `v1.sh`, `v2.sh` and `.nojekyll` for non-PR Pages deployments. It does not publish the wizard or any recipe database. Documentation updates do not themselves deploy the site.
 

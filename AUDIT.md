@@ -1,6 +1,19 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Correct installer runtime permissions and preserve cached tools on retry in 2.2.1.
 
 # Audit
+
+## 2026-10-07 — Version 2.2.1 installer permissions audit
+
+Reproduced the permission defect before fixing it: both generated entry points created a real Python installer venv with `bin` mode 0700. The elevated launcher inherited its staging `umask077` into setup. Pinned upstream [`create_python_venv`](https://github.com/OpenVoiceOS/ovos-installer/blob/6ffd465028bac299e5235d619819bfdc734af073/utils/common.sh#L1091) creates that venv as root but changes ownership only on the venv root and `.venvs`, leaving private root-owned children unusable by the normal account. Its [PipeWire task](https://github.com/OpenVoiceOS/ovos-installer/blob/6ffd465028bac299e5235d619819bfdc734af073/ansible/roles/ovos_sound/tasks/install.yml#L104) runs as that account, matching the reported permission-denied failure.
+
+The [setup child](lib/launcher.sh.in#L369) now uses `umask022`; launcher staging remains077. Cached installer runtimes are preserved in a private uniquely named sibling backup before upstream creates a fresh one. [Exact path guards](lib/launcher.sh.in#L329) refuse symlinks/non-directories and never recurse over home permissions. The launcher does not force `REUSE_CACHED_ARTIFACTS=false`, because that upstream option also deletes shared `/root/.ansible` contents.
+
+Evidence: **656 pytest cases and 38 Node tests pass**, including 18 new cases. [`test_installer_venv_is_accessible_without_exposing_launcher_secrets`](test/test_storage_hardening.py#L144) verifies real fresh and cached venvs get accessible 0755 directories, while scenario/token/receipt 0600, checker 0700 and unrelated application settings are preserved. [`test_unsafe_installer_runtime_is_not_archived_or_followed`](test/test_storage_hardening.py#L190) covers linked/file/FIFO paths. [`test_failed_runtime_retry_preserves_backup_and_reports_only_failure`](test/test_callbacks.py#L103) retains the exact 126 exit, preserved backup and failure-only callbacks. Syntax, generated parity, ShellCheck and diff checks pass. No physical MarkII install or real administrator escalation was run.
+
+Manual trace also verified pinned setup captures Ansible's `PIPESTATUS` and exits nonzero on playbook failure; launcher completion callbacks remain gated on a zero setup result. This patch does not mask or reinterpret failed installation as success. Browser/relay evidence belongs to the coordinating agent's separate status review.
+
+Remaining upstream behavior: [successful setup cleanup](https://github.com/OpenVoiceOS/ovos-installer/blob/6ffd465028bac299e5235d619819bfdc734af073/setup.sh#L319) still removes hard-coded `/root/.ansible`. This patch adds no such deletion and preserves any archived installer runtime. Native-language review of the added backup-path label remains pending.
+
 
 ## 2026-10-07 — Version 2.2.0 callback audit
 

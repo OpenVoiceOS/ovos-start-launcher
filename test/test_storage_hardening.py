@@ -140,6 +140,80 @@ def test_regular_configuration_and_checker_are_replaced_with_private_files(sandb
     assert not (sandbox.scenario.parent / ".launcher-lock").exists()
 
 
+@pytest.mark.parametrize("cached", (False, True))
+def test_installer_venv_is_accessible_without_exposing_launcher_secrets(
+    sandbox: Sandbox, cached: bool,
+) -> None:
+    """A root-created Python venv must remain traversable for Ansible become_user."""
+    installer = Path(sandbox.env["FAKE_INSTALLER"])
+    installer.write_text(
+        '#!/bin/sh\nset -eu\n'
+        '"$FAKE_PYTHON" -m venv --without-pip "$HOME/.venvs/ovos-installer"\n'
+    )
+    venv = sandbox.home / ".venvs/ovos-installer"
+    if cached:
+        subprocess.run(
+            [sandbox.env["FAKE_PYTHON"], "-m", "venv", "--without-pip", str(venv)],
+            check=True, capture_output=True, timeout=10, umask=0o077,
+        )
+        assert (venv / "bin").stat().st_mode & 0o777 == 0o700
+    unrelated = sandbox.home / ".venvs/ovos/private-settings"
+    unrelated.parent.mkdir(parents=True, exist_ok=True)
+    unrelated.write_text("Keep application state\n")
+    unrelated.chmod(0o600)
+
+    result = run_launcher(sandbox, raw_code())
+
+    assert result.returncode == 0, result.stderr
+    # Upstream chowns only the venv root and .venvs. Its root-owned children
+    # still need read/traverse permissions after a task becomes the user.
+    for directory in [venv / "bin", venv / "lib", *list((venv / "lib").glob("python*"))]:
+        assert directory.stat().st_mode & 0o777 == 0o755
+    assert (venv / "pyvenv.cfg").stat().st_mode & 0o777 == 0o644
+    assert (venv / "bin/activate").stat().st_mode & 0o777 == 0o644
+    assert sandbox.scenario.stat().st_mode & 0o777 == 0o600
+    assert (sandbox.scenario.parent / "status-token").stat().st_mode & 0o777 == 0o600
+    assert (sandbox.scenario.parent / "status-installed").stat().st_mode & 0o777 == 0o600
+    assert (sandbox.scenario.parent / "check-setup.sh").stat().st_mode & 0o777 == 0o700
+    assert unrelated.read_text() == "Keep application state\n"
+    assert unrelated.stat().st_mode & 0o777 == 0o600
+    backups = list(venv.parent.glob("ovos-installer.backup.*/runtime"))
+    assert len(backups) == int(cached)
+    if cached:
+        assert (backups[0] / "bin").stat().st_mode & 0o777 == 0o700
+        assert backups[0].parent.stat().st_mode & 0o777 == 0o700
+        assert str(backups[0]) in result.stdout
+
+
+@pytest.mark.parametrize("relative", (".venvs", ".venvs/ovos-installer"))
+@pytest.mark.parametrize("kind", ("file", "symlink", "fifo"))
+def test_unsafe_installer_runtime_is_not_archived_or_followed(
+    sandbox: Sandbox, relative: str, kind: str,
+) -> None:
+    """Archiving a prior runtime must never follow a link or replace another file."""
+    path = sandbox.home / relative
+    path.parent.mkdir(parents=True, exist_ok=True)
+    unrelated = sandbox.home / "unrelated-runtime"
+    unrelated.mkdir()
+    sentinel = unrelated / "keep"
+    sentinel.write_text("keep\n")
+    if kind == "file":
+        path.write_text("unexpected file\n")
+    elif kind == "symlink":
+        path.symlink_to(unrelated, target_is_directory=True)
+    else:
+        os.mkfifo(path)
+    inode = path.lstat().st_ino
+
+    result = run_launcher(sandbox, raw_code())
+
+    assert result.returncode == 1
+    assert path.lstat().st_ino == inode
+    assert sentinel.read_text() == "keep\n"
+    assert not (sandbox.home / "received.json").exists()
+    assert not sandbox.scenario.exists()
+
+
 @pytest.mark.parametrize("kind", ["directory", "directory-link", "file", "dangling-link"])
 def test_existing_lock_is_preserved_without_network_or_state_changes(
     sandbox: Sandbox, kind: str,

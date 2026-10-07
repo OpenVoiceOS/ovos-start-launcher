@@ -59,6 +59,7 @@ message() {
     en-us:preview) printf '%s' 'Uses the reviewed experimental speech installer (PR #648).';;
     en-us:unsafeConfig) printf '%s' 'The setup folder contains an unexpected file or link. Move it aside, then try again. Your settings were not replaced.';;
     en-us:locked) printf '%s' 'A setup is running, or an interrupted attempt left a lock. First make sure no setup is running. Then remove this lock folder and try again:';;
+    en-us:runtimeBackup) printf '%s' 'Previous installer tools saved to:';;
     fr-fr:bits) printf '%s' 'OVOS nécessite un système 64 bits. Aucune modification n’a été faite.';;
     fr-fr:invalid) printf '%s' 'Ce code est incorrect ou incomplet. Copiez une nouvelle commande depuis le guide.';;
     fr-fr:expired) printf '%s' 'Ce code a expiré au bout d’une heure. Générez-en un nouveau dans le guide.';;
@@ -111,6 +112,7 @@ message() {
     fr-fr:preview) printf '%s' 'Utilise la version expérimentale vérifiée du programme d’installation vocal (PR #648).';;
     fr-fr:unsafeConfig) printf '%s' 'Le dossier de configuration contient un fichier ou un lien inattendu. Déplacez-le, puis réessayez. Vos réglages n’ont pas été remplacés.';;
     fr-fr:locked) printf '%s' 'Une installation est en cours, ou une tentative interrompue a laissé un verrou. Vérifiez d’abord qu’aucune installation ne tourne. Supprimez ensuite ce dossier de verrouillage, puis réessayez :';;
+    fr-fr:runtimeBackup) printf '%s' 'Anciens outils d’installation sauvegardés ici :';;
     de-de:bits) printf '%s' 'OVOS benötigt ein 64-Bit-Betriebssystem. Es wurde nichts geändert.';;
     de-de:invalid) printf '%s' 'Dieser Einrichtungscode ist ungültig oder unvollständig. Kopiere einen neuen Befehl aus dem Assistenten.';;
     de-de:expired) printf '%s' 'Dieser Code ist nach einer Stunde abgelaufen. Erstelle im Assistenten einen neuen.';;
@@ -163,6 +165,7 @@ message() {
     de-de:preview) printf '%s' 'Verwendet das geprüfte experimentelle Sprach-Installationsprogramm (PR #648).';;
     de-de:unsafeConfig) printf '%s' 'Im Einrichtungsordner liegt eine unerwartete Datei oder Verknüpfung. Verschiebe sie und versuche es erneut. Deine Einstellungen wurden nicht ersetzt.';;
     de-de:locked) printf '%s' 'Eine Einrichtung läuft noch oder hat nach einem Abbruch eine Sperre hinterlassen. Prüfe zuerst, dass keine Einrichtung mehr läuft. Entferne dann diesen Sperrordner und versuche es erneut:';;
+    de-de:runtimeBackup) printf '%s' 'Bisherige Installationstools gesichert unter:';;
     es-es:bits) printf '%s' 'OVOS necesita un sistema operativo de 64 bits. No se ha cambiado nada.';;
     es-es:invalid) printf '%s' 'El código no es válido o está incompleto. Copia un comando nuevo del asistente.';;
     es-es:expired) printf '%s' 'Este código ha caducado tras una hora. Genera uno nuevo en el asistente.';;
@@ -215,6 +218,7 @@ message() {
     es-es:preview) printf '%s' 'Utiliza el instalador experimental de voz revisado (PR #648).';;
     es-es:unsafeConfig) printf '%s' 'La carpeta de configuración contiene un archivo o enlace inesperado. Muévelo a otro lugar y vuelve a intentarlo. No se han sustituido tus ajustes.';;
     es-es:locked) printf '%s' 'Hay una instalación en curso o un intento interrumpido ha dejado un bloqueo. Primero comprueba que no haya ninguna instalación en marcha. Después elimina esta carpeta de bloqueo y vuelve a intentarlo:';;
+    es-es:runtimeBackup) printf '%s' 'Herramientas del instalador anteriores guardadas en:';;
     it-it:bits) printf '%s' 'OVOS richiede un sistema operativo a 64 bit. Non è stato modificato nulla.';;
     it-it:invalid) printf '%s' 'Il codice non è valido o è incompleto. Copia un nuovo comando dalla procedura guidata.';;
     it-it:expired) printf '%s' 'Questo codice è scaduto dopo un’ora. Creane uno nuovo nella procedura guidata.';;
@@ -267,6 +271,7 @@ message() {
     it-it:preview) printf '%s' 'Usa il programma di installazione vocale sperimentale verificato (PR #648).';;
     it-it:unsafeConfig) printf '%s' 'La cartella di configurazione contiene un file o collegamento inatteso. Spostalo altrove e riprova. Le tue impostazioni non sono state sostituite.';;
     it-it:locked) printf '%s' 'È in corso un’installazione, oppure un tentativo interrotto ha lasciato un blocco. Prima verifica che non ci siano installazioni in corso. Poi rimuovi questa cartella di blocco e riprova:';;
+    it-it:runtimeBackup) printf '%s' 'Strumenti di installazione precedenti salvati in:';;
     nl-nl:bits) printf '%s' 'OVOS heeft een 64-bits besturingssysteem nodig. Er is niets gewijzigd.';;
     nl-nl:invalid) printf '%s' 'Deze instelcode is ongeldig of onvolledig. Kopieer een nieuw commando uit de wizard.';;
     nl-nl:expired) printf '%s' 'Deze code is na een uur verlopen. Maak een nieuwe code in de wizard.';;
@@ -319,6 +324,7 @@ message() {
     nl-nl:preview) printf '%s' 'Gebruikt de beoordeelde experimentele spraakinstaller (PR #648).';;
     nl-nl:unsafeConfig) printf '%s' 'De instelmap bevat een onverwacht bestand of een onverwachte koppeling. Verplaats dit naar een andere plek en probeer het opnieuw. Je instellingen zijn niet vervangen.';;
     nl-nl:locked) printf '%s' 'Er loopt een installatie, of een onderbroken poging heeft een vergrendeling achtergelaten. Controleer eerst of er geen installatie meer draait. Verwijder daarna deze vergrendelingsmap en probeer het opnieuw:';;
+    nl-nl:runtimeBackup) printf '%s' 'Vorige installatiehulpmiddelen bewaard in:';;
     pt-pt:bits) printf '%s' 'O OVOS precisa de um sistema operativo de 64 bits. Não foi feita nenhuma alteração.';;
     pt-pt:invalid) printf '%s' 'O código é inválido ou está incompleto. Copia um novo comando do assistente.';;
     pt-pt:expired) printf '%s' 'Este código expirou ao fim de uma hora. Gera outro no assistente.';;
@@ -371,6 +377,7 @@ message() {
     pt-pt:preview) printf '%s' 'Usa o instalador experimental de voz revisto (PR #648).';;
     pt-pt:unsafeConfig) printf '%s' 'A pasta de configuração contém um ficheiro ou uma ligação inesperados. Move-os para outro local e tenta novamente. As tuas definições não foram substituídas.';;
     pt-pt:locked) printf '%s' 'Está a decorrer uma instalação, ou uma tentativa interrompida deixou um bloqueio. Primeiro, confirma que não está a decorrer nenhuma instalação. Depois remove esta pasta de bloqueio e tenta novamente:';;
+    pt-pt:runtimeBackup) printf '%s' 'Ferramentas de instalação anteriores guardadas em:';;
     ca-es:bits) printf '%s' 'OVOS necessita un sistema operatiu de 64 bits. No s’ha canviat res.';;
     ca-es:invalid) printf '%s' 'El codi no és vàlid o és incomplet. Copia una ordre nova de l’assistent.';;
     ca-es:expired) printf '%s' 'Aquest codi ha caducat al cap d’una hora. Genera’n un de nou a l’assistent.';;
@@ -423,6 +430,7 @@ message() {
     ca-es:preview) printf '%s' 'Fa servir l’instal·lador experimental de veu revisat (PR #648).';;
     ca-es:unsafeConfig) printf '%s' 'La carpeta de configuració conté un fitxer o un enllaç inesperat. Mou-lo a un altre lloc i torna-ho a provar. Els ajustos no s’han substituït.';;
     ca-es:locked) printf '%s' 'Hi ha una instal·lació en curs, o un intent interromput ha deixat un bloqueig. Primer comprova que no hi hagi cap instal·lació en marxa. Després elimina aquesta carpeta de bloqueig i torna-ho a provar:';;
+    ca-es:runtimeBackup) printf '%s' 'Eines d’instal·lació anteriors desades a:';;
     eu-es:bits) printf '%s' 'OVOSek 64 biteko sistema eragilea behar du. Ez da ezer aldatu.';;
     eu-es:invalid) printf '%s' 'Konfigurazio-kodea ez da baliozkoa edo osatu gabe dago. Kopiatu beste komando bat morroitik.';;
     eu-es:expired) printf '%s' 'Kodea ordubete igarota iraungi da. Sortu beste bat morroian.';;
@@ -475,6 +483,7 @@ message() {
     eu-es:preview) printf '%s' 'Berrikusitako ahots-instalatzaile esperimentala erabiltzen du (PR #648).';;
     eu-es:unsafeConfig) printf '%s' 'Konfigurazio-karpetan espero ez zen fitxategi edo esteka bat dago. Mugitu beste toki batera eta saiatu berriro. Ezarpenak ez dira ordeztu.';;
     eu-es:locked) printf '%s' 'Instalazio bat martxan dago, edo etendako saiakera batek blokeoa utzi du. Lehenik, ziurtatu ez dagoela instalaziorik martxan. Ondoren, ezabatu blokeo-karpeta hau eta saiatu berriro:';;
+    eu-es:runtimeBackup) printf '%s' 'Aurreko instalazio-tresnak hemen gorde dira:';;
     gl-es:bits) printf '%s' 'OVOS precisa un sistema operativo de 64 bits. Non se cambiou nada.';;
     gl-es:invalid) printf '%s' 'O código non é válido ou está incompleto. Copia un comando novo do asistente.';;
     gl-es:expired) printf '%s' 'Este código caducou ao cabo dunha hora. Xera outro no asistente.';;
@@ -527,6 +536,7 @@ message() {
     gl-es:preview) printf '%s' 'Usa o instalador experimental de voz revisado (PR #648).';;
     gl-es:unsafeConfig) printf '%s' 'O cartafol de configuración contén un ficheiro ou unha ligazón inesperados. Móveos a outro lugar e téntao de novo. Non se substituíron os teus axustes.';;
     gl-es:locked) printf '%s' 'Hai unha instalación en curso ou un intento interrompido deixou un bloqueo. Primeiro comproba que non haxa ningunha instalación en marcha. Despois elimina este cartafol de bloqueo e téntao de novo:';;
+    gl-es:runtimeBackup) printf '%s' 'Ferramentas de instalación anteriores gardadas en:';;
     hi-in:bits) printf '%s' 'OVOS के लिए 64-बिट ऑपरेटिंग सिस्टम चाहिए। कोई बदलाव नहीं किया गया।';;
     hi-in:invalid) printf '%s' 'सेटअप कोड गलत या अधूरा है। विज़ार्ड से नया कमांड कॉपी करें।';;
     hi-in:expired) printf '%s' 'एक घंटा पूरा होने पर यह कोड समाप्त हो गया। विज़ार्ड में नया कोड बनाएँ।';;
@@ -579,6 +589,7 @@ message() {
     hi-in:preview) printf '%s' 'जाँचे गए प्रयोगात्मक वॉइस इंस्टॉलर का उपयोग करता है (PR #648)।';;
     hi-in:unsafeConfig) printf '%s' 'सेटअप फ़ोल्डर में कोई अनपेक्षित फ़ाइल या लिंक है। उसे दूसरी जगह ले जाएँ, फिर कोशिश करें। आपकी सेटिंग नहीं बदली गई हैं।';;
     hi-in:locked) printf '%s' 'कोई इंस्टॉलेशन चल रहा है, या बीच में रुके प्रयास का लॉक रह गया है। पहले सुनिश्चित करें कि कोई इंस्टॉलेशन नहीं चल रहा है। फिर यह लॉक फ़ोल्डर हटाएँ और दोबारा कोशिश करें:';;
+    hi-in:runtimeBackup) printf '%s' 'इंस्टॉल करने वाले पिछले टूल यहाँ सुरक्षित हैं:';;
     kab-dz:bits) printf '%s' 'OVOS yesra anagraw n wammud 64 ibiten. Ulac abeddel i yettwaxedmen.';;
     kab-dz:invalid) printf '%s' 'Tangalt n usbeddi mačči d tameɣtut neɣ ur temmid ara. Nɣel taladna tamaynut seg umallal.';;
     kab-dz:expired) printf '%s' 'Tangalt-a tfukk seld yiwen n usrag. Snulfu-d tayeḍ deg umallal.';;
@@ -631,6 +642,7 @@ message() {
     kab-dz:preview) printf '%s' 'Yesseqdac asebdad n taɣect armitan yettwasenqden (PR #648).';;
     kab-dz:unsafeConfig) printf '%s' 'Akaram n useɣwer yesɛa afaylu neɣ aseɣwen ur nettwarǧi ara. Senkez-it ɣer umḍiq-nniḍen, syen ɛreḍ tikkelt-nniḍen. Iɣewwaren-ik ur ttwasemselsin ara.';;
     kab-dz:locked) printf '%s' 'Asbeddi la iteddu, neɣ asbeddi yeḥbes yeǧǧa akaram n usekṛu. Senqed qbel belli ulac asbeddi iteddun. Syen kkes akaram-a n usekṛu, ɛreḍ tikkelt-nniḍen:';;
+    kab-dz:runtimeBackup) printf '%s' 'Allalen n usebded iqburen ttwaskelsen deg:';;
     *) printf '%s' 'OVOS: unknown message';;
   esac
 }
@@ -639,7 +651,7 @@ say() { message "$1"; printf '\n'; }
 # shellcheck disable=SC2016
 write_messages() {
   printf '%s\n' 'message() {' '  case "$1" in'
-  for ovos_key in audioFailed audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac preview regular required resume revision servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceOk voicePhrase voiceQuestion; do
+  for ovos_key in audioFailed audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac preview regular required resume revision runtimeBackup servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceOk voicePhrase voiceQuestion; do
     printf '%s' "    $ovos_key) printf '%s' '"
     message "$ovos_key" | sed "s/'/'\\\\''/g"
     printf '%s\n' "';;"
@@ -1283,6 +1295,23 @@ if [ "$ovos_llm" != off ]; then
   export LLM_API_URL LLM_API_KEY LLM_MODEL LLM_PERSONA LLM_MAX_TOKENS LLM_TEMPERATURE LLM_TOP_P
 fi
 say installing
+# An interrupted older launcher may have left a root-only installer venv.
+# Preserve that exact disposable runtime before asking upstream to rebuild it.
+# Do not force REUSE_CACHED_ARTIFACTS=false: upstream also clears shared caches.
+ovos_venvs="$ovos_home/.venvs"
+ovos_installer_runtime="$ovos_venvs/ovos-installer"
+for ovos_path in "$ovos_venvs" "$ovos_installer_runtime"; do
+  if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -d "$ovos_path" ]; }; then say unsafeConfig >&2; exit 1; fi
+done
+if [ -d "$ovos_installer_runtime" ]; then
+  ovos_runtime_backup=$(mktemp -d "$ovos_venvs/ovos-installer.backup.XXXXXX")
+  if ! mv "$ovos_installer_runtime" "$ovos_runtime_backup/runtime"; then
+    rmdir "$ovos_runtime_backup" 2>/dev/null || :
+    exit 1
+  fi
+  say runtimeBackup
+  printf '  %s\n' "$ovos_runtime_backup/runtime"
+fi
 # Recheck after interactive input, before elevated moves.
 for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
   if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then say unsafeConfig >&2; exit 1; fi
@@ -1304,7 +1333,14 @@ export RUN_AS_HOME="$ovos_home"
 # The upstream bootstrap can hide setup.sh's failure and delete a HOME checkout.
 # Execute the resolved setup directly and preserve its exact result.
 report_status installing
-"$ovos_bash" setup.sh
+# Installer dependencies are created as root but also used by Ansible tasks
+# running as the regular account. Do not pass our private staging umask to
+# that child: it would make venv bin/lib directories root-only. Keep 077 for
+# this launcher and its tokens; upstream explicitly protects its own secrets.
+(
+  umask 022
+  exec "$ovos_bash" setup.sh
+)
 # The pre-created receipt belongs to the regular user and remains mode0600.
 # Recheck after the installer ran; failure to persist progress never changes
 # an actual zero installer result. A checker only replays a matching receipt.
