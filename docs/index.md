@@ -1,10 +1,14 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
 
 # Launcher developer guide
 
+## Single public entry point (2.3.1)
+
+`v2.sh` is the sole public launcher. The builder keeps modular sources, localized messages and the embedded Python `CallbackModule` for maintenance, but emits no `v1.sh`. [`test_build_cli_emits_only_v2`](../test/test_launcher.py) runs the real builder in a temporary source tree and checks its output. The frozen v1 code schema remains solely for explicit saved-choice recovery, and old immutable Git revisions remain valid. Current [wizard](../../ovos-start/docs/index.md) and [relay](../../ovos-install-status/docs/index.md) commands already pin `v2.sh`; their behavior is unchanged.
+
 ## Real installation phases (2.3.0)
 
-[`CallbackModule.v2_runner_on_ok`](../lib/ansible_progress.py) is an optional Ansible notification plugin injected into the temporary checkout only for tracked runs. [`build`](../scripts/build-launcher.py) embeds its reviewed Python source into both public shell entry points. No remote Python plugin download is added, no terminal output is parsed, and no timing heuristic advances phases.
+[`CallbackModule.v2_runner_on_ok`](../lib/ansible_progress.py) is an optional Ansible notification plugin injected into the temporary checkout only for tracked runs. [`build`](../scripts/build-launcher.py) embeds its reviewed Python source into the self-contained `v2.sh` entry point. No remote Python plugin download is added, no terminal output is parsed, and no timing heuristic advances phases.
 
 | Fixed event | Successful role task begins the phase |
 | --- | --- |
@@ -26,12 +30,12 @@ The callback ignores skipped/failed tasks and earlier roles encountered again as
 | [codec.mjs](../codec.mjs) | `encodeRecipeCode`, `decodeRecipeCode`, `decodeRecipeEnvelope`, `timestamp`, `currentTime`, `checksum`: typed fields, issuance/expiry and CRC-8 |
 | [contract.json](../contract.json) | V2 wire layout, frozen field enums, expiry rules and golden vectors |
 | [contract-v1.json](../contract-v1.json) | Historical v1 field layout and vectors for explicit choice recovery |
-| [v2.sh](../v2.sh), [v1.sh](../v1.sh) | Identical v2 entry points; streamed byte decoding and time checks; `take`, `scenario`, `fail`, `invalid`, `read_field`, `run_bounded`, `restore_tty`, `cleanup_launcher` |
+| [v2.sh](../v2.sh) | Sole public launcher; streamed byte decoding and time checks; `take`, `scenario`, `fail`, `invalid`, `read_field`, `run_bounded`, `restore_tty`, `cleanup_launcher` |
 | [codec.test.mjs](../test/codec.test.mjs) | Wire format, corruption/reserved inputs, deadline/future/clock behavior and explicit recovery |
 | [test_launcher.py](../test/test_launcher.py) | Python `Sandbox`, `run_launcher` and `run_interactive` fixture helpers and PTY tests; fake installer commands only |
 | [ansible_progress.py](../lib/ansible_progress.py) | `CallbackModule.v2_runner_on_ok`, `report_phase`: fixed role phases and private bounded notification transport |
 | [test_ansible_progress.py](../test/test_ansible_progress.py) | Real harmless Ansible plays, phase ordering and skipped/failed branches, transport and launcher integration |
-| [pages.yml](../.github/workflows/pages.yml) | Tests, syntax/parity checks, then minimal GitHub Pages artifact with both shell endpoints |
+| [pages.yml](../.github/workflows/pages.yml) | Tests, reproducible generation and syntax checks, then minimal GitHub Pages artifact with only v2.sh |
 
 The only production Python class is the embedded Ansible `CallbackModule`; no OVOS plugin entry points exist. The caller is the [OVOS Start wizard](../../ovos-start/docs/index.md), whose `buildShortCommand` and `readSetupFragment` use this codec and whose `validateState` applies matching compatibility rules. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
 
@@ -87,9 +91,9 @@ Expiry is a local freshness policy. Browser/target clocks can disagree, and time
 
 ## Verification and publication
 
-The current checks passed **38 Node tests and 687 Python cases**. Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, both `sh -n` checks and `cmp v1.sh v2.sh`. Python [Sandbox](../test/test_launcher.py#L94) owns isolated paths; `raw_code` supplies an independent wire encoder, `run_launcher` exercises the actual shell, and `run_interactive` checks real PTY reads with fake curl/git/sudo and installer commands. [test_timestamp_boundaries_match_javascript_in_every_mode](../test/test_launcher.py#L309) compares the JavaScript and shell deadlines. The callback tests additionally exercise the production `CallbackModule` through harmless real Ansible plays; no live installation is part of the test suite.
+See [the current validation record](../MAINTENANCE_REPORT.md). Run `npm run build`, `npm test`, `uv run pytest test/ -q`, `sh -n v2.sh` and `bash --posix -n v2.sh`. Python [Sandbox](../test/test_launcher.py#L106) owns isolated paths; `raw_code` supplies an independent wire encoder, `run_launcher` exercises the actual shell, and `run_interactive` checks real PTY reads with fake curl/git/sudo and installer commands. [test_timestamp_boundaries_match_javascript_in_every_mode](../test/test_launcher.py#L322) compares the JavaScript and shell deadlines. The callback tests additionally exercise the production `CallbackModule` through harmless real Ansible plays; no live installation is part of the test suite.
 
-The `dev` workflow tests pull requests and packages `index.html`, `v1.sh`, `v2.sh` and `.nojekyll` for non-PR Pages deployments. It does not publish the wizard or any recipe database. Documentation updates do not themselves deploy the site.
+The `dev` workflow tests pull requests and packages `index.html`, `v2.sh` and `.nojekyll` for non-PR Pages deployments. It does not publish the wizard or any recipe database. Documentation updates do not themselves deploy the site.
 
 ## Installer contract
 

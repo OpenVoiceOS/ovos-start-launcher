@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
 
 # Frequently asked questions
 
@@ -60,7 +60,7 @@ The reviewed [PR648 revision](https://github.com/OpenVoiceOS/ovos-installer/blob
 
 ## Do setup codes expire?
 
-Yes. A v2 code contains its issuance time in Unix seconds and expires exactly 3,600 seconds later. The launcher accepts `issuedAt <= now < issuedAt + 3600`; the deadline itself is rejected. Expiry is checked before installer downloads or file changes, including in `--decode` and `--scenario` modes. See [timestamp boundary tests](test/test_launcher.py#L309).
+Yes. A v2 code contains its issuance time in Unix seconds and expires exactly 3,600 seconds later. The launcher accepts `issuedAt <= now < issuedAt + 3600`; the deadline itself is rejected. Expiry is checked before installer downloads or file changes, including in `--decode` and `--scenario` modes. See [timestamp boundary tests](test/test_launcher.py#L322).
 
 ## Does copying or reopening a code extend its life?
 
@@ -68,7 +68,7 @@ The same code keeps the same issuance timestamp. The caller must preserve that t
 
 ## What happens to old eight-character setup codes?
 
-Both public shell entry points now require v2 codes and tell users with timeless v1 codes to generate a new one. Keeping the old `v1.sh` URL does not keep old codes executable. The original field map and vectors remain in [contract-v1.json](contract-v1.json).
+The sole public launcher, `v2.sh`, requires a timed v2 code and tells users with timeless v1 codes to generate a new one. The duplicate `v1.sh` entry point has been removed. The original field map and vectors remain in [contract-v1.json](contract-v1.json).
 
 ## Can the browser recover choices from a legacy or expired link?
 
@@ -98,7 +98,7 @@ No. Every route requires `getconf LONG_BIT` to return 64 before installer downlo
 
 ## Can I inspect a code without installing?
 
-After downloading and inspecting the launcher, `sh v2.sh --decode CODE` prints validated JSON; `sh v2.sh --scenario CODE` prints YAML. These modes do not download the installer or alter settings. They require 64-bit userland and a valid, unexpired v2 code. The old `v1.sh` address applies the same requirements.
+After downloading and inspecting the launcher, `sh v2.sh --decode CODE` prints validated JSON; `sh v2.sh --scenario CODE` prints YAML. These modes do not download the installer or alter settings. They require 64-bit userland and a valid, unexpired v2 code. Use the `v2.sh` address; the duplicate `v1.sh` endpoint is retired.
 
 ## What happens to existing settings?
 

@@ -1,6 +1,11 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
 
 # Suggestions
+
+## Completed: one public launcher
+
+**Problem:** `v1.sh` duplicated the current `v2.sh` runtime, build output, publication and test matrix. **Implemented:** retire the duplicate endpoint, publish only `v2.sh`, and guard against regeneration with a clean CLI-build test and CI absence check. **Impact:** users have one launcher to choose; maintenance retains modular sources and all unique behavioral coverage. See [`test_build_cli_emits_only_v2`](test/test_launcher.py#L825).
+
 
 ## Completed: actual installer substeps
 

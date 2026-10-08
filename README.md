@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
 
 # OVOS Start launcher
 
@@ -13,7 +13,7 @@ Copy the complete command from your finished wizard and run it as your regular u
 
 A 64-bit OS is required. All Mac recipes and explicit local/online speech use the reviewed experimental PR #648 revision, not the current main release. Passwords and API keys are entered only on the target terminal. Codes are public settings, not passwords.
 
-Codes contain 16 Base32 characters, grouped `XXXX-XXXX-XXXX-XXXX`. They are valid when `issuedAt <= now < issuedAt + 3600`. At the deadline, the launcher refuses the code. Future timestamps and unavailable or malformed clocks also fail before installer downloads or settings changes. The old `v1.sh` address serves the same checks and refuses timeless eight-character codes; generate a new code in the wizard.
+Codes contain 16 Base32 characters, grouped `XXXX-XXXX-XXXX-XXXX`. They are valid when `issuedAt <= now < issuedAt + 3600`. At the deadline, the launcher refuses the code. Future timestamps and unavailable or malformed clocks also fail before installer downloads or settings changes. `v2.sh` is the only published launcher. The old `v1.sh` address is retired; copy a new command from the wizard. Timeless eight-character codes are still refused.
 
 Expiry relies on the browser and target clocks. The timestamp and CRC are editable public data, so this is not a signed authorization, single-use token or server-enforced revocation. The codec has explicit recovery options for restoring old choices without making the old code executable. See [clock and recovery details](FAQ.md).
 
@@ -23,9 +23,9 @@ This repository is maintained under the goldyfruit account; its hosting address 
 
 ## Development
 
-Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, `sh -n v1.sh`, `sh -n v2.sh`, and `cmp v1.sh v2.sh`. The latest checks passed **38 Node tests and 638 Python tests**. The Python [Sandbox](test/test_launcher.py#L94), `run_launcher` and `run_interactive` helpers use fake installers and real local terminal tests; they never perform an OVOS installation or contact the live relay.
+Run `npm run build`, `npm test`, `uv run pytest test/ -q`, `sh -n v2.sh`, and `bash --posix -n v2.sh`. The build emits only `v2.sh`; tests and CI reject a recreated `v1.sh`. The Python [Sandbox](test/test_launcher.py#L106), `run_launcher` and `run_interactive` helpers use fake installers and real local terminal tests; they never perform an OVOS installation or contact the live relay.
 
-PRs target `dev`. GitHub Actions tests both entry points, checks that they match, and packages only `index.html`, `v1.sh`, `v2.sh` and `.nojekyll` for Pages. The wizard is not part of that artifact.
+PRs target `dev`. GitHub Actions checks reproducible generation and tests `v2.sh` on Linux and macOS, then packages only `index.html`, `v2.sh` and `.nojekyll` for Pages. The wizard is not part of that artifact.
 
 Apache-2.0. Version is recorded in `package.json`.
 

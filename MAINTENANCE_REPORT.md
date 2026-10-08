@@ -1,6 +1,19 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
 
 # Maintenance report
+
+## 2026-10-07 — Version 2.3.1: v2-only launcher publication
+
+Removed the duplicate `v1.sh` as explicitly requested. [`scripts/build-launcher.py`](scripts/build-launcher.py#L11) now emits only `v2.sh`, and [Pages CI](.github/workflows/pages.yml) checks its reproducibility, rejects a reintroduced `v1.sh`, tests it on Linux/macOS and packages only `v2.sh`, `index.html` and `.nojekyll`. The [sandbox fixture](test/test_launcher.py#L139) runs each case against the one supported entry point. The generated `v2.sh` bytes are unchanged, so existing immutable wizard/relay URLs continue working; code expiry and callbacks are unchanged.
+
+Verification: **370 Python tests and 38 Node tests passed**. `sh -n`, `bash --posix -n`, ShellCheck and `git diff --check` passed. [`test_build_cli_emits_only_v2`](test/test_launcher.py#L825) executes the actual builder in a clean temporary tree and proves it creates only the expected script. [`test_generated_launcher_matches_sources`](test/test_launcher.py#L814) also checks that the retired file is absent. The lower Python count removes duplicate executions against the identical old entry point, while retaining behavioral cases and the newly merged umask regression. Tests use isolated fake installers; no real OVOS installation was run.
+
+### Transparency Report
+
+- **AI Model:** GPT-6.
+- **Actions Taken:** Removed the duplicate launcher; updated build, publication workflow, test fixture and generation regressions; refreshed repository and workspace documentation. A read-only review checked sibling runtime dependencies.
+- **Oversight:** The user explicitly requested removal after the duplicate was identified. Existing upstream changes were fast-forwarded first and preserved. Automated local validation completed before publication.
+
 
 ## 2026-10-07 — Version 2.3.0
 

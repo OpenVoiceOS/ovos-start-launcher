@@ -1,4 +1,4 @@
-"""Build identical self-contained launchers from audited shell and message sources."""
+"""Build the self-contained v2 launcher from audited shell and message sources."""
 from __future__ import annotations
 
 import json
@@ -44,5 +44,4 @@ write_messages() {
 
 
 if __name__ == "__main__":
-    for name in ("v1.sh", "v2.sh"):
-        (ROOT / name).write_text(build())
+    (ROOT / "v2.sh").write_text(build())

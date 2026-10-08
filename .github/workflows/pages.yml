@@ -25,7 +25,8 @@ jobs:
       - name: Verify generated launcher sources
         run: |
           python3 scripts/build-launcher.py
-          git diff --exit-code -- v1.sh v2.sh
+          git diff --exit-code -- v2.sh
+          test ! -e v1.sh
       - name: Test the code format
         run: node --test test/*.test.mjs
       - name: Test launcher with isolated fake installers
@@ -34,18 +35,16 @@ jobs:
           python3 -m pytest test/ -q
       - name: Check shell syntax
         run: |
-          sh -n v1.sh
           sh -n v2.sh
           bash --posix -n v2.sh
-          cmp v1.sh v2.sh
       - name: ShellCheck
         if: runner.os == 'Linux'
-        run: shellcheck -s sh -e SC1112 v1.sh v2.sh lib/runtime.sh lib/callback.sh
+        run: shellcheck -s sh -e SC1112 v2.sh lib/runtime.sh lib/callback.sh
       - name: Package public files only
         if: github.event_name != 'pull_request' && runner.os == 'Linux'
         run: |
           mkdir _site
-          cp v1.sh v2.sh index.html _site/
+          cp v2.sh index.html _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         if: github.event_name != 'pull_request' && runner.os == 'Linux'

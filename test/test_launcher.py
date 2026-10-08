@@ -135,8 +135,8 @@ class Sandbox:
         return json.loads((self.home / "received.json").read_text())
 
 
-@pytest.fixture(params=("v1.sh", "v2.sh"))
-def sandbox(tmp_path: Path, request: pytest.FixtureRequest) -> Sandbox:
+@pytest.fixture
+def sandbox(tmp_path: Path) -> Sandbox:
     """Shadow every network or privileged command; preserve no user environment."""
     home, binary, temp = (tmp_path / part for part in ("test home", "bin", "temp"))
     for folder in (home, binary, temp):
@@ -176,7 +176,7 @@ def sandbox(tmp_path: Path, request: pytest.FixtureRequest) -> Sandbox:
         "HOME": str(home), "TMPDIR": str(temp), "PATH": f"{binary}:/usr/bin:/bin",
         "LC_ALL": "C.UTF-8", "FAKE_PYTHON": sys.executable,
         "FAKE_RECORDER": str(recorder), "FAKE_INSTALLER": str(installer),
-        "FAKE_RUNTIME_FILE": str(runtime), "FAKE_LAUNCHER": str(ROOT / request.param),
+        "FAKE_RUNTIME_FILE": str(runtime), "FAKE_LAUNCHER": str(ROOT / "v2.sh"),
         "FAKE_NOW": str(ISSUED_AT),
     }
     return Sandbox(home, temp, env)
@@ -348,7 +348,7 @@ def test_timestamp_boundaries_match_javascript_in_every_mode(
 def test_legacy_codes_require_regeneration_before_any_effects(
     sandbox: Sandbox, mode: str | None, code: str
 ) -> None:
-    """Frozen v1 codes never activate an untimed install through either public URL."""
+    """Frozen v1 codes never activate an untimed install through the v2 launcher."""
     assert raw_code(version=1, legacy=True) == "2000-00K9"
     result = run_launcher(sandbox, code, mode)
     assert result.returncode != 0
@@ -811,14 +811,28 @@ def test_first_voice_success_requires_explicit_human_confirmation(sandbox: Sandb
     assert sandbox.calls() == before
 
 
-def test_generated_launchers_match_sources() -> None:
+def test_generated_launcher_matches_sources() -> None:
     """Message parity and generated-file drift are checked without rewriting source in tests."""
     import runpy
     build = runpy.run_path(str(ROOT / "scripts/build-launcher.py"))["build"]
     expected = build()
     assert len(CATALOGS) == 12
     assert len(expected.encode()) < 120_000  # Linux sh -c single argument ceiling is 128 KiB.
-    assert (ROOT / "v1.sh").read_text() == expected == (ROOT / "v2.sh").read_text()
+    assert (ROOT / "v2.sh").read_text() == expected
+    assert not (ROOT / "v1.sh").exists()
+
+
+def test_build_cli_emits_only_v2(tmp_path: Path) -> None:
+    """A clean build produces the supported launcher without recreating v1.sh."""
+    for directory in ("scripts", "lib", "locales"):
+        shutil.copytree(ROOT / directory, tmp_path / directory)
+    result = subprocess.run(
+        [sys.executable, str(tmp_path / "scripts/build-launcher.py")],
+        cwd=tmp_path, capture_output=True, text=True, timeout=10,
+    )
+    assert result.returncode == 0, result.stderr
+    assert sorted(path.name for path in tmp_path.glob("*.sh")) == ["v2.sh"]
+    assert (tmp_path / "v2.sh").read_bytes() == (ROOT / "v2.sh").read_bytes()
 
 
 @pytest.mark.parametrize("speech", ("auto", "public"))
