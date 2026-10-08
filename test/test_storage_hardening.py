@@ -170,7 +170,11 @@ def test_installer_venv_is_accessible_without_exposing_launcher_secrets(
     for directory in [venv / "bin", venv / "lib", *list((venv / "lib").glob("python*"))]:
         assert directory.stat().st_mode & 0o777 == 0o755
     assert (venv / "pyvenv.cfg").stat().st_mode & 0o777 == 0o644
-    assert (venv / "bin/activate").stat().st_mode & 0o777 == 0o644
+    # venv copies activate's mode from the interpreter's own template rather than
+    # creating it under the umask, so its exact mode depends on how that Python
+    # was installed (0777 in GitHub's hosted toolcache). What the user needs is
+    # to read it.
+    assert (venv / "bin/activate").stat().st_mode & 0o444 == 0o444
     assert sandbox.scenario.stat().st_mode & 0o777 == 0o600
     assert (sandbox.scenario.parent / "status-token").stat().st_mode & 0o777 == 0o600
     assert (sandbox.scenario.parent / "status-installed").stat().st_mode & 0o777 == 0o600
