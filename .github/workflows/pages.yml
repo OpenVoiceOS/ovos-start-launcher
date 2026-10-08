@@ -30,7 +30,7 @@ jobs:
         run: node --test test/*.test.mjs
       - name: Test launcher with isolated fake installers
         run: |
-          python3 -m pip install pytest
+          python3 -m pip install pytest 'ansible-core>=2.17,<2.18'
           python3 -m pytest test/ -q
       - name: Check shell syntax
         run: |

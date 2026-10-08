@@ -1,6 +1,33 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Maintenance report
+
+## 2026-10-07 — Version 2.3.0
+
+Added a generated Ansible notification callback for tracked installation runs. Successful role tasks advance through the four fixed `stage_system`, `stage_packages`, `stage_services` and `stage_finalize` enums. Skips, failed tasks, native terminal output, role handlers returning to an earlier phase and timing cannot fabricate progress. Each phase gets at most one bounded callback attempt; failures never change the installer result. Existing zero-exit success, service health, voice confirmation, one-hour code expiry, private staging and scoped installer umask remain unchanged.
+
+The plugin is embedded in the launcher and staged only in its temporary checkout. It preserves callback search paths and an explicit enabled-callback list, or retains upstream’s `ansible.posix.profile_tasks` default. The bearer is read from the existing private token file and never exported or placed in curl arguments. Added 31 meaningful cases, including harmless real Ansible plays for both methods, branch skips, a failed package role, callback failures, native callback preservation and private token checks. CI now installs Ansible-core 2.17 alongside pytest for those integration fixtures.
+
+Verification: 31 targeted cases pass under Ansible-core 2.17 and 2.20; 38 Node tests pass. Shell syntax, Bash POSIX syntax, generated parity, ShellCheck and whitespace checks pass. v2 is 116,582 bytes, below 120,000. The complete Python regression suite passes all 687 cases. Tests use fake curl, installer and privilege tools; the real Ansible fixtures execute only harmless assertion/failure tasks. No commit, push or publication is performed by this delegated agent.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** Inspected pinned upstream role ordering and Ansible callback semantics, implemented the fixed phase emitter, added callback/transport/integration regressions, regenerated launcher entry points and updated repository documentation and CI.
+- **Oversight:** The user requested clear installation steps. The coordinating agent defined the monotonic relay phase contract, reviews this implementation, and owns UI/relay integration plus publication. Tests establish callback mechanics and failure handling; physical-device acceptance remains outstanding.
+
+## 2026-10-07 — Version 2.2.1
+
+Corrected a reproduced launcher permission defect affecting Ansible tasks that run as the normal user. The installer child now uses `umask022`, while private launcher staging stays077. Before setup, a cached installer venv is moved to a unique private sibling backup after nonsymlink/type checks; retries therefore rebuild inaccessible tooling without deleting existing contents or changing permissions across the home directory. Added a localized backup-path notice in all 12 catalogs and regenerated both public entry points. Failure/signal reporting and zero-exit completion gating are unchanged.
+
+Verification: **656 pytest cases and 38 Node tests pass**. Eighteen new cases cover real fresh/cached Python venv permissions, preserved private state/application files, unsafe runtime paths and a cached-runtime exit 126 that reports failure with no success receipt. The original permission regression failed for both entry points before the fix and passes afterward. Shell syntax, generated parity, ShellCheck and whitespace checks pass. v2 is 112,503 bytes, below 120,000. No real installer, sudo operation or physical MarkII verification was performed. No commit/push/publication was performed by this delegated agent.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** Traced the pinned upstream Python-venv and Ansible task code, reproduced the mask defect with real local Python venvs, implemented scoped permissions and preserved-runtime recovery, authored 18 regression cases, regenerated assets and updated repository documentation.
+- **Oversight:** The user reported a failed installation and misleading browser status. The coordinating agent reviewed the recovery scope, required preserved backups instead of broad cache cleanup, and owns wizard/relay evidence plus publication. Network/install/privilege/service operations in automated tests are local fakes; human hardware acceptance remains outstanding.
+
 
 ## 2026-10-07 — Version 2.2.0
 
@@ -20,7 +47,7 @@ Verification: **638 pytest cases and 38 Node cases pass**, including 114 new cal
 
 Replaced the error-swallowing main bootstrap with direct setup execution from a private Git checkout; retained main/PR648 selection and preview SHA. Added exact-path guards, private backups, per-account launcher locking, delayed checker activation and HUP cleanup. Privileged cleanup cannot replace the install exit status. Added localized interrupted-lock guidance, noninteractive low-speed-bounded Git fetching, bounded service/audio probes, strict Docker running-state checks and guaranteed MessageBus cleanup. Expanded CI to Ubuntu/macOS and ShellCheck. Wizard integration updates the immutable launcher URL and adds connection/total limits to its initial curl.
 
-Verification: 38 Node tests passed. 524 Python cases passed. Added64 storage/concurrency cases and14 runtime cases, plus main/preview failure and cleanup regressions. All network, installer, privilege and service commands used by tests are local fakes. ShellCheck, shell syntax, generated-source parity and diff whitespace checks pass; v2 remains below120,000bytes. Independent shell/message matrices passed. Physical-device acceptance remains outstanding.
+Verification: 38 Node tests passed. 524 Python cases passed. Added64 storage/concurrency cases and14 runtime cases, plus main/preview failure and cleanup regressions. All network, installer, privilege and service commands used by tests are local fakes. ShellCheck, shell syntax, generated-source parity and diff whitespace checks pass; v2 remains below 120,000bytes. Independent shell/message matrices passed. Physical-device acceptance remains outstanding.
 
 ### Transparency Report
 

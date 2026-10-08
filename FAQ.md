@@ -1,6 +1,18 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Frequently asked questions
+
+## How are the installation steps detected?
+
+The launcher embeds [CallbackModule](lib/ansible_progress.py) beside the fetched installer and enables it as an Ansible notification callback only for tracked installs. `v2_runner_on_ok` maps actual successful role tasks to device preparation, OVOS packages, service setup and finishing. Skipped tasks, task-start announcements, terminal text and elapsed time cannot advance a step. The first successful task in a role enters that phase; a stage can therefore appear slightly after work begins. See [real callback fixtures](test/test_ansible_progress.py).
+
+Service setup is not proof that services are running: the containers method does its service work in its container role, while the later common services role validates configuration. The separate post-install health check still reports `services_ready`; only the existing zero-exit gate reports `installed`, and only user confirmation reports `voice_ready`. Missing callbacks leave less detail, never guessed success.
+
+## Why did PipeWire setup report permission denied for the installer Python?
+
+Launcher 2.2.0 passed its private `umask077` into the elevated installer. Python then created root-only directories inside `~/.venvs/ovos-installer`, while Ansible later ran its sound task as the regular user. Version 2.2.1 gives only the installer child the normal `umask022`; launcher tokens and configuration stay private. See [`test_installer_venv_is_accessible_without_exposing_launcher_secrets`](test/test_storage_hardening.py#L144).
+
+Copy a fresh command from the updated wizard after the failed attempt has ended. The launcher preserves an existing installer runtime at the printed `~/.venvs/ovos-installer.backup.XXXXXX/runtime` path, then lets upstream create a fresh one. This does not recursively change permissions or replace `~/.venvs/ovos`. The backup is retained even if the retry fails. Unusual linked runtime directories are refused instead of followed; see [`test_unsafe_installer_runtime_is_not_archived_or_followed`](test/test_storage_hardening.py#L190).
 
 ## How does the wizard follow installation?
 

@@ -1,6 +1,23 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Launcher developer guide
+
+## Real installation phases (2.3.0)
+
+[`CallbackModule.v2_runner_on_ok`](../lib/ansible_progress.py) is an optional Ansible notification plugin injected into the temporary checkout only for tracked runs. [`build`](../scripts/build-launcher.py) embeds its reviewed Python source into both public shell entry points. No remote Python plugin download is added, no terminal output is parsed, and no timing heuristic advances phases.
+
+| Fixed event | Successful role task begins the phase |
+| --- | --- |
+| `stage_system` | Contract, device hardware/facts/tuning, sound, timezone or configuration |
+| `stage_packages` | `ovos_containers`, `ovos_virtualenv` or nested `ovos_python` |
+| `stage_services` | `ovos_services`; service setup/configuration, not running-health proof |
+| `stage_finalize` | `ovos_finalize`; finishing work, not successful-install proof |
+
+The callback ignores skipped/failed tasks and earlier roles encountered again as handlers. Its four states advance monotonically and are each attempted once. A first successful task can lag the beginning of a role; unknown roles safely provide no extra detail. Existing launcher `installed` stays after the successful setup exit; the existing checker owns service health and human-confirmed voice events. The [wizard](../../ovos-start/docs/install-progress.md) and [relay](../../ovos-install-status/docs/index.md) consume these fixed enums as subphases of installing.
+
+[`report_phase`](../lib/ansible_progress.py) reads only the regular private `RUN_AS_HOME/.config/ovos-installer/status-token` file. It refuses links, nonregular files, public file permissions and malformed content. Curl uses a fixed HTTPS endpoint, a bearer in stdin, no curlrc, no redirects, a 3-second transport deadline and a 4-second process wait. Exceptions and nonzero results are silent; the plugin cannot declare success/failure or stop installation. Native stdout and profile callbacks remain enabled.
+
+[New tests](../test/test_ansible_progress.py) cover actual callback discovery under Ansible-core 2.17 and 2.20, conditional branches, skipped and failed roles, ordering, offline transport and the generated launcher’s private integration. CI installs `ansible-core>=2.17,<2.18` for the harmless fixture plays.
 
 ## Source map
 
@@ -12,9 +29,19 @@ Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installatio
 | [v2.sh](../v2.sh), [v1.sh](../v1.sh) | Identical v2 entry points; streamed byte decoding and time checks; `take`, `scenario`, `fail`, `invalid`, `read_field`, `run_bounded`, `restore_tty`, `cleanup_launcher` |
 | [codec.test.mjs](../test/codec.test.mjs) | Wire format, corruption/reserved inputs, deadline/future/clock behavior and explicit recovery |
 | [test_launcher.py](../test/test_launcher.py) | Python `Sandbox`, `run_launcher` and `run_interactive` fixture helpers and PTY tests; fake installer commands only |
+| [ansible_progress.py](../lib/ansible_progress.py) | `CallbackModule.v2_runner_on_ok`, `report_phase`: fixed role phases and private bounded notification transport |
+| [test_ansible_progress.py](../test/test_ansible_progress.py) | Real harmless Ansible plays, phase ordering and skipped/failed branches, transport and launcher integration |
 | [pages.yml](../.github/workflows/pages.yml) | Tests, syntax/parity checks, then minimal GitHub Pages artifact with both shell endpoints |
 
-No production Python classes or OVOS plugin entry points exist. The caller is the [OVOS Start wizard](../../ovos-start/docs/index.md), whose `buildShortCommand` and `readSetupFragment` use this codec and whose `validateState` applies matching compatibility rules. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
+The only production Python class is the embedded Ansible `CallbackModule`; no OVOS plugin entry points exist. The caller is the [OVOS Start wizard](../../ovos-start/docs/index.md), whose `buildShortCommand` and `readSetupFragment` use this codec and whose `validateState` applies matching compatibility rules. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
+
+## Installer permissions and retry recovery (2.2.1)
+
+The launcher keeps `umask077` while staging configuration, credentials, callbacks and the private checker. Its [`setup.sh` child](../lib/launcher.sh.in#L369) alone uses `umask022`, because the root-created installer Python venv must also be executable by Ansible tasks that become the regular user. Upstream protects its secret extra-vars files explicitly; the launcher's existing scenario/token modes remain 0600 and checker mode 0700.
+
+Before invoking setup, the [runtime guard](../lib/launcher.sh.in#L329) rejects linked or non-directory `.venvs` and `ovos-installer` paths. An existing installer runtime is moved into a unique mode 0700 sibling backup and the location is printed in the selected language. The backup remains after success or failure. The installer creates its missing runtime normally; the launcher does not force upstream's broader cache-refresh setting or change permissions recursively. Application environments such as `~/.venvs/ovos` remain untouched by this preparation.
+
+Python tests [`test_installer_venv_is_accessible_without_exposing_launcher_secrets`](../test/test_storage_hardening.py#L144) create real local venvs and cover fresh/cached 0700 directories, private launcher state and retained app files. [`test_failed_runtime_retry_preserves_backup_and_reports_only_failure`](../test/test_callbacks.py#L103) confirms an exit 126 retry retains its backup, emits only `failed` after `installing` and leaves the success receipt empty. These tests use fake sudo/install/service/network commands; they do not prove operation on physical MarkII hardware.
 
 ## Optional installation progress (2.2.0)
 
@@ -60,7 +87,7 @@ Expiry is a local freshness policy. Browser/target clocks can disagree, and time
 
 ## Verification and publication
 
-The current checks passed **38 Node tests and 524 Python cases**. Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, both `sh -n` checks and `cmp v1.sh v2.sh`. Python [Sandbox](../test/test_launcher.py#L94) owns isolated paths; `raw_code` supplies an independent wire encoder, `run_launcher` exercises the actual shell, and `run_interactive` checks real PTY reads with fake curl/git/sudo and installer commands. [test_timestamp_boundaries_match_javascript_in_every_mode](../test/test_launcher.py#L309) compares the JavaScript and shell deadlines. No production Python classes or live installation are part of the test suite.
+The current checks passed **38 Node tests and 687 Python cases**. Run `npm run build`, `npm test`, `python3 -m pytest test/ -q`, both `sh -n` checks and `cmp v1.sh v2.sh`. Python [Sandbox](../test/test_launcher.py#L94) owns isolated paths; `raw_code` supplies an independent wire encoder, `run_launcher` exercises the actual shell, and `run_interactive` checks real PTY reads with fake curl/git/sudo and installer commands. [test_timestamp_boundaries_match_javascript_in_every_mode](../test/test_launcher.py#L309) compares the JavaScript and shell deadlines. The callback tests additionally exercise the production `CallbackModule` through harmless real Ansible plays; no live installation is part of the test suite.
 
 The `dev` workflow tests pull requests and packages `index.html`, `v1.sh`, `v2.sh` and `.nojekyll` for non-PR Pages deployments. It does not publish the wizard or any recipe database. Documentation updates do not themselves deploy the site.
 
@@ -88,7 +115,7 @@ The outer launcher writes a private `~/.config/ovos-installer/check-setup.sh` be
 
 The launcher checks exact configuration path types before downloading and before elevated activation, stages the checker until preparation succeeds, and holds a per-account directory lock through setup. Existing scenarios receive a0600 backup. The default-main route directly calls the fetched `setup.sh`, retaining its true result; pinned routes keep the existing reviewed SHA. Both use a disposable checkout outside the user’s `~/ovos-installer`. See [path/concurrency tests](../test/test_storage_hardening.py) (`run_with_process_deadline`, `test_concurrent_launcher_cannot_replace_an_active_install_recipe`).
 
-[`run_bounded`](../lib/runtime.sh#L10) supervises systemd/launchd probes (5seconds), Docker listing (10seconds) and audio dispatch (35seconds), with TERM then KILL after2seconds. Its own command and watchdog are reaped. [Runtime tests](../test/test_runtime_hardening.py) use `run_runtime` with local stalled workers; no production Python classes exist. Docker must report running services in project `ovos`. MessageBus connections close in `finally`; human voice confirmation remains required.
+[`run_bounded`](../lib/runtime.sh#L10) supervises systemd/launchd probes (5seconds), Docker listing (10seconds) and audio dispatch (35seconds), with TERM then KILL after2seconds. Its own command and watchdog are reaped. [Runtime tests](../test/test_runtime_hardening.py) use `run_runtime` with local stalled workers; the phase callback is separate from these shell service checks. Docker must report running services in project `ovos`. MessageBus connections close in `finally`; human voice confirmation remains required.
 
 Git disables interactive prompts and aborts sustained slow transfer, but this is not a total installation timeout. The initial wizard curl has a15-second connection and120-second total deadline. [Wizard handoff](../../ovos-start/docs/short-codes.md) explains the immutable launcher. A power loss can retain the directory lock; [deliberate recovery](../FAQ.md#why-does-it-say-a-setup-is-already-running) prevents unlocking a live installer. The CI workflow gates Pages on both Ubuntu and macOS test jobs.
 

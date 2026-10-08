@@ -1,6 +1,22 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add optional bounded installation callbacks and private restart recovery in 2.2.0.
+Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Add actual Ansible installation phases in launcher 2.3.0.
 
 # Suggestions
+
+## Completed: actual installer substeps
+
+**Problem:** One long installing state gave no view of completed and remaining work. **Implemented:** [CallbackModule](lib/ansible_progress.py) maps real successful Ansible role tasks to four fixed phase events, preserves the installer terminal output, and leaves completion gated on setup exit. **Impact:** The wizard can display device preparation, package installation, service setup and finalization without parsing logs or guessing from timers. [Real play fixtures](test/test_ansible_progress.py) cover skipped branches, errors and offline delivery.
+
+## Keep the upstream phase contract checked
+
+**Opportunity:** Main can add or rename roles beyond the reviewed preview pin. **Proposal:** During installer-pin updates, compare the role sequence with `PHASES` in [ansible_progress.py](lib/ansible_progress.py), and retain the real callback-discovery test against the installer’s Ansible-core version. **Impact:** Preserves useful detail while unknown roles safely remain unreported. Measured device-specific installation durations would also improve the wizard’s estimates; this launcher does not invent timing observations.
+
+## Completed: separate private staging from user-accessible installer tools
+
+**Problem:** Root-owned Python venv children inherited the launcher’s restrictive mask, preventing Ansible tasks running as the normal user from executing Python. Cached tool reuse retained that failure on a retry. **Implemented:** Scope `umask022` to the setup child and preserve only the old installer runtime in a private sibling backup before rebuilding it. Configuration, tokens and application venvs retain their permissions. **Impact:** Fresh installs and retries receive usable tooling without broad permission changes. Evidence: [`test_installer_venv_is_accessible_without_exposing_launcher_secrets`](test/test_storage_hardening.py#L144) and [`test_failed_runtime_retry_preserves_backup_and_reports_only_failure`](test/test_callbacks.py#L103).
+
+## Narrow upstream shared-cache cleanup
+
+**Problem:** The pinned installer still removes hard-coded `/root/.ansible` after successful setup and when rebuilding a nonreusable venv. **Proposal:** Upstream can isolate its collections/cache in an installer-specific directory and restrict cleanup to that directory. **Impact:** Avoids affecting unrelated Ansible content. The launcher does not force the broad cache-refresh option; its new recovery moves only `~/.venvs/ovos-installer`. Source: [pinned setup cleanup](https://github.com/OpenVoiceOS/ovos-installer/blob/6ffd465028bac299e5235d619819bfdc734af073/setup.sh#L319).
 
 ## Completed: optional browser progress
 
