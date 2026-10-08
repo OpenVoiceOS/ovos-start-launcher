@@ -1,6 +1,6 @@
 #!/bin/sh
 # SPDX-License-Identifier: Apache-2.0
-# OVOS Start protocol v2. The v1 URL now rejects timeless codes as well.
+# OVOS Start protocol v2. Timeless v1 codes are rejected.
 # The timestamp is a local expiry check, not a signature or an online revocation.
 set -eu
 set +x
@@ -232,6 +232,15 @@ if [ "$ovos_installer" = pinned ]; then
 fi
 ovos_source="$ovos_tmp/source"
 mkdir "$ovos_source"
+# Git's inherited repository variables override -C and can otherwise redirect
+# checkout into an unrelated working tree or index (for example from a hook).
+# Clear only this launcher's process environment, retaining normal Git config,
+# proxies and certificate settings. The installer child inherits the same reset.
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE \
+  GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_QUARANTINE_PATH \
+  GIT_NAMESPACE GIT_PREFIX GIT_INTERNAL_SUPER_PREFIX GIT_IMPLICIT_WORK_TREE \
+  GIT_SHALLOW_FILE GIT_REPLACE_REF_BASE GIT_GRAFT_FILE GIT_ATTR_SOURCE \
+  GIT_CONFIG GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT
 git -C "$ovos_source" init --quiet --template= || fail_message downloadFailed
 # Never wait for an unexpected Git credential prompt; abort a stalled transfer.
 GIT_TERMINAL_PROMPT=0 git -C "$ovos_source" -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git "$ovos_revision" || fail_message downloadFailed

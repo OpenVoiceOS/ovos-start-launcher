@@ -1,6 +1,10 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record completed inherited Git context isolation.
 
 # Suggestions
+
+## Completed: isolate Git repository context
+
+**Problem:** Inherited Git environment variables could redirect checkout writes into another repository despite `git -C`. **Implemented:** Reset repository/index/object/ref context and command-scoped overrides for the launcher and its installer child, retaining ordinary user configuration. **Impact:** Prevents the reproduced unrelated-checkout overwrite; [eight real local-Git regressions](test/test_git_isolation.py#L28) guard files, refs, index, objects and child probes.
 
 ## Completed: one public launcher
 

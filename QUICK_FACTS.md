@@ -1,10 +1,10 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record release 2.3.2 Git isolation and offline regression evidence.
 
 # Quick facts
 
 | Field | Value |
 | --- | --- |
-| Package / version | `ovos-start-launcher` / `2.3.1`; `package.json` |
+| Package / version | `ovos-start-launcher` / `2.3.2`; `package.json` |
 | License | Apache-2.0 |
 | Entry points | POSIX shell `v2.sh CODE`; ES module `encodeRecipeCode`, `decodeRecipeCode`, `decodeRecipeEnvelope`; no Python plugin entry points |
 | Runtime dependencies | 64-bit userland, POSIX sh, getconf, tr, date with `+%s`, git, sudo (curl for the wizard bootstrap); upstream platform prerequisites still apply |
@@ -19,10 +19,11 @@ Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpo
 | Hosting | GitHub Pages, `dev` workflow; only index.html, v2.sh and .nojekyll |
 | Preview pin | `6ffd465028bac299e5235d619819bfdc734af073` for explicit speech |
 | Default speech | Mac uses reviewed pin with no speech override; other devices fetch main and invoke setup.sh directly |
+| Git isolation | Repository/index/object/ref context and command-scoped Git config overrides are cleared before checkout and child setup; ordinary Git config, proxies and CA settings are retained |
 | Preflight | 64-bit, format/checksum/version/time, compatible choices, nonroot user, correct OS, dependencies, protected existing checkout; freshness checked before side effects |
 | Installer runtime | setup.sh child uses umask022; launcher staging remains077; existing installer venv is preserved in a private sibling backup before rebuilding |
 | Secrets | Masked target /dev/tty prompts; no code/URL secrets |
-| Validation | 38 Node + 370 Python tests pass; v2.sh passes sh/Bash syntax and ShellCheck; clean build emits only v2.sh; mock installers only |
+| Validation | 38 Node + 378 Python tests pass; v2.sh passes sh/Bash syntax and ShellCheck; clean build emits only v2.sh; fake installers and offline real-Git fixtures only |
 | Python test API | [test/test_launcher.py](test/test_launcher.py): `Sandbox`, `raw_code`, `run_launcher`, `run_interactive`; production Python API: `CallbackModule`, `report_phase` in `lib/ansible_progress.py` |
 | Security limit | Public, reproducible code and local-clock freshness; no signature, encryption, per-code revocation or single-use enforcement |
 | Terminal recovery | `read_field` retries only current field; :cancel/EOF/signals cancel safely; secret echo stays off through retries |

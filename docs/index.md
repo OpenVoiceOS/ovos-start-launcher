@@ -1,6 +1,10 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Describe release 2.3.2 Git isolation and current wizard session integration.
 
 # Launcher developer guide
+
+## Git checkout isolation (2.3.2)
+
+The [source-fetch boundary](../lib/launcher.sh.in#L235) clears inherited Git repository/worktree, index, object, ref and command-scoped configuration context before creating the private checkout. The reset remains in effect for the child installer's Git probes. It does not edit user configuration or remove ordinary proxy/CA settings. The Python [`test_inherited_git_context_cannot_modify_an_unrelated_repository`](../test/test_git_isolation.py#L28) performs real offline fetches and verifies unrelated repository contents and child probes with `repository_snapshot`; the installer itself remains a harmless fixture.
 
 ## Single public entry point (2.3.1)
 
@@ -37,7 +41,7 @@ The callback ignores skipped/failed tasks and earlier roles encountered again as
 | [test_ansible_progress.py](../test/test_ansible_progress.py) | Real harmless Ansible plays, phase ordering and skipped/failed branches, transport and launcher integration |
 | [pages.yml](../.github/workflows/pages.yml) | Tests, reproducible generation and syntax checks, then minimal GitHub Pages artifact with only v2.sh |
 
-The only production Python class is the embedded Ansible `CallbackModule`; no OVOS plugin entry points exist. The caller is the [OVOS Start wizard](../../ovos-start/docs/index.md), whose `buildShortCommand` and `readSetupFragment` use this codec and whose `validateState` applies matching compatibility rules. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
+The only production Python class is the embedded Ansible `CallbackModule`; no OVOS plugin entry points exist. The caller is the [OVOS Start wizard](../../ovos-start/docs/index.md), whose `buildShortCommand` and `readSetupSession` use this codec and whose `validateState` applies matching compatibility rules. `readSetupSession` retains explicit legacy saved-choice recovery. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
 
 ## Installer permissions and retry recovery (2.2.1)
 

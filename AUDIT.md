@@ -1,6 +1,14 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record the verified Git context isolation fix in release 2.3.2.
 
 # Audit
+
+## 2026-10-08 — Version 2.3.2: inherited Git context isolation
+
+**Reproduced:** Exported `GIT_DIR` and `GIT_WORK_TREE` overrode the launcher's `git -C` directory. A network-free fixture using real Git overwrote a tracked file and added upstream files inside an unrelated temporary repository, then failed because the intended installer checkout was empty. Index/object paths and inherited command-scoped configuration supplied related redirection routes.
+
+**Fixed:** The [checkout boundary](lib/launcher.sh.in#L235) now unsets inherited repository/index/object/ref context and command-scoped Git configuration overrides within the launcher process. The child installer inherits that reset. Ordinary Git config files, proxy and CA settings remain available. [`test_inherited_git_context_cannot_modify_an_unrelated_repository`](test/test_git_isolation.py#L28) exercises eight real local-Git scenarios, compares every unrelated working file and Git metadata file, and checks the child's repository probes and retained safe settings.
+
+**Evidence:** 378 pytest cases and 38 Node tests pass, including all eight new isolation cases. Generated-source parity, POSIX/Bash syntax, ShellCheck and whitespace checks pass. No live installer, privileged installation or network Git fetch was used. This protects against inherited repository context; it does not make an intentionally malicious user account or on-disk Git configuration trustworthy.
 
 ## 2026-10-07 — Version 2.3.1: duplicate endpoint retired
 

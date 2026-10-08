@@ -1,6 +1,18 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record release 2.3.2 Git isolation, local reproduction and regression validation.
 
 # Maintenance report
+
+## 2026-10-08 — Version 2.3.2: inherited Git context isolation
+
+Reproduced an unrelated-checkout overwrite with real local Git, then cleared inherited repository/index/object/ref variables and command-scoped overrides before source operations. The installer child inherits that reset; user Git files and ordinary network settings are preserved. Regenerated `v2.sh`, corrected its obsolete v1-endpoint comment, and added [eight offline regression cases](test/test_git_isolation.py#L28).
+
+Validation: **378 pytest cases and 38 Node tests pass**; generated parity, POSIX/Bash syntax, ShellCheck and whitespace checks pass. No real installation or live callback was performed.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** Audited shell boundaries, reproduced inherited Git redirection in temporary repositories, implemented the process-local reset, wrote real-Git regressions, regenerated the launcher and updated documentation.
+- **Oversight:** The coordinating agent authorized the fix after reviewing the reproduction and owns release/publication. All installer and privilege operations in tests are fakes; Git fixtures use local repositories only. Physical-device acceptance was not performed.
 
 ## 2026-10-07 — Version 2.3.1: v2-only launcher publication
 

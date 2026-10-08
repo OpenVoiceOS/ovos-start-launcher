@@ -1,6 +1,10 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain isolation from inherited Git repository settings.
 
 # Frequently asked questions
+
+## Can Git settings from a hook or terminal affect another checkout?
+
+The launcher clears inherited repository, worktree, index, object and ref context, plus command-scoped configuration overrides, before downloading. The same reset reaches the child installer's Git probes. It does not edit your shell or Git configuration files, and retains ordinary global/system configuration, proxy and certificate settings. The offline [real-Git regression](test/test_git_isolation.py#L28) verifies an unrelated repository's files, refs, index and objects remain unchanged.
 
 ## How are the installation steps detected?
 
