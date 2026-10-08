@@ -147,8 +147,9 @@ def sandbox(tmp_path: Path, request: pytest.FixtureRequest) -> Sandbox:
         "keys=['LOCALE','HOMEASSISTANT_URL','HOMEASSISTANT_API_KEY','LLM_API_URL',"
         "'LLM_API_KEY','LLM_MODEL','LLM_PERSONA','LLM_MAX_TOKENS','LLM_TEMPERATURE',"
         "'LLM_TOP_P','RUN_AS','RUN_AS_HOME']\n"
+        "mask=os.umask(0);os.umask(mask)\n"
         "pathlib.Path(os.environ['HOME'],'received.json').write_text("
-        "json.dumps({key:os.environ.get(key) for key in keys}))\n",
+        "json.dumps({**{key:os.environ.get(key) for key in keys},'umask':oct(mask)}))\n",
         encoding="utf-8",
     )
     installer = tmp_path / "installer-fixture.sh"
@@ -551,6 +552,17 @@ def test_auto_and_preview_installers_back_up_and_receive_exact_recipe(
     assert sandbox.received()["RUN_AS_HOME"] == str(sandbox.home)
     assert "curl" not in [call["command"] for call in calls]
     assert not list(sandbox.temp.iterdir())
+
+
+def test_installer_runs_under_a_umask_others_can_read(sandbox: Sandbox) -> None:
+    """The launcher keeps its own files private, not what the installer creates."""
+    _, code = recipe()
+    result = run_launcher(sandbox, code)
+    assert result.returncode == 0, result.stderr
+    # Under the launcher's 077 the installer virtualenv came out root's alone,
+    # and the first task run as the user failed with "Permission denied".
+    assert sandbox.received()["umask"] == "0o22"
+    assert sandbox.scenario.stat().st_mode & 0o777 == 0o600
 
 
 @pytest.mark.parametrize("runtime", ["missing-first", "unavailable"])
