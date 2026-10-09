@@ -1,18 +1,18 @@
-<!-- Last Edit: Codex - 2026-10-08 - Motive: Link to the public OpenVoiceOS wizard. -->
+<!-- Last Edit: Codex - 2026-10-08 - Motive: Simplify launcher instructions and explain its relationship to the wizard. -->
 
 # OVOS Start launcher
 
-This script installs [OpenVoiceOS](https://www.openvoiceos.org/) using the choices you made in the setup wizard. It checks your setup code and device, prepares the OVOS installer, and starts the installation.
+[`v2.sh`](v2.sh) runs on your device. It checks your choices from the [OVOS Start wizard](https://start.openvoiceos.pt/), starts [ovos-installer](https://github.com/OpenVoiceOS/ovos-installer), and sends progress and error-report links back to the wizard.
+
+The website and progress API live in [ovos-start](https://github.com/OpenVoiceOS/ovos-start). This repository contains the device-side launcher.
 
 ## Get started
 
-1. Complete the [OVOS setup wizard](https://start.openvoiceos.pt).
-2. Copy the install command shown at the end.
-3. Paste it into Terminal on your device and follow the prompts.
+1. Open the [wizard](https://start.openvoiceos.pt/) and choose your setup.
+2. Prepare your device, then copy the install command.
+3. Paste it into your device's terminal and follow the prompts.
 
-Run the command as your normal user. The launcher asks for administrator access when needed. Setup codes expire after one hour; return to the wizard for a new command if yours expires. Keep your install command private.
-
-If a wizard installation fails, the installer automatically uploads its error report to [paste.uoi.io](https://paste.uoi.io) and shows the report link in the wizard. Running the launcher without wizard tracking keeps the upload prompt.
+Run as your normal user; the launcher asks for administrator access when needed. Keep the command private. If it expires after one hour, get a new one from the wizard.
 
 ## Check your setup
 
@@ -26,7 +26,7 @@ This checks services and helps you test your speaker and microphone.
 
 ## Development
 
-[`v2.sh`](v2.sh) is the launcher. See the [developer guide](docs/index.md) for its source, build instructions, and tests.
+See the [developer guide](docs/index.md) for source files, builds, tests and progress reporting.
 
 ## Sponsorship
 

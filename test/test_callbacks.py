@@ -343,14 +343,24 @@ def test_callback_helper_rejects_unknown_events(sandbox: Sandbox) -> None:
 
 
 @pytest.mark.parametrize("interruption", (signal.SIGTERM, signal.SIGHUP, signal.SIGINT))
-def test_interruption_reports_cancelled_and_releases_lock(sandbox: Sandbox, interruption: int) -> None:
+@pytest.mark.parametrize("shell", ("/bin/sh", "/bin/bash"))
+def test_interruption_reports_cancelled_and_releases_lock(
+    sandbox: Sandbox, interruption: int, shell: str,
+) -> None:
     """Actual process-group signals retain their shell status and send cancellation."""
+    # A signal can arrive between a sleep finishing and the next one starting.
+    # Give the fake installer explicit exits before announcing readiness, so the
+    # test measures launcher cleanup instead of the host shell's loop semantics.
     Path(sandbox.env["FAKE_INSTALLER"]).write_text(
-        '#!/bin/sh\nprintf ready > "$HOME/installer-started"\n'
+        "#!/bin/sh\ntrap 'exit 130' INT\ntrap 'exit 143' TERM\ntrap 'exit 129' HUP\n"
+        'printf ready > "$HOME/installer-started"\n'
         'while :; do sleep 0.05; done\n'
     )
+    Path(sandbox.env["FAKE_RUNTIME_FILE"]).write_text(
+        f"resolve_bash_runtime() {{ printf '%s\\n' '{shell}'; }}\n"
+    )
     process = subprocess.Popen(
-        ["/bin/sh", str(sandbox.launcher), raw_code(), "--track", TOKEN],
+        [shell, str(sandbox.launcher), raw_code(), "--track", TOKEN],
         cwd=sandbox.home, env=sandbox.env, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
     )

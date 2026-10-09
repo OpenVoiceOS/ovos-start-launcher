@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document immutable Linux and macOS installer selection for release 2.4.2.
+Last Edit: Codex - 2026-10-08 - Motive: Clarify publication and portable cancellation tests.
 
 # Launcher developer guide
 
@@ -109,9 +109,9 @@ Expiry is a local freshness policy. Browser/target clocks can disagree, and time
 
 ## Verification and publication
 
-Run `npm run build`, `npm test`, `uv run pytest test/ -q`, `sh -n v2.sh` and `bash --posix -n v2.sh`. Python [Sandbox](../test/test_launcher.py#L106) owns isolated paths; `raw_code` supplies an independent wire encoder, `run_launcher` exercises the actual shell, and `run_interactive` checks real PTY reads with fake curl/git/sudo and installer commands. [test_timestamp_boundaries_match_javascript_in_every_mode](../test/test_launcher.py#L322) compares the JavaScript and shell deadlines. The callback tests additionally exercise the production `CallbackModule` through harmless real Ansible plays; no live installation is part of the test suite.
+Run `npm run build`, `npm test`, `uv run pytest test/ -q`, `sh -n v2.sh` and `bash --posix -n v2.sh`. Python [Sandbox](../test/test_launcher.py#L106) owns isolated paths; `raw_code` supplies an independent wire encoder, `run_launcher` exercises the actual shell, and `run_interactive` checks real PTY reads with fake curl/git/sudo and installer commands. [test_timestamp_boundaries_match_javascript_in_every_mode](../test/test_launcher.py#L322) compares the JavaScript and shell deadlines. The callback tests additionally exercise the production `CallbackModule` through harmless real Ansible plays; no live installation is part of the test suite. The cancellation fixture installs signal handlers before announcing readiness and exercises TERM, HUP and INT under both sh and Bash. It checks the launcher’s exit status, cancellation event and lock cleanup with the same five-second deadline on Linux and macOS.
 
-The `dev` workflow tests pull requests and packages `index.html`, `v2.sh` and `.nojekyll` for non-PR Pages deployments. It does not publish the wizard or any recipe database. Documentation updates do not themselves deploy the site.
+The `dev` workflow tests pull requests and packages `index.html`, `v2.sh` and `.nojekyll` for non-PR Pages deployments. It does not publish the wizard or any recipe database. Every push to `dev` runs these checks and publishes the launcher files; developer documentation is not included in the public artifact.
 
 ## Installer contract
 
