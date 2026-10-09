@@ -880,9 +880,12 @@ trap 'exit 143' TERM
 trap 'exit 129' HUP
 
 # The reviewed macOS contract supports Intel and Apple Silicon. Current main
-# changes that promise; keep Mac defaults on the same pinned source as preview.
+# refuses Intel Macs and macOS before 15, so Macs stay on that pinned source.
+# Everything else runs main: the speech choice (speech_engine) is on main since
+# PR #648 merged, with the fixes after it, among them installs on distributions
+# that package uv (#667), which the pinned source fails.
 ovos_installer=main
-if [ "$ovos_speech" != auto ] || [ "$ovos_device" = mac ]; then ovos_installer=pinned; fi
+if [ "$ovos_device" = mac ]; then ovos_installer=pinned; fi
 say checking
 [ "$(id -u)" -ne 0 ] || fail_message regular
 if [ "$ovos_device" = mac ]; then

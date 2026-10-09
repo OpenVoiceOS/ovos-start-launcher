@@ -510,17 +510,21 @@ def test_existing_checkout_is_never_replaced(sandbox: Sandbox, kind: str) -> Non
     assert_untouched(sandbox)
 
 
-@pytest.mark.parametrize(("speech", "changes"), [
-    *((speech, {"FAIL_GIT": operation}) for speech in ("auto", "public") for operation in ("init", "fetch", "checkout")),
-    ("public", {"FAIL_GIT": "rev-parse"}),
-    ("public", {"FAKE_SHA": "0" * 40}),
+MAC = {"device": "mac", "cpu": "intel-mac", "channel": "alpha"}
+
+
+@pytest.mark.parametrize(("overrides", "changes"), [
+    *(({"speech": speech}, {"FAIL_GIT": operation}) for speech in ("auto", "public") for operation in ("init", "fetch", "checkout")),
+    # Only a Mac recipe fetches the pinned commit, so only it checks the revision.
+    (MAC, {"FAKE_OS": "Darwin", "FAIL_GIT": "rev-parse"}),
+    (MAC, {"FAKE_OS": "Darwin", "FAKE_SHA": "0" * 40}),
 ])
 def test_failed_download_or_pin_check_preserves_active_configuration(
-    sandbox: Sandbox, speech: str, changes: dict[str, str]
+    sandbox: Sandbox, overrides: dict[str, object], changes: dict[str, str]
 ) -> None:
     """Even partial downloads and incorrect revisions cannot overwrite a user scenario."""
     sandbox.seed_scenario()
-    _, code = recipe({"speech": speech})
+    _, code = recipe(overrides)
     result = run_launcher(sandbox, code, changes=changes)
     assert result.returncode != 0
     assert sandbox.scenario.read_text() == "original-user-settings\n"
@@ -547,7 +551,8 @@ def test_auto_and_preview_installers_back_up_and_receive_exact_recipe(
     calls = sandbox.calls()
     assert calls[-1]["command"] == "sudo"
     fetch = next(call for call in calls if "fetch" in call["args"])
-    assert fetch["args"][-1] == ("main" if state["speech"] == "auto" else PIN)
+    # Only a Mac is pinned; a speech choice runs main since PR #648 merged.
+    assert fetch["args"][-1] == "main"
     assert sandbox.received()["RUN_AS"] == "fixture-user"
     assert sandbox.received()["RUN_AS_HOME"] == str(sandbox.home)
     assert "curl" not in [call["command"] for call in calls]
@@ -849,7 +854,7 @@ def test_installer_failure_keeps_recovery_checker_and_never_reports_success(sand
     assert len(list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))) == 1
     assert [call["command"] for call in sandbox.calls()].count("sudo") == 1
     assert "curl" not in [call["command"] for call in sandbox.calls()]
-    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == ("main" if speech == "auto" else PIN)
+    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == "main"
 
 
 def test_sound_check_uses_installed_bus_api_and_waits_for_human_confirmation(sandbox: Sandbox) -> None:

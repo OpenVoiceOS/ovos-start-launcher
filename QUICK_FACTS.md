@@ -17,8 +17,8 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record release 2.3.2 Git isolati
 | Expired recovery | Explicit JS `allowExpired` restores expired v2 choices; future codes, bad clocks and malformed data still rejected |
 | Protocol records | `contract.json` is v2; `contract-v1.json` preserves the old layout and vectors |
 | Hosting | GitHub Pages, `dev` workflow; only index.html, v2.sh and .nojekyll |
-| Preview pin | `6ffd465028bac299e5235d619819bfdc734af073` for explicit speech |
-| Default speech | Mac uses reviewed pin with no speech override; other devices fetch main and invoke setup.sh directly |
+| Mac pin | `6ffd465028bac299e5235d619819bfdc734af073` for every Mac recipe (main refuses Intel and macOS before 15) |
+| Speech choice | Non-Mac devices fetch main and invoke setup.sh directly, with or without `speech_engine`; Mac uses the pin, with no speech override by default |
 | Git isolation | Repository/index/object/ref context and command-scoped Git config overrides are cleared before checkout and child setup; ordinary Git config, proxies and CA settings are retained |
 | Preflight | 64-bit, format/checksum/version/time, compatible choices, nonroot user, correct OS, dependencies, protected existing checkout; freshness checked before side effects |
 | Installer runtime | setup.sh child uses umask022; launcher staging remains077; existing installer venv is preserved in a private sibling backup before rebuilding |
