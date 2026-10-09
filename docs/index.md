@@ -1,6 +1,12 @@
-Last Edit: Codex - 2026-10-09 - Motive: Use the current upstream main branch on every device, with verified isolated checkout and failure coverage.
+Last Edit: Codex - 2026-10-09 - Motive: Document hardware-derived Raspberry Pi tuning and its target coverage.
 
 # Launcher developer guide
+
+## Raspberry Pi tuning (2.6.0)
+
+[`scenario`](../lib/launcher.sh.in) emits `raspberry_pi_tuning: true` for `pi`, `mark1`, `mark2` and `devkit`; every other device emits `false`. The setting is derived from the existing device field, so compact codes and their frozen fixtures keep their format. [`test_pi_tuning_is_enabled_only_for_raspberry_pi_targets`](../test/test_launcher.py) covers all ten device choices, while `expected_scenario` checks the complete YAML and the fake installer handoff.
+
+Upstream [`utils/scenario.sh`](https://github.com/OpenVoiceOS/ovos-installer/blob/main/utils/scenario.sh) maps this flag to `TUNING=yes`. Its [installer role](https://github.com/OpenVoiceOS/ovos-installer/blob/main/ansible/roles/ovos_installer/tasks/main.yml) applies tuning only to detected Raspberry Pi hardware on Linux. Overclocking has a separate disabled default; the launcher does not enable it. See [ovos-installer: automation](https://github.com/OpenVoiceOS/ovos-installer/blob/main/docs/automation.md).
 
 ## Installer selection (2.5.0)
 
