@@ -13,7 +13,7 @@ import pytest
 from test_launcher import Sandbox, raw_code, run_interactive, sandbox
 
 TOKEN = "0123456789abcdef" * 4
-ENDPOINT = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"
+ENDPOINT = "https://start-api.smartgic.io/v1/events"
 
 
 def tracked_run(sandbox: Sandbox, *, arguments: list[str] | None = None,
@@ -84,6 +84,10 @@ def test_checker_replays_success_receipt_after_lost_install_callback(sandbox: Sa
                             cwd=sandbox.home, env=sandbox.env, capture_output=True, text=True, timeout=5)
     assert result.returncode == 3
     assert events(sandbox)[before:] == ["installed", "needs_attention"]
+    for request in callbacks(sandbox)[before:]:
+        assert f'url = "{ENDPOINT}"' in str(request["config"])
+        assert request["args"] == ["-q", "--config", "-", "--proto", "=https", "--connect-timeout", "2",
+                                    "--max-time", "3", "--silent", "--fail", "--output", "/dev/null"]
 
 
 def test_failed_rerun_clears_prior_success_receipt_even_with_same_token(sandbox: Sandbox) -> None:

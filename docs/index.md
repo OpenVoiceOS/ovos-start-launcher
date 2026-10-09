@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document automatic wizard error reports and isolated reporting flags.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Route new launcher progress to the self-hosted API.
 
 # Launcher developer guide
 
@@ -61,9 +61,11 @@ Python tests [`test_installer_venv_is_accessible_without_exposing_launcher_secre
 
 ## Optional installation progress (2.2.0)
 
+New launcher revisions report to `start-api.smartgic.io`. Older immutable launcher revisions and their saved checkers retain the previous relay, so existing install commands keep their original session destination. Deployments must pin the launcher revision matching the relay that issued the command.
+
 `v2.sh CODE --track TOKEN` accepts a separate 64-character lowercase hexadecimal write capability. `CODE` and its one-hour validation remain unchanged. Unknown arguments or malformed capabilities fail before file/network effects. `--decode` and `--scenario` never send progress or persist the capability. Plain `v2.sh CODE` remains supported without callbacks.
 
-[`report_status`](../lib/callback.sh) sends `{"event":"EVENT"}` to the fixed HTTPS relay at `https://ovos-install-status.goldyfruit.chatgpt.site/v1/events`, with an optional validated `errorUrl` only for `failed`. Allowed events are `started`, `downloading`, `installing`, `installed`, `services_ready`, `voice_ready`, `needs_attention`, `failed` and `cancelled`. The token goes in the Authorization header through curl config stdin, never curl's argv. Curl disables automatic `.curlrc` loading, permits HTTPS only, does not follow redirects or retry, and limits connection/total time to 2/3 seconds. Missing curl and every transport failure are ignored. The relay receives the report URL, never report contents, answers or installer secrets. The copyable terminal command contains a private status-write capability; do not publish that complete command.
+[`report_status`](../lib/callback.sh) sends `{"event":"EVENT"}` to the fixed HTTPS relay at `https://start-api.smartgic.io/v1/events`, with an optional validated `errorUrl` only for `failed`. Allowed events are `started`, `downloading`, `installing`, `installed`, `services_ready`, `voice_ready`, `needs_attention`, `failed` and `cancelled`. The token goes in the Authorization header through curl config stdin, never curl's argv. Curl disables automatic `.curlrc` loading, permits HTTPS only, does not follow redirects or retry, and limits connection/total time to 2/3 seconds. Missing curl and every transport failure are ignored. The relay receives the report URL, never report contents, answers or installer secrets. The copyable terminal command contains a private status-write capability; do not publish that complete command.
 
 The relay, separately maintained by the wizard, enforces capability lifetime (24 hours). This expiry does not renew or replace the one-hour recipe start deadline. Do not treat the recipe checksum as callback authentication. Reports are best effort and can arrive with earlier events missing. A relay outage, expired token, reboot or power loss can leave the browser behind the terminal; the terminal remains authoritative. There is no inbound listener on the device.
 

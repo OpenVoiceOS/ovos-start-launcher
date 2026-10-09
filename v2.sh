@@ -715,7 +715,7 @@ report_status() {
   # Keep the bearer out of argv. Ignore every transport failure; installation
   # never depends on the browser or status relay being reachable.
   curl -q --config - --proto '=https' --connect-timeout 2 --max-time 3 --silent --fail --output /dev/null <<OVOS_STATUS >/dev/null 2>&1 || :
-url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"
+url = "https://start-api.smartgic.io/v1/events"
 request = "POST"
 header = "Authorization: Bearer $ovos_track"
 header = "Content-Type: application/json"
@@ -1027,7 +1027,7 @@ def report_phase(event: str) -> None:
         if not re.fullmatch(r"[0-9a-f]{64}\n?", token):
             return
         config = (
-            'url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"\n'
+            'url = "https://start-api.smartgic.io/v1/events"\n'
             'request = "POST"\n'
             f'header = "Authorization: Bearer {token.rstrip()}"\n'
             'header = "Content-Type: application/json"\n'
@@ -1116,7 +1116,7 @@ report_status() {
   # Keep the bearer out of argv. Ignore every transport failure; installation
   # never depends on the browser or status relay being reachable.
   curl -q --config - --proto '=https' --connect-timeout 2 --max-time 3 --silent --fail --output /dev/null <<OVOS_STATUS >/dev/null 2>&1 || :
-url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"
+url = "https://start-api.smartgic.io/v1/events"
 request = "POST"
 header = "Authorization: Bearer $ovos_track"
 header = "Content-Type: application/json"
