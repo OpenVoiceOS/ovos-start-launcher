@@ -1,8 +1,8 @@
-<!-- Last Edit: Codex - 2026-10-09 - Motive: Explain automatic tuning for Raspberry Pi and Mycroft hardware. -->
+<!-- Last Edit: Codex - 2026-10-09 - Motive: Point the launcher documentation to the OpenVoiceOS.org wizard. -->
 
 # OVOS Start launcher
 
-[`v2.sh`](v2.sh) runs on your device. It checks your choices from the [OVOS Start wizard](https://start.openvoiceos.pt/), starts [ovos-installer](https://github.com/OpenVoiceOS/ovos-installer), and sends progress and error-report links back to the wizard.
+[`v2.sh`](v2.sh) runs on your device. It checks your choices from the [OVOS Start wizard](https://start.openvoiceos.org/), starts [ovos-installer](https://github.com/OpenVoiceOS/ovos-installer), and sends progress and error-report links back to the wizard.
 
 Every installation uses the latest `ovos-installer` **main** branch, including macOS. New Mac installations need Apple Silicon and macOS 15 or later.
 
@@ -12,7 +12,7 @@ The website and progress API live in [ovos-start](https://github.com/OpenVoiceOS
 
 ## Get started
 
-1. Open the [wizard](https://start.openvoiceos.pt/) and choose your setup.
+1. Open the [wizard](https://start.openvoiceos.org/) and choose your setup.
 2. Prepare your device, then copy the install command.
 3. Paste it into your device's terminal and follow the prompts.
 

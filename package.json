@@ -9,7 +9,7 @@
     "build": "python3 scripts/build-launcher.py"
   },
   "description": "Command-line launcher for installations started with OVOS Start.",
-  "homepage": "https://start.openvoiceos.pt",
+  "homepage": "https://start.openvoiceos.org",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenVoiceOS/ovos-start-launcher.git"
