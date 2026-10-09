@@ -13,7 +13,7 @@ import pytest
 from test_launcher import Sandbox, raw_code, run_interactive, sandbox
 
 TOKEN = "0123456789abcdef" * 4
-ENDPOINT = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"
+ENDPOINT = "https://start-api.smartgic.io/v1/events"
 
 
 def tracked_run(sandbox: Sandbox, *, arguments: list[str] | None = None,
@@ -33,7 +33,7 @@ def callbacks(sandbox: Sandbox) -> list[dict[str, object]]:
 
 
 def events(sandbox: Sandbox) -> list[str]:
-    """Extract the only permitted data field from each recorded curl config."""
+    """Extract event names from each recorded curl config."""
     result = []
     for request in callbacks(sandbox):
         data_line = next(line for line in str(request["config"]).splitlines() if line.startswith("data = "))
@@ -84,6 +84,10 @@ def test_checker_replays_success_receipt_after_lost_install_callback(sandbox: Sa
                             cwd=sandbox.home, env=sandbox.env, capture_output=True, text=True, timeout=5)
     assert result.returncode == 3
     assert events(sandbox)[before:] == ["installed", "needs_attention"]
+    for request in callbacks(sandbox)[before:]:
+        assert f'url = "{ENDPOINT}"' in str(request["config"])
+        assert request["args"] == ["-q", "--config", "-", "--proto", "=https", "--connect-timeout", "2",
+                                    "--max-time", "3", "--silent", "--fail", "--output", "/dev/null"]
 
 
 def test_failed_rerun_clears_prior_success_receipt_even_with_same_token(sandbox: Sandbox) -> None:
@@ -339,14 +343,24 @@ def test_callback_helper_rejects_unknown_events(sandbox: Sandbox) -> None:
 
 
 @pytest.mark.parametrize("interruption", (signal.SIGTERM, signal.SIGHUP, signal.SIGINT))
-def test_interruption_reports_cancelled_and_releases_lock(sandbox: Sandbox, interruption: int) -> None:
+@pytest.mark.parametrize("shell", ("/bin/sh", "/bin/bash"))
+def test_interruption_reports_cancelled_and_releases_lock(
+    sandbox: Sandbox, interruption: int, shell: str,
+) -> None:
     """Actual process-group signals retain their shell status and send cancellation."""
+    # A signal can arrive between a sleep finishing and the next one starting.
+    # Give the fake installer explicit exits before announcing readiness, so the
+    # test measures launcher cleanup instead of the host shell's loop semantics.
     Path(sandbox.env["FAKE_INSTALLER"]).write_text(
-        '#!/bin/sh\nprintf ready > "$HOME/installer-started"\n'
+        "#!/bin/sh\ntrap 'exit 130' INT\ntrap 'exit 143' TERM\ntrap 'exit 129' HUP\n"
+        'printf ready > "$HOME/installer-started"\n'
         'while :; do sleep 0.05; done\n'
     )
+    Path(sandbox.env["FAKE_RUNTIME_FILE"]).write_text(
+        f"resolve_bash_runtime() {{ printf '%s\\n' '{shell}'; }}\n"
+    )
     process = subprocess.Popen(
-        ["/bin/sh", str(sandbox.launcher), raw_code(), "--track", TOKEN],
+        [shell, str(sandbox.launcher), raw_code(), "--track", TOKEN],
         cwd=sandbox.home, env=sandbox.env, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
     )

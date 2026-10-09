@@ -41,7 +41,7 @@ def report_phase(event: str) -> None:
         if not re.fullmatch(r"[0-9a-f]{64}\n?", token):
             return
         config = (
-            'url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"\n'
+            'url = "https://start-api.smartgic.io/v1/events"\n'
             'request = "POST"\n'
             f'header = "Authorization: Bearer {token.rstrip()}"\n'
             'header = "Content-Type: application/json"\n'
