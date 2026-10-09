@@ -198,10 +198,10 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
 
-# The reviewed macOS contract supports Intel and Apple Silicon. Current main
-# changes that promise; keep Mac defaults on the same pinned source as preview.
+# Linux uses the reviewed main-based revision for every speech choice.
+# macOS retains its reviewed Intel and Apple Silicon compatibility revision.
 ovos_installer=main
-if [ "$ovos_speech" != auto ] || [ "$ovos_device" = mac ]; then ovos_installer=pinned; fi
+if [ "$ovos_device" = mac ]; then ovos_installer=pinned; fi
 say checking
 [ "$(id -u)" -ne 0 ] || fail_message regular
 if [ "$ovos_device" = mac ]; then
@@ -248,10 +248,9 @@ report_status started
 say download
 report_status downloading
 # Both paths are immutable and include the optional consented report handoff.
-ovos_revision=44fcada5cd29e0f6a307f39961f510ca1060b5d2
+ovos_revision=fb1b377513720ef074deb36a33714aa1c4454e3e
 if [ "$ovos_installer" = pinned ]; then
-  ovos_revision=e406a0cb93376e7dbf750bf4629a11079f8f8108
-  say preview
+  ovos_revision=ff29aa7b9d1ec0d267ad31bc10a6948c490b1b08
 fi
 ovos_source="$ovos_tmp/source"
 mkdir "$ovos_source"

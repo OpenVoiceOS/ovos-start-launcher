@@ -1,11 +1,27 @@
 {
   "name": "ovos-start-launcher",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "build": "python3 scripts/build-launcher.py"
-  }
+  },
+  "description": "Command-line launcher for installations started with OVOS Start.",
+  "homepage": "https://start.openvoiceos.pt",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenVoiceOS/ovos-start-launcher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OpenVoiceOS/ovos-start-launcher/issues"
+  },
+  "keywords": [
+    "openvoiceos",
+    "ovos",
+    "voice-assistant",
+    "installer",
+    "shell"
+  ]
 }
