@@ -10,7 +10,7 @@ import sys
 
 import pytest
 
-from test_launcher import MAIN_PIN, Sandbox, raw_code, run_launcher, sandbox
+from test_launcher import Sandbox, raw_code, run_launcher, sandbox
 
 
 def repository_snapshot(repository: Path) -> dict[str, bytes]:
@@ -25,10 +25,11 @@ def repository_snapshot(repository: Path) -> dict[str, bytes]:
     "repository", "index", "objects", "common-directory", "config-count",
     "config-parameters", "ref-context", "clean",
 ])
+@pytest.mark.parametrize("upstream_state", ("current-main", "advanced-main", "tag-only"))
 def test_inherited_git_context_cannot_modify_an_unrelated_repository(
-    sandbox: Sandbox, context: str,
+    sandbox: Sandbox, context: str, upstream_state: str,
 ) -> None:
-    """Run an offline real checkout and installer Git probes under hostile context."""
+    """Fetch the real main branch in isolation; a main tag cannot substitute for it."""
     real_git = shutil.which("git")
     assert real_git is not None
     root = sandbox.home.parent
@@ -64,11 +65,16 @@ def test_inherited_git_context_cannot_modify_an_unrelated_repository(
     (upstream / "setup.sh").write_text('#!/bin/sh\nexec "$FAKE_PYTHON" "$FAKE_RECORDER"\n')
     git(upstream, "add", ".")
     git(upstream, "commit", "--quiet", "-m", "Harmless fixture installer")
-    # Keep exact-commit verification real while using an offline harmless pin.
-    upstream_pin = git(upstream, "rev-parse", "HEAD").stdout.strip()
-    launcher = root / "offline-launcher.sh"
-    launcher.write_text(sandbox.launcher.read_text().replace(MAIN_PIN, upstream_pin))
-    sandbox.env["FAKE_LAUNCHER"] = str(launcher)
+    # Same-name tags must never win over refs/heads/main, even when main is absent.
+    git(upstream, "tag", "main")
+    if upstream_state == "advanced-main":
+        (upstream / "latest.txt").write_text("The next attempt must use this commit.\n")
+        git(upstream, "add", ".")
+        git(upstream, "commit", "--quiet", "-m", "Advance main beyond the tag")
+    expected_commit = git(upstream, "rev-parse", "HEAD").stdout.strip()
+    if upstream_state == "tag-only":
+        git(upstream, "branch", "-m", "other")
+        sandbox.seed_scenario()
 
     unrelated = root / "unrelated-repository"
     unrelated.mkdir()
@@ -95,6 +101,7 @@ def test_inherited_git_context_cannot_modify_an_unrelated_repository(
         "def git(*args):\n"
         "    return subprocess.check_output(['git', *args], text=True).strip()\n"
         "data = {'root': git('rev-parse', '--show-toplevel'), "
+        "'commit': git('rev-parse', '--verify', 'HEAD^{commit}'), "
         "'git_dir': git('rev-parse', '--absolute-git-dir'), "
         "'marker': git('config', '--get', 'audit.marker'), "
         "'safe_config': os.environ.get('GIT_CONFIG_GLOBAL'), "
@@ -126,10 +133,19 @@ def test_inherited_git_context_cannot_modify_an_unrelated_repository(
 
     result = run_launcher(sandbox, raw_code(), changes=changes)
 
-    assert result.returncode == 0, result.stdout + result.stderr
     assert repository_snapshot(unrelated) == before
     assert user_config.read_bytes() == original_config
+    if upstream_state == "tag-only":
+        assert result.returncode != 0
+        assert sandbox.scenario.read_text() == "original-user-settings\n"
+        assert not list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))
+        assert not (sandbox.home / "git-probes.json").exists()
+        assert not list(sandbox.temp.iterdir())
+        assert not (sandbox.scenario.parent / ".launcher-lock").exists()
+        return
+    assert result.returncode == 0, result.stdout + result.stderr
     probes = json.loads((sandbox.home / "git-probes.json").read_text())
+    assert probes["commit"] == expected_commit
     private_root = Path(probes["root"])
     # The checkout has already been cleaned; compare resolved parent paths to
     # accommodate macOS's /var -> /private/var spelling without requiring it.

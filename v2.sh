@@ -896,10 +896,6 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
 
-# Linux uses the reviewed main-based revision for every speech choice.
-# macOS retains its reviewed Intel and Apple Silicon compatibility revision.
-ovos_installer=main
-if [ "$ovos_device" = mac ]; then ovos_installer=pinned; fi
 say checking
 [ "$(id -u)" -ne 0 ] || fail_message regular
 if [ "$ovos_device" = mac ]; then
@@ -945,11 +941,6 @@ fi
 report_status started
 say download
 report_status downloading
-# Both paths are immutable and include the optional consented report handoff.
-ovos_revision=fb1b377513720ef074deb36a33714aa1c4454e3e
-if [ "$ovos_installer" = pinned ]; then
-  ovos_revision=ff29aa7b9d1ec0d267ad31bc10a6948c490b1b08
-fi
 ovos_source="$ovos_tmp/source"
 mkdir "$ovos_source"
 # Git's inherited repository variables override -C and can otherwise redirect
@@ -963,9 +954,15 @@ unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE \
   GIT_CONFIG GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT
 git -C "$ovos_source" init --quiet --template= || fail_message downloadFailed
 # Never wait for an unexpected Git credential prompt; abort a stalled transfer.
-GIT_TERMINAL_PROMPT=0 git -C "$ovos_source" -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git "$ovos_revision" || fail_message downloadFailed
-git -C "$ovos_source" -c core.hooksPath=/dev/null checkout --quiet --detach FETCH_HEAD || fail_message downloadFailed
-[ "$(git -C "$ovos_source" rev-parse HEAD)" = "$ovos_revision" ] || fail_message revision
+# Every device uses the current main branch. The full ref excludes same-name
+# tags; resolve it once so a concurrent upstream push cannot change this run.
+GIT_TERMINAL_PROMPT=0 git -C "$ovos_source" -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet --no-tags --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git refs/heads/main || fail_message downloadFailed
+ovos_revision=$(git -C "$ovos_source" rev-parse --verify 'FETCH_HEAD^{commit}') || fail_message revision
+[ "${#ovos_revision}" = 40 ] || fail_message revision
+case "$ovos_revision" in *[!0-9a-f]*) fail_message revision;; esac
+git -C "$ovos_source" -c core.hooksPath=/dev/null checkout --quiet --detach "$ovos_revision" || fail_message downloadFailed
+ovos_head=$(git -C "$ovos_source" rev-parse --verify 'HEAD^{commit}') || fail_message revision
+[ "$ovos_head" = "$ovos_revision" ] || fail_message revision
 # This notification plugin reads role metadata, never terminal logs or secrets.
 # It only exists for tracked runs and leaves upstream stdout callbacks intact.
 if [ -n "$ovos_track" ]; then
@@ -1387,11 +1384,11 @@ ovos_source=$1
 ovos_home=$2
 ovos_scenario=$3
 export LOCALE="$4"
-ovos_ha=$6
-ovos_llm=$7
+ovos_ha=$5
+ovos_llm=$6
 ovos_tty=''
 ovos_locale=$LOCALE
-. "$8"
+. "$7"
 cleanup_launcher() {
   restore_tty
   case "$ovos_source" in */ovos-start.??????/source) cd /; rm -rf "$ovos_source" || :;; esac
@@ -1455,10 +1452,10 @@ for ovos_path in "$ovos_home/.config/ovos-installer/scenario.yaml" "$ovos_home/.
 done
 # Clear an earlier receipt before activating any new attempt, including when
 # someone explicitly reruns the same tracking token and installation fails.
-mv "${11}" "$ovos_home/.config/ovos-installer/status-installed"
+mv "${10}" "$ovos_home/.config/ovos-installer/status-installed"
 mv "$ovos_scenario" "$ovos_home/.config/ovos-installer/scenario.yaml"
-mv "$9" "$ovos_home/.config/ovos-installer/check-setup.sh"
-mv "${10}" "$ovos_home/.config/ovos-installer/status-token"
+mv "$8" "$ovos_home/.config/ovos-installer/check-setup.sh"
+mv "$9" "$ovos_home/.config/ovos-installer/status-token"
 # sudo may use root's HOME; load only the validated original account's file.
 ovos_track=''
 IFS= read -r ovos_track < "$ovos_home/.config/ovos-installer/status-token" || ovos_track=''
@@ -1476,8 +1473,8 @@ report_status installing
   # only with our private receipt. Never trust inherited report settings.
   unset OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
   exec 3>&-
-  if [ -n "$ovos_track" ] && [ "${13}" = "${ovos_source%/source}/error-report" ] && [ -f "${13}" ] && [ ! -L "${13}" ]; then
-    exec 3> "${13}"
+  if [ -n "$ovos_track" ] && [ "${12}" = "${ovos_source%/source}/error-report" ] && [ -f "${12}" ] && [ ! -L "${12}" ]; then
+    exec 3> "${12}"
     OVOS_INSTALLER_REPORT_FD=3
     OVOS_INSTALLER_AUTO_REPORT=1
     export OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
@@ -1498,10 +1495,10 @@ for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
 done
 ovos_receipt="$ovos_home/.config/ovos-installer/status-installed"
 if [ -L "$ovos_receipt" ] || { [ -e "$ovos_receipt" ] && [ ! -f "$ovos_receipt" ]; }; then ovos_receipt_safe=false; fi
-if [ "$ovos_receipt_safe" = true ]; then mv "${12}" "$ovos_receipt" || :; fi
+if [ "$ovos_receipt_safe" = true ]; then mv "${11}" "$ovos_receipt" || :; fi
 report_status installed
 OVOS_LAUNCH
-if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
   ovos_installed=true
   say installReturned
   # Incomplete verification is not an installer failure. The checker itself

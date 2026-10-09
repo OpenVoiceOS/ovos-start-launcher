@@ -1,8 +1,10 @@
-<!-- Last Edit: Codex - 2026-10-08 - Motive: Simplify launcher instructions and explain its relationship to the wizard. -->
+<!-- Last Edit: Codex - 2026-10-09 - Motive: Explain that every installation uses the current installer main branch. -->
 
 # OVOS Start launcher
 
 [`v2.sh`](v2.sh) runs on your device. It checks your choices from the [OVOS Start wizard](https://start.openvoiceos.pt/), starts [ovos-installer](https://github.com/OpenVoiceOS/ovos-installer), and sends progress and error-report links back to the wizard.
+
+Every installation uses the latest `ovos-installer` **main** branch, including macOS. New Mac installations need Apple Silicon and macOS 15 or later.
 
 The website and progress API live in [ovos-start](https://github.com/OpenVoiceOS/ovos-start). This repository contains the device-side launcher.
 

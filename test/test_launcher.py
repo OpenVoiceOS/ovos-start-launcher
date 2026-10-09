@@ -17,8 +17,8 @@ import time
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-MAIN_PIN = "fb1b377513720ef074deb36a33714aa1c4454e3e"
-PIN = "ff29aa7b9d1ec0d267ad31bc10a6948c490b1b08"
+MAIN_REF = "refs/heads/main"
+FIXTURE_COMMIT = "1234567890abcdef1234567890abcdef12345678"
 ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 ISSUED_AT = 1_700_000_000
 MAX_TIMESTAMP = (1 << 40) - 1
@@ -94,7 +94,10 @@ if name == 'git':
         shutil.copyfile(os.environ['FAKE_INSTALLER'], source / 'setup.sh')
         shutil.copyfile(os.environ['FAKE_RUNTIME_FILE'], source / 'utils/bash_runtime.sh')
     if operation == 'rev-parse':
-        print(os.environ.get('FAKE_SHA', (source / '.fixture-ref').read_text()))
+        assert operation_args[1] == '--verify', operation_args
+        variable = 'FAKE_FETCH_SHA' if operation_args[2] == 'FETCH_HEAD^{commit}' else 'FAKE_HEAD_SHA'
+        print(os.environ.get(variable, os.environ['FAKE_COMMIT']))
+        if variable == 'FAKE_HEAD_SHA' and os.environ.get('FAIL_HEAD_RESOLUTION'): sys.exit(23)
     sys.exit(0)
 if name == 'sudo':
     assert args[0] == 'sh', args
@@ -179,7 +182,7 @@ def sandbox(tmp_path: Path) -> Sandbox:
         "LC_ALL": "C.UTF-8", "FAKE_PYTHON": sys.executable,
         "FAKE_RECORDER": str(recorder), "FAKE_INSTALLER": str(installer),
         "FAKE_RUNTIME_FILE": str(runtime), "FAKE_LAUNCHER": str(ROOT / "v2.sh"),
-        "FAKE_NOW": str(ISSUED_AT),
+        "FAKE_NOW": str(ISSUED_AT), "FAKE_COMMIT": FIXTURE_COMMIT,
     }
     return Sandbox(home, temp, env)
 
@@ -520,12 +523,14 @@ def test_existing_checkout_is_never_replaced(sandbox: Sandbox, kind: str) -> Non
 ])
 @pytest.mark.parametrize("changes", [
     *({"FAIL_GIT": operation} for operation in ("init", "fetch", "checkout", "rev-parse")),
-    {"FAKE_SHA": "0" * 40},
+    {"FAKE_HEAD_SHA": "0" * 40},
+    {"FAIL_HEAD_RESOLUTION": "1"},
+    *({"FAKE_FETCH_SHA": value} for value in ("", "main", "f" * 39, "f" * 41, "z" * 40, "--detach")),
 ])
-def test_failed_download_or_pin_check_preserves_active_configuration(
+def test_failed_download_or_commit_check_preserves_active_configuration(
     sandbox: Sandbox, overrides: dict[str, object], changes: dict[str, str]
 ) -> None:
-    """Both immutable paths reject fetch/SHA failures before touching active settings."""
+    """Every platform rejects fetch/commit failures before touching active settings."""
     sandbox.seed_scenario()
     state, code = recipe(overrides)
     target = "Darwin" if state["device"] == "mac" else "Linux"
@@ -542,7 +547,7 @@ def test_failed_download_or_pin_check_preserves_active_configuration(
 def test_linux_installers_back_up_and_receive_exact_recipe(
     sandbox: Sandbox, overrides: dict[str, object]
 ) -> None:
-    """Only the fixture installer runs with locale, private modes and a verified pin."""
+    """Only the resolved main commit runs with locale and private scenario modes."""
     sandbox.seed_scenario()
     state, code = recipe({"locale": "fr-fr", "telemetry": True, **overrides})
     result = run_launcher(sandbox, code)
@@ -555,7 +560,7 @@ def test_linux_installers_back_up_and_receive_exact_recipe(
     calls = sandbox.calls()
     assert calls[-1]["command"] == "sudo"
     fetch = next(call for call in calls if "fetch" in call["args"])
-    assert fetch["args"][-1] == MAIN_PIN
+    assert fetch["args"][-1] == MAIN_REF
     assert sandbox.received()["RUN_AS"] == "fixture-user"
     assert sandbox.received()["RUN_AS_HOME"] == str(sandbox.home)
     assert "curl" not in [call["command"] for call in calls]
@@ -857,7 +862,7 @@ def test_installer_failure_keeps_recovery_checker_and_never_reports_success(sand
     assert len(list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))) == 1
     assert [call["command"] for call in sandbox.calls()].count("sudo") == 1
     assert "curl" not in [call["command"] for call in sandbox.calls()]
-    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == MAIN_PIN
+    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == MAIN_REF
 
 
 def test_sound_check_uses_installed_bus_api_and_waits_for_human_confirmation(sandbox: Sandbox) -> None:
@@ -917,20 +922,26 @@ class MessageBusClient:
     assert (sandbox.home / "sound-closed").exists()
 
 
-@pytest.mark.parametrize(("overrides", "target", "expected_pin"), [
-    ({"device": "computer"}, "Linux", MAIN_PIN),
-    ({"device": "computer", "speech": "public"}, "Linux", MAIN_PIN),
-    ({"device": "computer", **LOCAL}, "Linux", MAIN_PIN),
-    ({"device": "mac", "cpu": "intel-mac", "channel": "alpha"}, "Darwin", PIN),
-    ({"device": "mac", "cpu": "intel-mac", "channel": "alpha", "speech": "public"}, "Darwin", PIN),
-    ({"device": "mac", **LOCAL}, "Darwin", PIN),
+@pytest.mark.parametrize(("device", "speech"), [
+    (device, speech)
+    for device in FIELDS[0][2]
+    for speech in ("auto", "public", "local")
+    if not ((device == "server" and speech != "auto") or
+            (device in ("mark1", "mark2", "devkit") and speech == "local"))
 ])
-def test_linux_and_mac_speech_choices_select_the_reviewed_installer(
-    sandbox: Sandbox, overrides: dict[str, object], target: str, expected_pin: str
+def test_all_devices_and_speech_choices_fetch_main(
+    sandbox: Sandbox, device: str, speech: str,
 ) -> None:
-    """Speech choices reach the intended immutable installer with the exact scenario."""
+    """Every valid hardware/speech combination resolves only the upstream main ref."""
+    overrides = {"device": device, "speech": speech, "channel": "alpha"}
+    if speech == "local":
+        overrides.update(LOCAL)
+    if device == "server":
+        overrides["experience"] = "hub"
+    if device == "mac" and speech != "local":
+        overrides["cpu"] = "intel-mac"
     state, code = recipe(overrides)
-    result = run_launcher(sandbox, code, changes={"FAKE_OS": target})
+    result = run_launcher(sandbox, code, changes={"FAKE_OS": "Darwin" if device == "mac" else "Linux"})
     assert result.returncode == 0, result.stderr
     assert "PR #648" not in result.stdout
     assert sandbox.scenario.read_text() == expected_scenario(state)
@@ -939,12 +950,17 @@ def test_linux_and_mac_speech_choices_select_the_reviewed_installer(
     assert sandbox.received()["RUN_AS"] == "fixture-user"
     calls = sandbox.calls()
     assert "curl" not in [call["command"] for call in calls]
-    fetch = next(call for call in calls if "fetch" in call["args"])
+    fetches = [call for call in calls if "fetch" in call["args"]]
+    assert len(fetches) == 1
+    fetch = fetches[0]
     assert fetch["args"][-2:] == [
-        "https://github.com/OpenVoiceOS/ovos-installer.git", expected_pin,
+        "https://github.com/OpenVoiceOS/ovos-installer.git", MAIN_REF,
     ]
-    assert len(expected_pin) == 40
-    assert any("rev-parse" in call["args"] for call in calls)
+    assert "--no-tags" in fetch["args"]
+    checkout = next(call for call in calls if "checkout" in call["args"])
+    assert checkout["args"][-2:] == ["--detach", FIXTURE_COMMIT]
+    resolutions = [call["args"][-2:] for call in calls if "rev-parse" in call["args"]]
+    assert resolutions == [["--verify", "FETCH_HEAD^{commit}"], ["--verify", "HEAD^{commit}"]]
 
 
 @pytest.mark.parametrize("speech", ("auto", "public"))
