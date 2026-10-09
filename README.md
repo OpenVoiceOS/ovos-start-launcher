@@ -1,10 +1,12 @@
+<!-- Last Edit: Codex - 2026-10-08 - Motive: Link to the public OpenVoiceOS wizard. -->
+
 # OVOS Start launcher
 
 This script installs [OpenVoiceOS](https://www.openvoiceos.org/) using the choices you made in the setup wizard. It checks your setup code and device, prepares the OVOS installer, and starts the installation.
 
 ## Get started
 
-1. Complete the [OVOS setup wizard](https://ovos-start-wizard.goldyfruit.chatgpt.site).
+1. Complete the [OVOS setup wizard](https://start.openvoiceos.pt).
 2. Copy the install command shown at the end.
 3. Paste it into Terminal on your device and follow the prompts.
 
