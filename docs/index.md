@@ -1,10 +1,12 @@
-Last Edit: Codex - 2026-10-08 - Motive: Clarify publication and portable cancellation tests.
+Last Edit: Codex - 2026-10-09 - Motive: Use the current upstream main branch on every device, with verified isolated checkout and failure coverage.
 
 # Launcher developer guide
 
-## Installer selection (2.4.2)
+## Installer selection (2.5.0)
 
-Linux recipes use the same reviewed immutable installer revision for automatic, public and local speech. macOS keeps a separate compatibility revision for Intel and Apple Silicon. Both include safe runtime re-entry and wizard error reporting. Exact fetch verification runs before activating configuration; neither route follows a moving branch. [`test_linux_and_mac_speech_choices_select_the_reviewed_installer`](../test/test_launcher.py) covers all six target/speech combinations, and failed-download tests protect existing settings on both routes.
+Every device and speech choice uses the current [`ovos-installer` main branch](https://github.com/OpenVoiceOS/ovos-installer/tree/main). There are no pinned installer revisions or macOS exceptions. Each new attempt fetches exactly `refs/heads/main` into a private checkout, resolves `FETCH_HEAD` to a commit, and checks out and verifies that same commit before replacing settings. Later upstream changes do not affect the checkout already running. A failed fetch or invalid commit stops the attempt without trying another source.
+
+[`test_all_devices_and_speech_choices_fetch_main`](../test/test_launcher.py) covers all valid hardware/speech combinations. [`test_failed_download_or_commit_check_preserves_active_configuration`](../test/test_launcher.py) covers transfer, checkout and commit-validation failures. The real offline Git tests in [`test_git_isolation.py`](../test/test_git_isolation.py) verify current and advanced main branches, reject a same-name tag when the branch is missing, and preserve unrelated repositories under inherited Git context. Installer support and behavior follow upstream main; the wizard does not freeze an older compatibility revision.
 
 ## Error-report links (2.4.1)
 
@@ -117,7 +119,9 @@ The `dev` workflow tests pull requests and packages `index.html`, `v2.sh` and `.
 
 All installs require 64-bit userland, a regular user, and the correct Linux/macOS target. Windows recipes run in Ubuntu/WSL2. Dependencies and existing checkouts are checked before downloading installer sources. The launcher creates private temporary files and scenario backups.
 
-Linux recipes, including explicit public/local speech, fetch and verify commit [`fb1b377513720ef074deb36a33714aa1c4454e3e`](https://github.com/OpenVoiceOS/ovos-installer/commit/fb1b377513720ef074deb36a33714aa1c4454e3e). Every Mac recipe uses [`ff29aa7b9d1ec0d267ad31bc10a6948c490b1b08`](https://github.com/OpenVoiceOS/ovos-installer/commit/ff29aa7b9d1ec0d267ad31bc10a6948c490b1b08), preserving the reviewed Intel and Apple Silicon compatibility checks. Both revisions include checked runtime re-entry, OpenSSL-first dependency handling and sanitized automatic reporting for wizard failures. Both paths verify the fetched HEAD exactly before changing active settings, resolve Bash 4+, then call `setup.sh` with `RUN_AS`, `RUN_AS_HOME` and `LOCALE`, preserving its exit status. Automatic speech leaves `speech_engine` absent. Neither path follows a moving branch or PR head.
+Upstream [`macos_requirements`](https://github.com/OpenVoiceOS/ovos-installer/blob/main/utils/common.sh) requires native Apple Silicon and macOS 15 or later for new Mac installations. Intel and Rosetta sessions are no longer kept on an older installer. Upstream remains responsible for its existing-install and explicit expert-override exceptions; a saved `intel-mac` recipe is not a promise that a new installation is supported.
+
+All recipes fetch `refs/heads/main` from `https://github.com/OpenVoiceOS/ovos-installer.git` without tags. The launcher requires `FETCH_HEAD^{commit}` to resolve to a full commit ID and verifies the detached `HEAD` against it before changing active settings. It resolves Bash 4+, then calls `setup.sh` with `RUN_AS`, `RUN_AS_HOME` and `LOCALE`, preserving its exit status. Automatic speech leaves `speech_engine` absent. No tag, PR head, old revision or alternate remote is used as a fallback.
 
 Credentials are read only on `/dev/tty` and exported to the target installer. A cancelled/failed secret read restores terminal echo. No secret is encoded in the recipe code or saved-choice URL. Launcher tests isolate network and privileged work; they do not prove a full installation on physical hardware.
 
@@ -127,7 +131,7 @@ Credentials are read only on `/dev/tty` and exported to the target installer. A 
 
 [`read_field`](../lib/runtime.sh#L28) holds accepted answers in memory and retries only the current field. Secret echo remains disabled across retries and is restored on completion or cancellation. `valid_url` checks local syntax without contacting a service. Python [`test_all_locales_retry_missing_credentials_without_losing_valid_url`](../test/test_launcher.py#L682) and `test_url_syntax_is_validated_without_contacting_the_service` cover this behavior.
 
-The outer launcher writes a private `~/.config/ovos-installer/check-setup.sh` before invoking the installer. [`check_services`](../lib/runtime.sh#L58) uses real systemd units, launchd labels or Compose service labels; these match [the pinned installer service definitions](https://github.com/OpenVoiceOS/ovos-installer/blob/6ffd465028bac299e5235d619819bfdc734af073/ansible/roles/ovos_services/defaults/main.yml) and [OVOS Docker Compose](https://github.com/OpenVoiceOS/ovos-docker/blob/dev/compose/docker-compose.yml).
+The outer launcher writes a private `~/.config/ovos-installer/check-setup.sh` before invoking the installer. [`check_services`](../lib/runtime.sh#L58) uses systemd units, launchd labels or Compose service labels from [the installer service definitions](https://github.com/OpenVoiceOS/ovos-installer/blob/main/ansible/roles/ovos_services/defaults/main.yml) and [OVOS Docker Compose](https://github.com/OpenVoiceOS/ovos-docker/blob/dev/compose/docker-compose.yml).
 
 [`sound_check`](../lib/runtime.sh#L94) uses installed `ovos_bus_client.MessageBusClient` / `Message` to emit a localized `speak` message only after a user chooses the test. It waits at most eight seconds for connection, fifteen for playback notification, with a thirty-second Python alarm. See [`ovos-bus-client: scripts.py`](https://github.com/OpenVoiceOS/ovos-bus-client/blob/dev/ovos_bus_client/scripts.py), specifically `ovos_speak`, for the existing API contract. Docker uses the installed `ovos_audio` container; virtualenv routes use `~/.venvs/ovos/bin/python3`. User confirmation of an audible response remains separate from transport events.
 
@@ -135,7 +139,7 @@ The outer launcher writes a private `~/.config/ovos-installer/check-setup.sh` be
 
 ## Safe activation and bounded recovery (2.1.1)
 
-The launcher checks exact configuration path types before downloading and before elevated activation, stages the checker until preparation succeeds, and holds a per-account directory lock through setup. Existing scenarios receive a0600 backup. Both immutable installer routes directly call `setup.sh`, retaining its true result, from a disposable checkout outside the user’s `~/ovos-installer`. See [path/concurrency tests](../test/test_storage_hardening.py) (`run_with_process_deadline`, `test_concurrent_launcher_cannot_replace_an_active_install_recipe`).
+The launcher checks exact configuration path types before downloading and before elevated activation, stages the checker until preparation succeeds, and holds a per-account directory lock through setup. Existing scenarios receive a0600 backup. The resolved main checkout directly calls `setup.sh`, retaining its true result, from a disposable directory outside the user’s `~/ovos-installer`. See [path/concurrency tests](../test/test_storage_hardening.py) (`run_with_process_deadline`, `test_concurrent_launcher_cannot_replace_an_active_install_recipe`).
 
 [`run_bounded`](../lib/runtime.sh#L10) supervises systemd/launchd probes (5seconds), Docker listing (10seconds) and audio dispatch (35seconds), with TERM then KILL after2seconds. Its own command and watchdog are reaped. [Runtime tests](../test/test_runtime_hardening.py) use `run_runtime` with local stalled workers; the phase callback is separate from these shell service checks. Docker must report running services in project `ovos`. MessageBus connections close in `finally`; human voice confirmation remains required.
 
