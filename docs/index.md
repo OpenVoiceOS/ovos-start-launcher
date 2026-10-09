@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Describe release 2.3.2 Git isolation and current wizard session integration.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Use OpenVoiceOS repository links for the wizard and API documentation.
 
 # Launcher developer guide
 
@@ -8,7 +8,7 @@ The [source-fetch boundary](../lib/launcher.sh.in#L235) clears inherited Git rep
 
 ## Single public entry point (2.3.1)
 
-`v2.sh` is the sole public launcher. The builder keeps modular sources, localized messages and the embedded Python `CallbackModule` for maintenance, but emits no `v1.sh`. [`test_build_cli_emits_only_v2`](../test/test_launcher.py) runs the real builder in a temporary source tree and checks its output. The frozen v1 code schema remains solely for explicit saved-choice recovery, and old immutable Git revisions remain valid. Current [wizard](../../ovos-start/docs/index.md) and [relay](../../ovos-install-status/docs/index.md) commands already pin `v2.sh`; their behavior is unchanged.
+`v2.sh` is the sole public launcher. The builder keeps modular sources, localized messages and the embedded Python `CallbackModule` for maintenance, but emits no `v1.sh`. [`test_build_cli_emits_only_v2`](../test/test_launcher.py) runs the real builder in a temporary source tree and checks its output. The frozen v1 code schema remains solely for explicit saved-choice recovery, and old immutable Git revisions remain valid. Current [wizard](https://github.com/OpenVoiceOS/ovos-start/blob/dev/docs/index.md) and [relay](https://github.com/OpenVoiceOS/ovos-start/blob/dev/docs/self-hosting.md) commands already pin `v2.sh`; their behavior is unchanged.
 
 ## Real installation phases (2.3.0)
 
@@ -21,7 +21,7 @@ The [source-fetch boundary](../lib/launcher.sh.in#L235) clears inherited Git rep
 | `stage_services` | `ovos_services`; service setup/configuration, not running-health proof |
 | `stage_finalize` | `ovos_finalize`; finishing work, not successful-install proof |
 
-The callback ignores skipped/failed tasks and earlier roles encountered again as handlers. Its four states advance monotonically and are each attempted once. A first successful task can lag the beginning of a role; unknown roles safely provide no extra detail. Existing launcher `installed` stays after the successful setup exit; the existing checker owns service health and human-confirmed voice events. The [wizard](../../ovos-start/docs/install-progress.md) and [relay](../../ovos-install-status/docs/index.md) consume these fixed enums as subphases of installing.
+The callback ignores skipped/failed tasks and earlier roles encountered again as handlers. Its four states advance monotonically and are each attempted once. A first successful task can lag the beginning of a role; unknown roles safely provide no extra detail. Existing launcher `installed` stays after the successful setup exit; the existing checker owns service health and human-confirmed voice events. The [wizard](https://github.com/OpenVoiceOS/ovos-start/blob/dev/docs/install-progress.md) and [relay](https://github.com/OpenVoiceOS/ovos-start/blob/dev/docs/self-hosting.md) consume these fixed enums as subphases of installing.
 
 [`report_phase`](../lib/ansible_progress.py) reads only the regular private `RUN_AS_HOME/.config/ovos-installer/status-token` file. It refuses links, nonregular files, public file permissions and malformed content. Curl uses a fixed HTTPS endpoint, a bearer in stdin, no curlrc, no redirects, a 3-second transport deadline and a 4-second process wait. Exceptions and nonzero results are silent; the plugin cannot declare success/failure or stop installation. Native stdout and profile callbacks remain enabled.
 
@@ -41,7 +41,7 @@ The callback ignores skipped/failed tasks and earlier roles encountered again as
 | [test_ansible_progress.py](../test/test_ansible_progress.py) | Real harmless Ansible plays, phase ordering and skipped/failed branches, transport and launcher integration |
 | [pages.yml](../.github/workflows/pages.yml) | Tests, reproducible generation and syntax checks, then minimal GitHub Pages artifact with only v2.sh |
 
-The only production Python class is the embedded Ansible `CallbackModule`; no OVOS plugin entry points exist. The caller is the [OVOS Start wizard](../../ovos-start/docs/index.md), whose `buildShortCommand` and `readSetupSession` use this codec and whose `validateState` applies matching compatibility rules. `readSetupSession` retains explicit legacy saved-choice recovery. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
+The only production Python class is the embedded Ansible `CallbackModule`; no OVOS plugin entry points exist. The caller is the [OVOS Start wizard](https://github.com/OpenVoiceOS/ovos-start/blob/dev/docs/index.md), whose `buildShortCommand` and `readSetupSession` use this codec and whose `validateState` applies matching compatibility rules. `readSetupSession` retains explicit legacy saved-choice recovery. [OVOS installer documentation](https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs) remains authoritative for actual target support.
 
 ## Installer permissions and retry recovery (2.2.1)
 
@@ -125,7 +125,7 @@ The launcher checks exact configuration path types before downloading and before
 
 [`run_bounded`](../lib/runtime.sh#L10) supervises systemd/launchd probes (5seconds), Docker listing (10seconds) and audio dispatch (35seconds), with TERM then KILL after2seconds. Its own command and watchdog are reaped. [Runtime tests](../test/test_runtime_hardening.py) use `run_runtime` with local stalled workers; the phase callback is separate from these shell service checks. Docker must report running services in project `ovos`. MessageBus connections close in `finally`; human voice confirmation remains required.
 
-Git disables interactive prompts and aborts sustained slow transfer, but this is not a total installation timeout. The initial wizard curl has a15-second connection and120-second total deadline. [Wizard handoff](../../ovos-start/docs/short-codes.md) explains the immutable launcher. A power loss can retain the directory lock; [deliberate recovery](../FAQ.md#why-does-it-say-a-setup-is-already-running) prevents unlocking a live installer. The CI workflow gates Pages on both Ubuntu and macOS test jobs.
+Git disables interactive prompts and aborts sustained slow transfer, but this is not a total installation timeout. The initial wizard curl has a15-second connection and120-second total deadline. [Wizard handoff](https://github.com/OpenVoiceOS/ovos-start/blob/dev/docs/short-codes.md) explains the immutable launcher. A power loss can retain the directory lock; [deliberate recovery](../FAQ.md#why-does-it-say-a-setup-is-already-running) prevents unlocking a live installer. The CI workflow gates Pages on both Ubuntu and macOS test jobs.
 
 
 CI caught a dash-specific background-stdin difference after the local Bash checks passed. `run_bounded` now duplicates the original input on descriptor3 before starting its child, preserving the Python audio heredoc on Ubuntu. The existing literal-input and real sound-transport regressions caught this; publication remains gated on both CI jobs.
