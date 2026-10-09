@@ -286,14 +286,20 @@ def test_token_activation_waits_for_runtime_and_sensitive_input_validation(sandb
 def test_durable_checker_reports_only_real_human_voice_confirmation(sandbox: Sandbox) -> None:
     """The recovery command survives a reboot and cannot reinstall the device."""
     assert tracked_run(sandbox).returncode == 0
+    binary = sandbox.home / ".venvs/ovos/bin/python3"
+    binary.parent.mkdir(parents=True)
+    binary.write_text("#!/bin/sh\ncat >/dev/null\nexit 0\n")
+    binary.chmod(0o700)
     original_calls = [call for call in sandbox.calls() if call["command"] != "curl"]
     sandbox.env["FAKE_LAUNCHER"] = str(sandbox.scenario.parent / "check-setup.sh")
     sandbox.env["FAKE_HEALTH"] = "running"
     status, output = run_interactive(sandbox, None, [
-        (b"Next: 1 =", b"1"), (b"Did OVOS answer correctly?", b"1"),
+        (b"Next: 1 =", b"1"), (b"Did you hear it?", b"1"),
+        (b"Did OVOS answer correctly?", b"1"),
     ])
     assert status == 0
-    assert events(sandbox)[-2:] == ["services_ready", "voice_ready"]
+    assert events(sandbox)[-6:] == ["services_ready", "audio_checking", "audio_passed",
+                                    "microphone_checking", "microphone_passed", "voice_ready"]
     assert TOKEN.encode() not in output
     assert [call for call in sandbox.calls() if call["command"] != "curl"] == original_calls
 

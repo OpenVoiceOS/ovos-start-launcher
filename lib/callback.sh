@@ -12,7 +12,7 @@ report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0
   case "$ovos_track" in *[!0-9a-f]*) return 0;; esac
-  case "$1" in started|downloading|installing|installed|services_ready|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
+  case "$1" in started|downloading|installing|installed|services_ready|audio_checking|audio_passed|audio_failed|microphone_checking|microphone_passed|microphone_failed|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
   ovos_error_field=''
   if [ "$1" = failed ] && valid_error_url "${2:-}"; then
     ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""

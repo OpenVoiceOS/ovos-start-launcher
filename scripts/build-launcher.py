@@ -8,6 +8,13 @@ import shlex
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def shell_source(path: Path) -> str:
+    """Keep review comments in source while reserving the bootstrap argv budget."""
+    return "".join(line for line in path.read_text().splitlines(keepends=True)
+                   if not line.lstrip().startswith("#")
+                   or line.lstrip().startswith(("#!", "# SPDX", "# shellcheck", "# @")))
+
+
 def build() -> str:
     """Validate message parity and embed localized runtime without network imports."""
     catalogs = json.loads((ROOT / "locales/messages.json").read_text())
@@ -35,12 +42,13 @@ write_messages() {
   printf '%s\\n' 'say() { message "$1"; printf "\\n"; }'
 }
 '''.replace("@KEYS@", " ".join(sorted(keys)))
-    callbacks = (ROOT / "lib/callback.sh").read_text()
-    runtime = callbacks + "\n" + (ROOT / "lib/runtime.sh").read_text()
-    launcher = (ROOT / "lib/launcher.sh.in").read_text()
+    callbacks = shell_source(ROOT / "lib/callback.sh")
+    runtime = callbacks + "\n" + shell_source(ROOT / "lib/runtime.sh")
+    launcher = shell_source(ROOT / "lib/launcher.sh.in")
     return (launcher.replace("# @MESSAGES@", messages)
             .replace("# @CALLBACKS@", callbacks).replace("# @RUNTIME@", runtime)
-            .replace("# @ANSIBLE_PROGRESS@", (ROOT / "lib/ansible_progress.py").read_text()))
+            .replace("# @ANSIBLE_PROGRESS@", (ROOT / "lib/ansible_progress.py").read_text())
+            .replace("# @SCENARIO_CLEANUP@", (ROOT / "lib/scenario_cleanup.py").read_text()))
 
 
 if __name__ == "__main__":

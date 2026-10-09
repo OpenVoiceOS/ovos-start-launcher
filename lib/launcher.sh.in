@@ -170,6 +170,7 @@ if [ "$ovos_mode" = scenario ]; then scenario; exit 0; fi
 ovos_tmp=''
 ovos_error_receipt=''
 ovos_lock=''
+ovos_scenario_guard=''
 ovos_installed=false
 ovos_cleanup_result=0
 # The private receipt survives upstream checkout cleanup. It contains one
@@ -185,6 +186,21 @@ read_error_report() (
   printf '%s' "$ovos_error_url"
 )
 
+# Cleanup runs as the original user, never under sudo. Python is installed by
+# a completed setup; early failures without it preserve the private scenario.
+cleanup_scenario() {
+  [ -n "$ovos_scenario_guard" ] || return 0
+  for ovos_cleanup_python in "$(command -v python3 || true)" "$HOME/.venvs/ovos-installer/bin/python3" "$HOME/.venvs/ovos/bin/python3"; do
+    [ -x "$ovos_cleanup_python" ] || continue
+    if "$ovos_cleanup_python" -I -S - "${ovos_scenario_guard##*/}" <<'OVOS_SCENARIO_CLEANUP'
+# @SCENARIO_CLEANUP@
+OVOS_SCENARIO_CLEANUP
+    then break; fi
+  done
+  ovos_scenario_guard=''
+  exec 4<&- 6<&-
+}
+
 cleanup() {
   if [ "$ovos_installed" != true ] && [ "$1" -ne 0 ]; then
     case "$1" in
@@ -192,6 +208,7 @@ cleanup() {
       *) report_status failed "$(read_error_report "$ovos_error_receipt")";;
     esac
   fi
+  cleanup_scenario
   [ -z "$ovos_tmp" ] || rm -rf "$ovos_tmp" || :
   [ -z "$ovos_lock" ] || rmdir "$ovos_lock" 2>/dev/null || :
 }
@@ -288,7 +305,14 @@ if [ -e "$ovos_cfg/scenario.yaml" ] || [ -L "$ovos_cfg/scenario.yaml" ]; then
   chmod 600 "$ovos_backup"
   say backup; printf '%s\n' "$ovos_backup"
 fi
-scenario > "$ovos_tmp/scenario.yaml"
+# Stage on the config filesystem so sudo's eventual move preserves identity.
+# Pin both directories in the regular-user parent; sudo closes its inherited
+# descriptors. Cleanup never follows a later replacement of either pathname.
+exec 4< "$ovos_cfg"
+ovos_scenario_guard=$(mktemp -d "$ovos_cfg/.scenario-cleanup.XXXXXX")
+exec 6< "$ovos_scenario_guard"
+scenario > "$ovos_scenario_guard/owned"
+ln "$ovos_scenario_guard/owned" "$ovos_scenario_guard/active"
 printf '%s\n' "$ovos_track" > "$ovos_tmp/status-token"
 printf '%s\n' "$ovos_track" > "$ovos_tmp/status-installed"
 : > "$ovos_tmp/status-installed-empty"
@@ -412,6 +436,8 @@ report_status installing
     OVOS_INSTALLER_AUTO_REPORT=1
     export OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
   fi
+  # Do not expose regular-user cleanup directory handles to installer children.
+  exec 4<&- 6<&-
   umask 022
   if [ -n "$ovos_track" ]; then
     export ANSIBLE_CALLBACK_PLUGINS="$ovos_source/.ovos-start-callbacks${ANSIBLE_CALLBACK_PLUGINS:+:$ANSIBLE_CALLBACK_PLUGINS}"
@@ -431,8 +457,9 @@ if [ -L "$ovos_receipt" ] || { [ -e "$ovos_receipt" ] && [ ! -f "$ovos_receipt" 
 if [ "$ovos_receipt_safe" = true ]; then mv "${11}" "$ovos_receipt" || :; fi
 report_status installed
 OVOS_LAUNCH
-if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_scenario_guard/active" "$ovos_locale" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
   ovos_installed=true
+  cleanup_scenario
   say installReturned
   # Incomplete verification is not an installer failure. The checker itself
   # returns 3 to distinguish it from a user-confirmed first voice response.

@@ -201,29 +201,37 @@ check_setup_inner() {
     esac
   done
   while :; do
+    report_status audio_checking
     say audioTest
-    if ! sound_check; then say audioFailed; say help; break; fi
+    if ! sound_check; then say audioFailed; say help; report_status audio_failed; return 3; fi
     terminal_choice audioQuestion || { say incomplete; return 3; }
     case "$ovos_answer" in
-      1) say audioOk; break;;
+      1) say audioOk; report_status audio_passed; break;;
       2) continue;;
+      3) say audioNo; say help; report_status audio_failed; return 3;;
       *) say incomplete; return 3;;
     esac
   done
   say voiceIntro
   if [ "$ovos_skills" = true ]; then say voicePhrase; else say customVoice; fi
   while :; do
+    report_status microphone_checking
     terminal_choice voiceQuestion || { say incomplete; return 3; }
     case "$ovos_answer" in
-      1) say voiceOk; report_status voice_ready; return 0;;
+      1) say voiceOk; report_status microphone_passed; report_status voice_ready; return 0;;
       2) say voiceIntro; [ "$ovos_skills" != true ] || say voicePhrase;;
+      3) say voiceNo; say help; report_status microphone_failed; return 3;;
       *) say incomplete; say help; return 3;;
     esac
   done
 }
 
-check_setup() {
+check_setup() (
+  # An interrupted question is unfinished, not a failed hardware check.
+  trap 'report_status needs_attention; exit 130' INT
+  trap 'report_status needs_attention; exit 143' TERM
+  trap 'report_status needs_attention; exit 129' HUP
   if check_setup_inner; then return 0; fi
   report_status needs_attention
   return 3
-}
+)

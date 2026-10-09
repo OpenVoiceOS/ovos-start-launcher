@@ -35,6 +35,92 @@ def role_result(name: str) -> SimpleNamespace:
     return SimpleNamespace(_task=SimpleNamespace(_role=SimpleNamespace(get_name=lambda: name)))
 
 
+def checkpoint_result(role: str, filename: str, name: str, data: dict[str, object] | None = None,
+                      check_mode: bool = False) -> SimpleNamespace:
+    """Provide real-shaped task identity and aggregate results without private output."""
+    return SimpleNamespace(
+        _task=SimpleNamespace(_role=SimpleNamespace(get_name=lambda: role), name=name,
+                              check_mode=check_mode,
+                              get_path=lambda: f"/private/ansible/roles/{role}/tasks/{filename}:12"),
+        _result={"changed": False} if data is None else data,
+    )
+
+
+@pytest.mark.parametrize("checkpoint,event", list(progress.CHECKPOINTS.items()))
+def test_fixed_checkpoints_report_once_after_complete_success(
+    monkeypatch: pytest.MonkeyPatch, checkpoint: tuple[str, str, str], event: str,
+) -> None:
+    """Successful unchanged items and conditional skips prove the selected work finished."""
+    sent: list[str] = []
+    monkeypatch.setattr(progress, "report_phase", sent.append)
+    callback = progress.CallbackModule()
+    result = checkpoint_result(*checkpoint, {"results": [{"changed": False}, {"skipped": True}]})
+    callback.v2_runner_on_ok(result)
+    callback.v2_runner_on_ok(result)
+    assert [item for item in sent if item in progress.COMPLETED] == [event]
+
+
+@pytest.mark.parametrize("data", [
+    {"skipped": True}, {"failed": True}, {"rc": 1}, {"results": []},
+    {"results": [{"skipped": True}]}, {"results": [{"changed": True}, {"failed": True}]},
+    {"results": [{"changed": True}, {"failed": False, "rc": 1}]},
+    {"results": [{"changed": True}, "invalid metadata"]},
+    {"rc": 1, "results": [{"changed": True}]},
+])
+def test_skipped_failed_or_partial_aggregate_never_reports_completion(
+    monkeypatch: pytest.MonkeyPatch, data: dict[str, object],
+) -> None:
+    """An ignored failure or partial loop cannot become an installed receipt."""
+    sent: list[str] = []
+    monkeypatch.setattr(progress, "report_phase", sent.append)
+    callback = progress.CallbackModule()
+    result = checkpoint_result("ovos_virtualenv", "venv.yml", "Install Open Voice OS in Python venv", data)
+    callback.v2_runner_on_ok(result)
+    assert not any(item in progress.COMPLETED for item in sent)
+
+
+@pytest.mark.parametrize("changed", ("role", "path", "name", "check-mode"))
+def test_completion_requires_exact_role_task_file_name_and_real_execution(
+    monkeypatch: pytest.MonkeyPatch, changed: str,
+) -> None:
+    """Unknown metadata or dry-run simulation safely provides less progress detail."""
+    sent: list[str] = []
+    monkeypatch.setattr(progress, "report_phase", sent.append)
+    result = checkpoint_result("ovos_virtualenv", "venv.yml", "Install Open Voice OS in Python venv")
+    if changed == "role":
+        result._task._role = SimpleNamespace(get_name=lambda: "ovos_config")
+    elif changed == "path":
+        result._task.get_path = lambda: "/private/other/roles/ovos_virtualenv/handlers/venv.yml:12"
+    elif changed == "name":
+        result._task.name = "Install some other packages"
+    else:
+        result._task.check_mode = True
+    progress.CallbackModule().v2_runner_on_ok(result)
+    assert not any(item in progress.COMPLETED for item in sent)
+
+
+@pytest.mark.parametrize("failure", ("none", "before", "after", "skipped"))
+def test_audio_configuration_waits_until_sound_role_reaches_timezone(
+    monkeypatch: pytest.MonkeyPatch, failure: str,
+) -> None:
+    """Sound setup's final optional work must finish before recording configuration."""
+    sent: list[str] = []
+    monkeypatch.setattr(progress, "report_phase", sent.append)
+    callback = progress.CallbackModule()
+    sound = checkpoint_result("ovos_sound", "install.yml", "Resolve ALSA default backend for .asoundrc")
+    timezone = checkpoint_result("ovos_timezone", "main.yml", "Normalize timezone facts for config consumers")
+    if failure == "before":
+        callback.v2_runner_on_failed(sound, ignore_errors=True)
+    if failure != "skipped":
+        callback.v2_runner_on_ok(sound)
+    assert "audio_configured" not in sent
+    if failure == "after":
+        callback.v2_runner_on_failed(sound, ignore_errors=True)
+    callback.v2_runner_on_ok(timezone)
+    callback.v2_runner_on_ok(timezone)
+    assert sent.count("audio_configured") == int(failure == "none")
+
+
 def test_callback_advances_only_successful_roles_and_ignores_late_handlers(monkeypatch: pytest.MonkeyPatch) -> None:
     """Skipped, failed and unknown tasks never invent a completed stage."""
     sent: list[str] = []
@@ -42,10 +128,9 @@ def test_callback_advances_only_successful_roles_and_ignores_late_handlers(monke
     callback = progress.CallbackModule()
     callback.v2_playbook_on_task_start(SimpleNamespace(name="ovos_finalize"), False)
     callback.v2_runner_on_start(None, role_result("ovos_finalize")._task)
-    # The base class failed/skipped callbacks require host/result metadata; no
-    # override exists, so these cannot invoke our progress-only handler.
+    # Failure only suppresses a pending sound completion; it sends no event.
     assert "v2_runner_on_skipped" not in vars(progress.CallbackModule)
-    assert "v2_runner_on_failed" not in vars(progress.CallbackModule)
+    callback.v2_runner_on_failed(role_result("ovos_sound"), ignore_errors=True)
     for name in ("unknown", "ovos_contract", "ovos_sound", "ovos_virtualenv", "ovos_python",
                  "ovos_services", "ovos_sound", "ovos_finalize", "ovos_services"):
         callback.v2_runner_on_ok(role_result(name))
@@ -228,3 +313,67 @@ def test_real_ansible_skipped_roles_emit_no_phase(sandbox: Sandbox) -> None:
     assert result.returncode == 0, result.stdout + result.stderr
     assert "skipped=1" in result.stdout
     assert events(sandbox) == []
+
+
+@pytest.mark.parametrize("method", ("virtualenv", "containers"))
+@pytest.mark.parametrize("outcome", ("success", "partial-failure", "skipped", "audio-failure"))
+def test_real_ansible_completion_receipts_follow_aggregate_task_results(
+    sandbox: Sandbox, method: str, outcome: str,
+) -> None:
+    """Real harmless task loops prove matched files, aggregate completion and skips."""
+    private_token(sandbox.home)
+    fixture = sandbox.temp / "milestone-fixture"
+    callbacks = fixture / "callbacks"
+    callbacks.mkdir(parents=True)
+    shutil.copyfile(ROOT / "lib/ansible_progress.py", callbacks / "ovos_start_progress.py")
+
+    def write_role(role: str, files: dict[str, str]) -> None:
+        """Create fixed upstream-shaped files containing only local assertions."""
+        tasks = fixture / "roles" / role / "tasks"
+        tasks.mkdir(parents=True)
+        for filename, content in files.items():
+            (tasks / filename).write_text(content)
+
+    write_role("ovos_sound", {
+        "main.yml": "- ansible.builtin.import_tasks: install.yml\n",
+        "install.yml": "- name: Resolve ALSA default backend for .asoundrc\n"
+                       "  ansible.builtin.assert:\n    that: true\n"
+                       "- name: Optional final sound configuration\n"
+                       f"  ansible.builtin.assert:\n    that: {'false' if outcome == 'audio-failure' else 'true'}\n"
+                       "  ignore_errors: true\n",
+    })
+    write_role("ovos_timezone", {"main.yml": "- ansible.builtin.assert:\n    that: true\n"})
+    role = "ovos_" + method
+    package_name = "Copy Python requirements.txt files" if method == "virtualenv" else "Start docker service"
+    component_name = "Install Open Voice OS in Python venv" if method == "virtualenv" else "Deploy docker-compose stack"
+    package_task = f"- name: {package_name}\n  ansible.builtin.assert:\n    that: true\n"
+    component_task = (f"- name: {component_name}\n  ansible.builtin.assert:\n    that: item\n"
+                      f"  loop: [true, {'false' if outcome == 'partial-failure' else 'true'}]\n"
+                      f"  when: {'false' if outcome == 'skipped' else 'true'}\n"
+                      "  ignore_errors: true\n")
+    if method == "virtualenv":
+        files = {"main.yml": "- ansible.builtin.import_tasks: venv.yml\n",
+                 "venv.yml": package_task + component_task}
+    else:
+        files = {"main.yml": "- ansible.builtin.import_tasks: common.yml\n"
+                             "- ansible.builtin.import_tasks: composer.yml\n",
+                 "common.yml": package_task, "composer.yml": component_task}
+    write_role(role, files)
+    (fixture / "play.yml").write_text(
+        "- hosts: localhost\n  gather_facts: false\n  connection: local\n  roles:\n"
+        f"    - ovos_sound\n    - ovos_timezone\n    - {role}\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-m", "ansible.cli.playbook", "-i", "localhost,", "play.yml"],
+        cwd=fixture, env={**sandbox.env, "RUN_AS_HOME": str(sandbox.home),
+                          "PYTHONPATH": os.pathsep.join(path for path in sys.path if path),
+                          "ANSIBLE_CALLBACK_PLUGINS": str(callbacks),
+                          "ANSIBLE_CALLBACKS_ENABLED": "ovos_start_progress"},
+        capture_output=True, text=True, timeout=20,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    completed = [event for event in events(sandbox) if event in progress.COMPLETED]
+    assert completed == [*(["audio_configured"] if outcome != "audio-failure" else []),
+                         "packages_installed",
+                         *(["components_installed"] if outcome in ("success", "audio-failure") else [])]
+    assert TOKEN not in result.stdout + result.stderr

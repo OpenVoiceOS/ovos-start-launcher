@@ -153,6 +153,8 @@ def sandbox(tmp_path: Path) -> Sandbox:
         "'LLM_API_KEY','LLM_MODEL','LLM_PERSONA','LLM_MAX_TOKENS','LLM_TEMPERATURE',"
         "'LLM_TOP_P','RUN_AS','RUN_AS_HOME']\n"
         "mask=os.umask(0);os.umask(mask)\n"
+        "scenario=pathlib.Path(os.environ['HOME'],'.config/ovos-installer/scenario.yaml')\n"
+        "pathlib.Path(os.environ['HOME'],'scenario-during-install.yaml').write_bytes(scenario.read_bytes())\n"
         "pathlib.Path(os.environ['HOME'],'received.json').write_text("
         "json.dumps({**{key:os.environ.get(key) for key in keys},'umask':oct(mask)}))\n",
         encoding="utf-8",
@@ -366,7 +368,7 @@ def test_timestamp_boundaries_match_javascript_in_every_mode(
         assert result.stdout == expected_scenario(DEFAULTS)
         assert_untouched(sandbox)
     else:
-        assert sandbox.scenario.read_text() == expected_scenario(DEFAULTS)
+        assert (sandbox.home / "scenario-during-install.yaml").read_text() == expected_scenario(DEFAULTS)
         assert sandbox.received()["LOCALE"] == "en-us"
 
 
@@ -574,10 +576,10 @@ def test_linux_installers_back_up_and_receive_exact_recipe(
     state, code = recipe({"locale": "fr-fr", "telemetry": True, **overrides})
     result = run_launcher(sandbox, code)
     assert result.returncode == 0, result.stderr
-    assert sandbox.scenario.read_text() == expected_scenario(state)
+    assert (sandbox.home / "scenario-during-install.yaml").read_text() == expected_scenario(state)
     backups = list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))
     assert len(backups) == 1 and backups[0].read_text() == "original-user-settings\n"
-    assert sandbox.scenario.stat().st_mode & 0o777 == 0o600
+    assert not sandbox.scenario.exists()
     assert sandbox.received()["LOCALE"] == "fr-fr"
     calls = sandbox.calls()
     assert calls[-1]["command"] == "sudo"
@@ -597,7 +599,7 @@ def test_installer_runs_under_a_umask_others_can_read(sandbox: Sandbox) -> None:
     # Under the launcher's 077 the installer virtualenv came out root's alone,
     # and the first task run as the user failed with "Permission denied".
     assert sandbox.received()["umask"] == "0o22"
-    assert sandbox.scenario.stat().st_mode & 0o777 == 0o600
+    assert not sandbox.scenario.exists()
 
 
 @pytest.mark.parametrize("runtime", ["missing-first", "unavailable"])
@@ -689,8 +691,8 @@ def test_real_tty_preserves_special_characters_and_masks_credentials(sandbox: Sa
     assert received["LLM_MAX_TOKENS"] == "300"
     assert received["LLM_TEMPERATURE"] == "0.2"
     assert received["LLM_TOP_P"] == "0.1"
-    assert sandbox.scenario.read_text() == expected_scenario(state)
-    assert secret.decode() not in sandbox.scenario.read_text()
+    assert (sandbox.home / "scenario-during-install.yaml").read_text() == expected_scenario(state)
+    assert secret.decode() not in (sandbox.home / "scenario-during-install.yaml").read_text()
     assert not (sandbox.home / "PWNED").exists()
     assert not (sandbox.home / "MODEL_PWNED").exists()
     assert not list(sandbox.temp.iterdir())
@@ -828,21 +830,16 @@ def test_durable_checker_is_private_read_only_and_honest_about_unverified_voice(
     assert "sh \"$HOME/.config/ovos-installer/check-setup.sh\"" in result.stdout
 
 
-def test_first_voice_success_requires_explicit_human_confirmation(sandbox: Sandbox) -> None:
-    """An unavailable automatic sound test still requires a real spoken interaction and confirmation."""
-    result = run_launcher(sandbox, raw_code())
-    assert result.returncode == 0
-    checker = sandbox.scenario.parent / "check-setup.sh"
-    sandbox.env["FAKE_LAUNCHER"] = str(checker)
+def test_failed_sound_probe_cannot_reach_voice_success(sandbox: Sandbox) -> None:
+    """Missing audio transport must stop before asking about a voice response."""
+    assert run_launcher(sandbox, raw_code()).returncode == 0
+    sandbox.env["FAKE_LAUNCHER"] = str(sandbox.scenario.parent / "check-setup.sh")
     before = sandbox.calls()
-    status, output = run_interactive(sandbox, None, [
-        (b"Next: 1 =", b"1"),
-        (b"Did OVOS answer correctly?", b"1"),
-    ])
-    assert status == 0
+    status, output = run_interactive(sandbox, None, [(b"Next: 1 =", b"1")])
+    assert status == 3
     assert b"sound check could not reach OVOS" in output
-    assert b"Hey Mycroft, what time is it?" in output
-    assert b"First voice response confirmed by you" in output
+    assert b"Did OVOS answer correctly?" not in output
+    assert b"First voice response confirmed by you" not in output
     assert sandbox.calls() == before
 
 
@@ -852,9 +849,24 @@ def test_generated_launcher_matches_sources() -> None:
     build = runpy.run_path(str(ROOT / "scripts/build-launcher.py"))["build"]
     expected = build()
     assert len(CATALOGS) == 12
-    assert len(expected.encode()) < 120_000  # Linux sh -c single argument ceiling is 128 KiB.
+    assert len(expected.encode()) < 128 * 1024 - 4096  # Keep 4 KiB below Linux’s single-argument ceiling.
     assert (ROOT / "v2.sh").read_text() == expected
     assert not (ROOT / "v1.sh").exists()
+
+
+@pytest.mark.parametrize("mode", ("--decode", "--scenario"))
+def test_generated_launcher_fits_real_bootstrap_single_argument(sandbox: Sandbox, mode: str) -> None:
+    """Exercise the API bootstrap's sh-c shape under the kernel argument limit."""
+    result = subprocess.run(
+        ["/bin/sh", "-c", sandbox.launcher.read_text(), "--", mode, raw_code()],
+        cwd=sandbox.home, env=sandbox.env, capture_output=True, text=True, timeout=10,
+    )
+    assert result.returncode == 0, result.stderr
+    if mode == "--decode":
+        assert json.loads(result.stdout) == DEFAULTS
+    else:
+        assert result.stdout == expected_scenario(DEFAULTS)
+    assert_untouched(sandbox)
 
 
 def test_build_cli_emits_only_v2(tmp_path: Path) -> None:
@@ -966,9 +978,9 @@ def test_all_devices_and_speech_choices_fetch_main(
     result = run_launcher(sandbox, code, changes={"FAKE_OS": "Darwin" if device == "mac" else "Linux"})
     assert result.returncode == 0, result.stderr
     assert "PR #648" not in result.stdout
-    assert sandbox.scenario.read_text() == expected_scenario(state)
+    assert (sandbox.home / "scenario-during-install.yaml").read_text() == expected_scenario(state)
     if state["speech"] == "auto":
-        assert "speech_engine:" not in sandbox.scenario.read_text()
+        assert "speech_engine:" not in (sandbox.home / "scenario-during-install.yaml").read_text()
     assert sandbox.received()["RUN_AS"] == "fixture-user"
     calls = sandbox.calls()
     assert "curl" not in [call["command"] for call in calls]
