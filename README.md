@@ -1,32 +1,35 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
-
 # OVOS Start launcher
 
-A short setup code carries the choices made in OVOS Start and expires one hour after issuance. The launcher checks it on the target device and prepares the existing OVOS installer. Recipe decoding does not require a database, upload or login. The wizard can also supply a separate private capability for optional installation progress.
+This script installs [OpenVoiceOS](https://www.openvoiceos.org/) using the choices you made in the setup wizard. It checks your setup code and device, prepares the OVOS installer, and starts the installation.
 
-Copy the complete command from your finished wizard and run it as your regular user on the target device. It downloads the launcher fully before executing it. Do not prepend sudo; the launcher requests administrator access when needed.
+## Get started
 
-- [Version 2 launcher](https://goldyfruit.github.io/ovos-start-launcher/v2.sh)
-- [Protocol, behavior and tests](docs/index.md)
-- [Known limits](AUDIT.md)
-- [Questions](FAQ.md)
+1. Complete the [OVOS setup wizard](https://ovos-start-wizard.goldyfruit.chatgpt.site).
+2. Copy the install command shown at the end.
+3. Paste it into Terminal on your device and follow the prompts.
 
-A 64-bit OS is required. All Mac recipes and explicit local/online speech use the reviewed experimental PR #648 revision, not the current main release. Passwords and API keys are entered only on the target terminal. Codes are public settings, not passwords.
+Run the command as your normal user. The launcher asks for administrator access when needed. Setup codes expire after one hour; return to the wizard for a new command if yours expires. Keep your install command private.
 
-Codes contain 16 Base32 characters, grouped `XXXX-XXXX-XXXX-XXXX`. They are valid when `issuedAt <= now < issuedAt + 3600`. At the deadline, the launcher refuses the code. Future timestamps and unavailable or malformed clocks also fail before installer downloads or settings changes. `v2.sh` is the only published launcher. The old `v1.sh` address is retired; copy a new command from the wizard. Timeless eight-character codes are still refused.
+## Check your setup
 
-Expiry relies on the browser and target clocks. The timestamp and CRC are editable public data, so this is not a signed authorization, single-use token or server-enforced revocation. The codec has explicit recovery options for restoring old choices without making the old code executable. See [clock and recovery details](FAQ.md).
+After installation or a restart, run:
 
-This repository is maintained under the goldyfruit account; its hosting address is not an OpenVoiceOS-owned domain.
+```sh
+sh "$HOME/.config/ovos-installer/check-setup.sh"
+```
 
-`v2.sh CODE --track TOKEN` reports minimal installation stages to the wizard's fixed HTTPS relay. It never uploads logs, voice recordings, API keys or device identifiers. Failed status requests do not fail installation. The private recovery checker can resume progress after a restart, and only explicit human confirmation reports a working voice response. The tracked command contains a status-write capability; keep the full command private. See [callback behavior and limits](docs/index.md#optional-installation-progress-220).
+This checks services and helps you test your speaker and microphone.
 
 ## Development
 
-Run `npm run build`, `npm test`, `uv run pytest test/ -q`, `sh -n v2.sh`, and `bash --posix -n v2.sh`. The build emits only `v2.sh`; tests and CI reject a recreated `v1.sh`. The Python [Sandbox](test/test_launcher.py#L106), `run_launcher` and `run_interactive` helpers use fake installers and real local terminal tests; they never perform an OVOS installation or contact the live relay.
+[`v2.sh`](v2.sh) is the launcher. See the [developer guide](docs/index.md) for its source, build instructions, and tests.
 
-PRs target `dev`. GitHub Actions checks reproducible generation and tests `v2.sh` on Linux and macOS, then packages only `index.html`, `v2.sh` and `.nojekyll` for Pages. The wizard is not part of that artifact.
+## Sponsorship
 
-Apache-2.0. Version is recorded in `package.json`.
+[![Sponsored by NLnet through the NGI0 Commons Fund](./ngi.png)](https://nlnet.nl/project/OpenVoiceOS/)
 
-After installation or a restart, run `sh "$HOME/.config/ovos-installer/check-setup.sh"` to check services and try the speaker and microphone. It never reinstalls OVOS. The terminal only confirms a first voice response after you explicitly report hearing the correct answer. Missing integration fields can be corrected in place; type `:cancel` to stop. All launcher-owned prompts use the selected language.
+Supported by [NLnet](https://nlnet.nl/) through the [NGI0 Commons Fund](https://nlnet.nl/commonsfund/), with European Commission funding for the [Next Generation Internet](https://ngi.eu/) programme ([grant 101135429](https://cordis.europa.eu/project/id/101135429)).
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).
