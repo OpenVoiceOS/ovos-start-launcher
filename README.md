@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-07 - Motive: Retire the duplicate v1.sh endpoint and publish only v2.sh.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain optional error-report links for tracked installations.
 
 # OVOS Start launcher
 
@@ -19,7 +19,7 @@ Expiry relies on the browser and target clocks. The timestamp and CRC are editab
 
 This repository is maintained under the goldyfruit account; its hosting address is not an OpenVoiceOS-owned domain.
 
-`v2.sh CODE --track TOKEN` reports minimal installation stages to the wizard's fixed HTTPS relay. It never uploads logs, voice recordings, API keys or device identifiers. Failed status requests do not fail installation. The private recovery checker can resume progress after a restart, and only explicit human confirmation reports a working voice response. The tracked command contains a status-write capability; keep the full command private. See [callback behavior and limits](docs/index.md#optional-installation-progress-220).
+`v2.sh CODE --track TOKEN` reports installation stages to the wizard. If the installer offers to share an error report and you agree, the wizard also receives its paste link. The launcher does not upload log contents, recordings, API keys or device identifiers. Failed status requests do not fail installation. The private recovery checker can resume progress after a restart, and only explicit human confirmation reports a working voice response. The tracked command contains a status-write capability; keep the full command private. See [callback behavior and limits](docs/index.md#optional-installation-progress-220).
 
 ## Development
 

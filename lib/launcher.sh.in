@@ -166,12 +166,16 @@ fi
 if [ "$ovos_mode" = scenario ]; then scenario; exit 0; fi
 
 ovos_tmp=''
+ovos_error_receipt=''
 ovos_lock=''
 ovos_installed=false
 ovos_cleanup_result=0
 cleanup() {
   if [ "$ovos_installed" != true ] && [ "$1" -ne 0 ]; then
-    case "$1" in 129|130|143) report_status cancelled;; *) report_status failed;; esac
+    case "$1" in
+      129|130|143) report_status cancelled;;
+      *) report_status failed "$(read_error_report "$ovos_error_receipt")";;
+    esac
   fi
   [ -z "$ovos_tmp" ] || rm -rf "$ovos_tmp" || :
   [ -z "$ovos_lock" ] || rmdir "$ovos_lock" 2>/dev/null || :
@@ -222,6 +226,11 @@ if ! mkdir "$ovos_pending_lock" 2>/dev/null; then
 fi
 ovos_lock=$ovos_pending_lock
 ovos_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ovos-start.XXXXXX")
+if [ -n "$ovos_track" ]; then
+  ovos_error_receipt="$ovos_tmp/error-report"
+  : > "$ovos_error_receipt"
+  chmod 600 "$ovos_error_receipt"
+fi
 report_status started
 say download
 report_status downloading
@@ -383,6 +392,15 @@ report_status installing
 # that child: it would make venv bin/lib directories root-only. Keep 077 for
 # this launcher and its tokens; upstream explicitly protects its own secrets.
 (
+  # Ignore an inherited report descriptor. Only a tracked run receives our
+  # private receipt; ordinary terminal output is never parsed or uploaded.
+  unset OVOS_INSTALLER_REPORT_FD
+  exec 3>&-
+  if [ -n "$ovos_track" ] && [ "${13}" = "${ovos_source%/source}/error-report" ] && [ -f "${13}" ] && [ ! -L "${13}" ]; then
+    exec 3> "${13}"
+    OVOS_INSTALLER_REPORT_FD=3
+    export OVOS_INSTALLER_REPORT_FD
+  fi
   umask 022
   if [ -n "$ovos_track" ]; then
     export ANSIBLE_CALLBACK_PLUGINS="$ovos_source/.ovos-start-callbacks${ANSIBLE_CALLBACK_PLUGINS:+:$ANSIBLE_CALLBACK_PLUGINS}"
@@ -402,7 +420,7 @@ if [ -L "$ovos_receipt" ] || { [ -e "$ovos_receipt" ] && [ ! -f "$ovos_receipt" 
 if [ "$ovos_receipt_safe" = true ]; then mv "${12}" "$ovos_receipt" || :; fi
 report_status installed
 OVOS_LAUNCH
-if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed"; then
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
   ovos_installed=true
   say installReturned
   # Incomplete verification is not an installer failure. The checker itself

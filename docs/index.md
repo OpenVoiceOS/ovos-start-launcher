@@ -1,6 +1,14 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Describe release 2.3.2 Git isolation and current wizard session integration.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document the private consented error-report handoff and its regression coverage.
 
 # Launcher developer guide
+
+## Error-report links (2.4.0)
+
+For tracked runs, [`cleanup`](../lib/launcher.sh.in) can send `{"event":"failed","errorUrl":"https://paste.uoi.io/REPORT"}` as one final event. The installer supplies the URL only after the user agrees to its existing error-report upload. The launcher does not scrape Terminal output, upload logs or change that consent. Older installers and declined or unsuccessful uploads simply produce a failure without a link. The [wizard](../../ovos-start/docs/install-progress.md) displays the link returned by the [relay](../../ovos-install-status/docs/index.md).
+
+The launcher creates a new mode-0600 `error-report` file inside its private temporary directory, outside the installer checkout. Only the tracked installer child receives the pre-opened descriptor and `OVOS_INSTALLER_REPORT_FD=3`; inherited flags are cleared. Cleanup reads the receipt before removing staging files. [`read_error_report` and `valid_error_url`](../lib/callback.sh) require a regular non-symlink file, at most 151 bytes, exactly one newline-terminated URL, and the exact HTTPS host `paste.uoi.io` with a 1–128 character ASCII alphanumeric, `_` or `-` identifier and optional trailing slash. No query, fragment, credentials, additional path or other host is accepted. Success and cancellation omit links, and a new attempt cannot reuse an earlier receipt.
+
+[`test_error_reports.py`](../test/test_error_reports.py) exercises the generated launcher with the Python `Sandbox` and `report_installer` fixtures: private FD handoff, upstream checkout removal, URL/JSON validation, oversized and multiple-line output, replaced symlinks/FIFOs/directories, declined upload, untracked runs, reused capabilities and offline callbacks. Transport remains best effort with the exact installer exit status preserved.
 
 ## Git checkout isolation (2.3.2)
 
@@ -55,7 +63,7 @@ Python tests [`test_installer_venv_is_accessible_without_exposing_launcher_secre
 
 `v2.sh CODE --track TOKEN` accepts a separate 64-character lowercase hexadecimal write capability. `CODE` and its one-hour validation remain unchanged. Unknown arguments or malformed capabilities fail before file/network effects. `--decode` and `--scenario` never send progress or persist the capability. Plain `v2.sh CODE` remains supported without callbacks.
 
-[`report_status`](../lib/callback.sh#L3) sends only `{"event":"EVENT"}` to the fixed HTTPS relay at `https://ovos-install-status.goldyfruit.chatgpt.site/v1/events`. Allowed events are `started`, `downloading`, `installing`, `installed`, `services_ready`, `voice_ready`, `needs_attention`, `failed` and `cancelled`. The token goes in the Authorization header through curl config stdin, never curl's argv. Curl disables automatic `.curlrc` loading, permits HTTPS only, does not follow redirects or retry, and limits connection/total time to 2/3 seconds. Missing curl and every transport failure are ignored. No logs, answers, device identifiers or installer secrets are uploaded. The copyable terminal command contains a private status-write capability; do not publish that complete command.
+[`report_status`](../lib/callback.sh) sends `{"event":"EVENT"}` to the fixed HTTPS relay at `https://ovos-install-status.goldyfruit.chatgpt.site/v1/events`, with an optional validated `errorUrl` only for `failed`. Allowed events are `started`, `downloading`, `installing`, `installed`, `services_ready`, `voice_ready`, `needs_attention`, `failed` and `cancelled`. The token goes in the Authorization header through curl config stdin, never curl's argv. Curl disables automatic `.curlrc` loading, permits HTTPS only, does not follow redirects or retry, and limits connection/total time to 2/3 seconds. Missing curl and every transport failure are ignored. No log contents, answers, device identifiers or installer secrets are uploaded. The copyable terminal command contains a private status-write capability; do not publish that complete command.
 
 The relay, separately maintained by the wizard, enforces capability lifetime (24 hours). This expiry does not renew or replace the one-hour recipe start deadline. Do not treat the recipe checksum as callback authentication. Reports are best effort and can arrive with earlier events missing. A relay outage, expired token, reboot or power loss can leave the browser behind the terminal; the terminal remains authoritative. There is no inbound listener on the device.
 

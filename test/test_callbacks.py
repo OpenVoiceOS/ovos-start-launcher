@@ -33,7 +33,7 @@ def callbacks(sandbox: Sandbox) -> list[dict[str, object]]:
 
 
 def events(sandbox: Sandbox) -> list[str]:
-    """Extract the only permitted data field from each recorded curl config."""
+    """Extract event names from each recorded curl config."""
     result = []
     for request in callbacks(sandbox):
         data_line = next(line for line in str(request["config"]).splitlines() if line.startswith("data = "))

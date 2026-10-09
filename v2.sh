@@ -691,13 +691,38 @@ if [ "$#" = 3 ] && [ "$2" = --track ]; then
 elif [ "$#" != 1 ]; then
   fail 'Paste the complete command from OVOS Start, including your setup code.'
 fi
-# Minimal, optional progress reporting. The capability can only write status.
-# Never accept a URL, message, log, credential or device identifier from input.
+# Minimal, optional progress reporting. Never accept arbitrary destinations,
+# messages, logs, credentials or device identifiers from installer output.
+valid_error_url() {
+  case "$1" in https://paste.uoi.io/*) :;; *) return 1;; esac
+  ovos_error_id=${1#https://paste.uoi.io/}
+  ovos_error_id=${ovos_error_id%/}
+  case "$ovos_error_id" in ''|*[!A-Za-z0-9_-]*) return 1;; esac
+  [ "${#ovos_error_id}" -le 128 ]
+}
+
+# The installer writes exactly one consented paste URL, not terminal output.
+# The receipt lives outside its checkout so upstream cleanup cannot remove it.
+read_error_report() (
+  [ -n "$1" ] && [ -f "$1" ] && [ ! -L "$1" ] || exit 0
+  ovos_error_size=$(wc -c < "$1") || exit 0
+  [ "$ovos_error_size" -gt 0 ] && [ "$ovos_error_size" -le 151 ] || exit 0
+  IFS= read -r ovos_error_url < "$1" || exit 0
+  # Reject extra lines, including empty lines stripped by command substitution.
+  [ "$ovos_error_size" -eq "$((${#ovos_error_url} + 1))" ] || exit 0
+  valid_error_url "$ovos_error_url" || exit 0
+  printf '%s' "$ovos_error_url"
+)
+
 report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0
   case "$ovos_track" in *[!0-9a-f]*) return 0;; esac
   case "$1" in started|downloading|installing|installed|services_ready|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
+  ovos_error_field=''
+  if [ "$1" = failed ] && valid_error_url "${2:-}"; then
+    ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""
+  fi
   command -v curl >/dev/null 2>&1 || return 0
   # -q must be first: an inherited curlrc must not enable tracing or redirects.
   # Keep the bearer out of argv. Ignore every transport failure; installation
@@ -707,7 +732,7 @@ url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"
 request = "POST"
 header = "Authorization: Bearer $ovos_track"
 header = "Content-Type: application/json"
-data = "{\"event\":\"$1\"}"
+data = "{\"event\":\"$1\"$ovos_error_field}"
 OVOS_STATUS
 }
 
@@ -864,12 +889,16 @@ fi
 if [ "$ovos_mode" = scenario ]; then scenario; exit 0; fi
 
 ovos_tmp=''
+ovos_error_receipt=''
 ovos_lock=''
 ovos_installed=false
 ovos_cleanup_result=0
 cleanup() {
   if [ "$ovos_installed" != true ] && [ "$1" -ne 0 ]; then
-    case "$1" in 129|130|143) report_status cancelled;; *) report_status failed;; esac
+    case "$1" in
+      129|130|143) report_status cancelled;;
+      *) report_status failed "$(read_error_report "$ovos_error_receipt")";;
+    esac
   fi
   [ -z "$ovos_tmp" ] || rm -rf "$ovos_tmp" || :
   [ -z "$ovos_lock" ] || rmdir "$ovos_lock" 2>/dev/null || :
@@ -920,6 +949,11 @@ if ! mkdir "$ovos_pending_lock" 2>/dev/null; then
 fi
 ovos_lock=$ovos_pending_lock
 ovos_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ovos-start.XXXXXX")
+if [ -n "$ovos_track" ]; then
+  ovos_error_receipt="$ovos_tmp/error-report"
+  : > "$ovos_error_receipt"
+  chmod 600 "$ovos_error_receipt"
+fi
 report_status started
 say download
 report_status downloading
@@ -1059,13 +1093,38 @@ printf '%s\n' "$ovos_track" > "$ovos_tmp/status-installed"
 chmod 600 "$ovos_tmp/status-token" "$ovos_tmp/status-installed" "$ovos_tmp/status-installed-empty"
 write_messages > "$ovos_tmp/runtime.sh"
 cat >> "$ovos_tmp/runtime.sh" <<'OVOS_RUNTIME'
-# Minimal, optional progress reporting. The capability can only write status.
-# Never accept a URL, message, log, credential or device identifier from input.
+# Minimal, optional progress reporting. Never accept arbitrary destinations,
+# messages, logs, credentials or device identifiers from installer output.
+valid_error_url() {
+  case "$1" in https://paste.uoi.io/*) :;; *) return 1;; esac
+  ovos_error_id=${1#https://paste.uoi.io/}
+  ovos_error_id=${ovos_error_id%/}
+  case "$ovos_error_id" in ''|*[!A-Za-z0-9_-]*) return 1;; esac
+  [ "${#ovos_error_id}" -le 128 ]
+}
+
+# The installer writes exactly one consented paste URL, not terminal output.
+# The receipt lives outside its checkout so upstream cleanup cannot remove it.
+read_error_report() (
+  [ -n "$1" ] && [ -f "$1" ] && [ ! -L "$1" ] || exit 0
+  ovos_error_size=$(wc -c < "$1") || exit 0
+  [ "$ovos_error_size" -gt 0 ] && [ "$ovos_error_size" -le 151 ] || exit 0
+  IFS= read -r ovos_error_url < "$1" || exit 0
+  # Reject extra lines, including empty lines stripped by command substitution.
+  [ "$ovos_error_size" -eq "$((${#ovos_error_url} + 1))" ] || exit 0
+  valid_error_url "$ovos_error_url" || exit 0
+  printf '%s' "$ovos_error_url"
+)
+
 report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0
   case "$ovos_track" in *[!0-9a-f]*) return 0;; esac
   case "$1" in started|downloading|installing|installed|services_ready|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
+  ovos_error_field=''
+  if [ "$1" = failed ] && valid_error_url "${2:-}"; then
+    ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""
+  fi
   command -v curl >/dev/null 2>&1 || return 0
   # -q must be first: an inherited curlrc must not enable tracing or redirects.
   # Keep the bearer out of argv. Ignore every transport failure; installation
@@ -1075,7 +1134,7 @@ url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"
 request = "POST"
 header = "Authorization: Bearer $ovos_track"
 header = "Content-Type: application/json"
-data = "{\"event\":\"$1\"}"
+data = "{\"event\":\"$1\"$ovos_error_field}"
 OVOS_STATUS
 }
 
@@ -1440,6 +1499,15 @@ report_status installing
 # that child: it would make venv bin/lib directories root-only. Keep 077 for
 # this launcher and its tokens; upstream explicitly protects its own secrets.
 (
+  # Ignore an inherited report descriptor. Only a tracked run receives our
+  # private receipt; ordinary terminal output is never parsed or uploaded.
+  unset OVOS_INSTALLER_REPORT_FD
+  exec 3>&-
+  if [ -n "$ovos_track" ] && [ "${13}" = "${ovos_source%/source}/error-report" ] && [ -f "${13}" ] && [ ! -L "${13}" ]; then
+    exec 3> "${13}"
+    OVOS_INSTALLER_REPORT_FD=3
+    export OVOS_INSTALLER_REPORT_FD
+  fi
   umask 022
   if [ -n "$ovos_track" ]; then
     export ANSIBLE_CALLBACK_PLUGINS="$ovos_source/.ovos-start-callbacks${ANSIBLE_CALLBACK_PLUGINS:+:$ANSIBLE_CALLBACK_PLUGINS}"
@@ -1459,7 +1527,7 @@ if [ -L "$ovos_receipt" ] || { [ -e "$ovos_receipt" ] && [ ! -f "$ovos_receipt" 
 if [ "$ovos_receipt_safe" = true ]; then mv "${12}" "$ovos_receipt" || :; fi
 report_status installed
 OVOS_LAUNCH
-if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed"; then
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
   ovos_installed=true
   say installReturned
   # Incomplete verification is not an installer failure. The checker itself
