@@ -1,7 +1,5 @@
 #!/bin/sh
 # SPDX-License-Identifier: Apache-2.0
-# OVOS Start protocol v2. Timeless v1 codes are rejected.
-# The timestamp is a local expiry check, not a signature or an online revocation.
 set -eu
 set +x
 
@@ -680,7 +678,6 @@ case "${LC_ALL:-${LC_MESSAGES:-${LANG:-en}}}" in
 esac
 fail_message() { say "$1" >&2; exit 1; }
 fail() {
-  # Preserve precise English decoder diagnostics. Localize before any side effect.
   if [ "$ovos_locale" = en-us ]; then printf '%s\n' "$*" >&2; exit 1; fi
   case "$*" in
     *64-bit*) fail_message bits;; *expired*) fail_message expired;;
@@ -689,7 +686,6 @@ fail() {
   esac
 }
 
-# Also protects timestamp arithmetic on shells with a 32-bit userland.
 [ "$(getconf LONG_BIT 2>/dev/null || true)" = 64 ] || fail 'OVOS needs a 64-bit operating system. No changes were made.'
 ovos_mode=install
 case "${1:-}" in
@@ -703,8 +699,6 @@ if [ "$#" = 3 ] && [ "$2" = --track ]; then
 elif [ "$#" != 1 ]; then
   fail 'Paste the complete command from OVOS Start, including your setup code.'
 fi
-# Minimal, optional progress reporting. Never accept arbitrary destinations,
-# messages, logs, credentials or device identifiers from installer output.
 valid_error_url() {
   case "$1" in https://paste.uoi.io/*) :;; *) return 1;; esac
   ovos_error_id=${1#https://paste.uoi.io/}
@@ -723,9 +717,6 @@ report_status() {
     ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""
   fi
   command -v curl >/dev/null 2>&1 || return 0
-  # -q must be first: an inherited curlrc must not enable tracing or redirects.
-  # Keep the bearer out of argv. Ignore every transport failure; installation
-  # never depends on the browser or status relay being reachable.
   curl -q --config - --proto '=https' --connect-timeout 2 --max-time 3 --silent --fail --output /dev/null <<OVOS_STATUS >/dev/null 2>&1 || :
 url = "https://start-api.smartgic.io/v1/events"
 request = "POST"
@@ -768,7 +759,6 @@ esac
 ovos_code=$(printf '%s' "$1" | tr '[:lower:]' '[:upper:]' | tr -d '-')
 [ "${#ovos_code}" = 16 ] || fail 'Invalid setup code.'
 ovos_alphabet=0123456789ABCDEFGHJKMNPQRSTVWXYZ
-# Decode bytes as they arrive: the 80-bit wire word never enters shell arithmetic.
 ovos_buffer=0
 ovos_bits=0
 ovos_byte_index=0
@@ -809,7 +799,6 @@ while [ -n "$ovos_rest" ]; do
   fi
 done
 [ "$ovos_crc" = "$ovos_supplied_crc" ] || fail 'That setup code looks mistyped. Copy it again from OVOS Start.'
-# A checksum-verified locale can explain expiry in the chosen language.
 case "$(((ovos_body >> 18) & 15))" in
   0) ovos_locale=en-us;; 1) ovos_locale=fr-fr;; 2) ovos_locale=de-de;; 3) ovos_locale=es-es;;
   4) ovos_locale=it-it;; 5) ovos_locale=nl-nl;; 6) ovos_locale=pt-pt;; 7) ovos_locale=ca-es;;
@@ -825,7 +814,6 @@ if [ "${#ovos_now}" -gt 13 ] || [ "$ovos_now" -gt 1099511627775 ]; then fail 'Th
 ovos_payload=$((ovos_body & 268435455))
 ovos_remaining=28
 
-# Read a fixed-width enum. Values come only from this trusted script, never eval.
 take() {
   ovos_remaining=$((ovos_remaining - $1))
   ovos_index=$(((ovos_payload >> ovos_remaining) & ((1 << $1) - 1)))
@@ -895,21 +883,16 @@ ovos_lock=''
 ovos_scenario_guard=''
 ovos_installed=false
 ovos_cleanup_result=0
-# The private receipt survives upstream checkout cleanup. It contains one
-# consented paste URL, never arbitrary terminal output or a previous attempt.
 read_error_report() (
   [ -n "$1" ] && [ -f "$1" ] && [ ! -L "$1" ] || exit 0
   ovos_error_size=$(wc -c < "$1") || exit 0
   [ "$ovos_error_size" -gt 0 ] && [ "$ovos_error_size" -le 151 ] || exit 0
   IFS= read -r ovos_error_url < "$1" || exit 0
-  # Reject extra lines, including empty lines stripped by command substitution.
   [ "$ovos_error_size" -eq "$((${#ovos_error_url} + 1))" ] || exit 0
   valid_error_url "$ovos_error_url" || exit 0
   printf '%s' "$ovos_error_url"
 )
 
-# Cleanup runs as the original user, never under sudo. Python is installed by
-# a completed setup; early failures without it preserve the private scenario.
 cleanup_scenario() {
   [ -n "$ovos_scenario_guard" ] || return 0
   for ovos_cleanup_python in "$(command -v python3 || true)" "$HOME/.venvs/ovos-installer/bin/python3" "$HOME/.venvs/ovos/bin/python3"; do
@@ -1001,8 +984,6 @@ for ovos_program in git sudo; do command -v "$ovos_program" >/dev/null 2>&1 || {
 if [ -z "${HOME:-}" ] || [ ! -d "$HOME" ]; then fail_message unsafeConfig; fi
 case "$HOME" in /*) :;; *) fail_message unsafeConfig;; esac
 if [ -e "$HOME/ovos-installer" ] || [ -L "$HOME/ovos-installer" ]; then fail_message existing; fi
-# Validate before downloading or replacing files: mv must not nest a helper
-# inside a directory, and cp must not wait forever on a FIFO.
 ovos_cfg="$HOME/.config/ovos-installer"
 for ovos_path in "$HOME/.config" "$ovos_cfg"; do
   if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -d "$ovos_path" ]; }; then
@@ -1017,11 +998,8 @@ done
 umask 077
 mkdir -p "$ovos_cfg"
 chmod 700 "$ovos_cfg"
-# Upstream locks only after our handoff. Protect settings before activation too.
 ovos_pending_lock="$ovos_cfg/.launcher-lock"
 if ! mkdir "$ovos_pending_lock" 2>/dev/null; then
-  # A double paste may carry the active install's capability. Do not poison its
-  # browser session with a failure belonging only to this refused second run.
   ovos_track=''
   say locked >&2; printf '%s\n' "$ovos_pending_lock" >&2; exit 1
 fi
@@ -1037,19 +1015,12 @@ say download
 report_status downloading
 ovos_source="$ovos_tmp/source"
 mkdir "$ovos_source"
-# Git's inherited repository variables override -C and can otherwise redirect
-# checkout into an unrelated working tree or index (for example from a hook).
-# Clear only this launcher's process environment, retaining normal Git config,
-# proxies and certificate settings. The installer child inherits the same reset.
 unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE \
   GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_QUARANTINE_PATH \
   GIT_NAMESPACE GIT_PREFIX GIT_INTERNAL_SUPER_PREFIX GIT_IMPLICIT_WORK_TREE \
   GIT_SHALLOW_FILE GIT_REPLACE_REF_BASE GIT_GRAFT_FILE GIT_ATTR_SOURCE \
   GIT_CONFIG GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT
 git -C "$ovos_source" init --quiet --template= || fail_message downloadFailed
-# Never wait for an unexpected Git credential prompt; abort a stalled transfer.
-# Every device uses the current main branch. The full ref excludes same-name
-# tags; resolve it once so a concurrent upstream push cannot change this run.
 GIT_TERMINAL_PROMPT=0 git -C "$ovos_source" -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet --no-tags --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git refs/heads/main || fail_message downloadFailed
 ovos_revision=$(git -C "$ovos_source" rev-parse --verify 'FETCH_HEAD^{commit}') || fail_message revision
 [ "${#ovos_revision}" = 40 ] || fail_message revision
@@ -1057,12 +1028,10 @@ case "$ovos_revision" in *[!0-9a-f]*) fail_message revision;; esac
 git -C "$ovos_source" -c core.hooksPath=/dev/null checkout --quiet --detach "$ovos_revision" || fail_message downloadFailed
 ovos_head=$(git -C "$ovos_source" rev-parse --verify 'HEAD^{commit}') || fail_message revision
 [ "$ovos_head" = "$ovos_revision" ] || fail_message revision
-# This notification plugin reads role metadata, never terminal logs or secrets.
-# It only exists for tracked runs and leaves upstream stdout callbacks intact.
 if [ -n "$ovos_track" ]; then
   mkdir "$ovos_source/.ovos-start-callbacks"
   cat > "$ovos_source/.ovos-start-callbacks/ovos_start_progress.py" <<'OVOS_ANSIBLE_PROGRESS'
-"""Report fixed installer phases from successful Ansible role tasks only."""
+"""Report fixed phases and completed checkpoints without forwarding task data."""
 from __future__ import annotations
 
 import os
@@ -1082,11 +1051,18 @@ PHASES = {
     "ovos_services": 3, "ovos_finalize": 4,
 }
 EVENTS = ("", "stage_system", "stage_packages", "stage_services", "stage_finalize")
+COMPLETED = ("packages_installed", "audio_configured", "components_installed")
+CHECKPOINTS = {
+    ("ovos_virtualenv", "venv.yml", "Copy Python requirements.txt files"): "packages_installed",
+    ("ovos_containers", "common.yml", "Start docker service"): "packages_installed",
+    ("ovos_virtualenv", "venv.yml", "Install Open Voice OS in Python venv"): "components_installed",
+    ("ovos_containers", "composer.yml", "Deploy docker-compose stack"): "components_installed",
+}
 
 
 def report_phase(event: str) -> None:
     """Send one bounded, best-effort enum without exporting the private bearer."""
-    if event not in EVENTS[1:]:
+    if event not in EVENTS[1:] + COMPLETED:
         return
     try:
         home = Path(os.environ.get("RUN_AS_HOME", ""))
@@ -1135,22 +1111,57 @@ class CallbackModule(CallbackBase):
         """Start with no confirmed phase; each phase is attempted at most once."""
         super().__init__(*args, **kwargs)
         self.phase = 0
+        self.completed: set[str] = set()
+        self.sound_pending = False
+        self.sound_failed = False
+
+    def completion(self, result: object, role: str) -> None:
+        """Confirm known successful checkpoints, never partial or simulated loops."""
+        task, data = result._task, result._result
+        if task.check_mode or data.get("failed") or data.get("skipped") or data.get("rc", 0) != 0:
+            return
+        items = data.get("results", [data])
+        if (not isinstance(items, list) or not items
+                or any(not isinstance(item, dict) or item.get("failed") or item.get("rc", 0) != 0 for item in items)
+                or all(item.get("skipped") for item in items)):
+            return
+        path = Path(task.get_path().rsplit(":", 1)[0])
+        if path.parts[-4:-1] != ("roles", role, "tasks"):
+            return
+        event = CHECKPOINTS.get((role, path.name, task.name))
+        if not self.sound_failed and (role, path.name, task.name) == ("ovos_sound", "install.yml", "Resolve ALSA default backend for .asoundrc"):
+            self.sound_pending = True
+        if role == "ovos_timezone" and self.sound_pending:
+            event, self.sound_pending = "audio_configured", False
+        if event and event not in self.completed:
+            self.completed.add(event)
+            report_phase(event)
+
+    def v2_runner_on_failed(self, result: object, ignore_errors: bool = False) -> None:
+        """An ignored sound failure must not become an audio-configuration receipt."""
+        try:
+            if result._task._role.get_name() == "ovos_sound":
+                self.sound_pending = False
+                self.sound_failed = True
+        except (AttributeError, TypeError):
+            pass
 
     def v2_runner_on_ok(self, result: object) -> None:
-        """Advance on executed role tasks, ignoring names, arguments and output."""
+        """Advance coarse phases and confirm allowlisted task completion receipts."""
         try:
-            role = result._task._role
-            phase = PHASES.get(role.get_name() if role else "", 0)
+            metadata = result._task._role
+            role = metadata.get_name() if metadata else ""
+            phase = PHASES.get(role, 0)
             if phase > self.phase:
                 self.phase = phase
                 report_phase(EVENTS[phase])
+            self.completion(result, role)
         except (AttributeError, TypeError):
             # Unknown upstream metadata means less detail, never guessed progress.
             pass
 
 OVOS_ANSIBLE_PROGRESS
 fi
-# The download may take time; refuse a destination whose type changed meanwhile.
 for ovos_path in "$HOME/.config" "$ovos_cfg"; do
   if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then say unsafeConfig >&2; exit 1; fi
 done
@@ -1163,9 +1174,6 @@ if [ -e "$ovos_cfg/scenario.yaml" ] || [ -L "$ovos_cfg/scenario.yaml" ]; then
   chmod 600 "$ovos_backup"
   say backup; printf '%s\n' "$ovos_backup"
 fi
-# Stage on the config filesystem so sudo's eventual move preserves identity.
-# Pin both directories in the regular-user parent; sudo closes its inherited
-# descriptors. Cleanup never follows a later replacement of either pathname.
 exec 4< "$ovos_cfg"
 ovos_scenario_guard=$(mktemp -d "$ovos_cfg/.scenario-cleanup.XXXXXX")
 exec 6< "$ovos_scenario_guard"
@@ -1177,8 +1185,6 @@ printf '%s\n' "$ovos_track" > "$ovos_tmp/status-installed"
 chmod 600 "$ovos_tmp/status-token" "$ovos_tmp/status-installed" "$ovos_tmp/status-installed-empty"
 write_messages > "$ovos_tmp/runtime.sh"
 cat >> "$ovos_tmp/runtime.sh" <<'OVOS_RUNTIME'
-# Minimal, optional progress reporting. Never accept arbitrary destinations,
-# messages, logs, credentials or device identifiers from installer output.
 valid_error_url() {
   case "$1" in https://paste.uoi.io/*) :;; *) return 1;; esac
   ovos_error_id=${1#https://paste.uoi.io/}
@@ -1197,9 +1203,6 @@ report_status() {
     ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""
   fi
   command -v curl >/dev/null 2>&1 || return 0
-  # -q must be first: an inherited curlrc must not enable tracing or redirects.
-  # Keep the bearer out of argv. Ignore every transport failure; installation
-  # never depends on the browser or status relay being reachable.
   curl -q --config - --proto '=https' --connect-timeout 2 --max-time 3 --silent --fail --output /dev/null <<OVOS_STATUS >/dev/null 2>&1 || :
 url = "https://start-api.smartgic.io/v1/events"
 request = "POST"
@@ -1234,20 +1237,15 @@ report_saved_install() {
   fi
 }
 
-# Shared, embedded terminal helpers. No fetched or user-supplied shell is sourced.
 cancel_input() { say cancelled >&2; exit 130; }
 restore_tty() {
-  # A disconnected terminal must not abort EXIT cleanup or hide the real status.
   [ -z "${ovos_tty:-}" ] || { stty "$ovos_tty" < /dev/tty; } 2>/dev/null || :
 }
 
-# Bound external probes on Linux and macOS without requiring GNU timeout. The
-# watchdog owns its sleep process, so cancellation leaves no timer behind.
 run_bounded() (
   ovos_bound_seconds=$1; shift
   ovos_bound_command=''
   ovos_bound_watchdog=''
-  # Invoked by the subshell's EXIT trap.
   # shellcheck disable=SC2329,SC2317
   cleanup_bounded() {
     if [ -n "$ovos_bound_command" ]; then
@@ -1263,8 +1261,6 @@ run_bounded() (
   trap 'exit 130' INT
   trap 'exit 143' TERM
   trap 'exit 129' HUP
-  # dash redirects background stdin to /dev/null before command redirections.
-  # Save the original stream on a separate descriptor before starting the job.
   exec 3<&0
   "$@" <&3 3<&- &
   ovos_bound_command=$!
@@ -1286,7 +1282,6 @@ run_bounded() (
   exit "$ovos_bound_status"
 )
 
-# Validate syntax locally; never send a token to a URL just to validate input.
 valid_url() {
   case "$1" in http://?*|https://?*) :;; *) return 1;; esac
   case "$1" in *[[:space:][:cntrl:]]*|*'@'*|*'#'*|*\\*) return 1;; esac
@@ -1304,13 +1299,11 @@ valid_url() {
       case "$ovos_host" in *:*) ovos_port=${ovos_host#*:};; *) return 0;; esac;;
   esac
   case "$ovos_port" in ''|*[!0-9]*|??????*) return 1;; esac
-  # Strip leading zeros before arithmetic, avoiding shell octal interpretation.
   while [ "${ovos_port#0}" != "$ovos_port" ]; do ovos_port=${ovos_port#0}; done
   [ -n "$ovos_port" ] && [ "$ovos_port" -le 65535 ]
 }
 
 read_field() {
-  # Fixed trusted prompt key and validation kind; answer is never evaluated.
   if [ "$2" = secret ]; then
     ovos_tty=$(stty -g < /dev/tty)
     stty -echo < /dev/tty
@@ -1339,7 +1332,6 @@ terminal_choice() {
   [ "$ovos_answer" != :cancel ]
 }
 
-# These route values are initialized by the validated launcher/checker header.
 # shellcheck disable=SC2154
 check_services() {
   ovos_services='ovos-messagebus ovos-core'
@@ -1350,8 +1342,6 @@ check_services() {
   fi
   ovos_health=unknown
   if [ "$ovos_method" = containers ]; then
-    # Compose service names come from installed OVOS Docker; do not infer health
-    # from unrelated running containers or launch a privileged Docker command.
     if command -v docker >/dev/null 2>&1 && ovos_running=$(run_bounded 10 docker ps --filter label=com.docker.compose.project=ovos --filter status=running --format '{{.Label "com.docker.compose.service"}}' 2>/dev/null); then
       ovos_health=running
       for ovos_service in $ovos_services; do
@@ -1377,11 +1367,8 @@ check_services() {
   case "$ovos_health" in running) say servicesOk; report_status services_ready;; waiting) say servicesMissing;; *) say servicesUnknown;; esac
 }
 
-# Locale/method are initialized by the validated launcher/checker header.
 # shellcheck disable=SC2154
 sound_check() {
-  # The installed virtualenv has the real OVOS configuration and MessageBus API.
-  # Limit connection/event waits; a queued utterance never counts as audible.
   if [ "$ovos_method" = containers ]; then
     command -v docker >/dev/null 2>&1 || return 1
   else
@@ -1418,12 +1405,10 @@ finally:
 OVOS_SOUND
 }
 
-# Experience/skills are initialized by the validated launcher/checker header.
 # shellcheck disable=SC2154
 check_setup_inner() {
   printf '\n'; say health; check_services
   say resume
-  # Expand HOME when the user later pastes the recovery command.
   # shellcheck disable=SC2016
   printf '  sh "$HOME/.config/ovos-installer/check-setup.sh"\n'
   if [ "$ovos_experience" = hub ]; then say hub; say help; return 3; fi
@@ -1463,7 +1448,6 @@ check_setup_inner() {
 }
 
 check_setup() (
-  # An interrupted question is unfinished, not a failed hardware check.
   trap 'report_status needs_attention; exit 130' INT
   trap 'report_status needs_attention; exit 143' TERM
   trap 'report_status needs_attention; exit 129' HUP
@@ -1473,7 +1457,6 @@ check_setup() (
 )
 
 OVOS_RUNTIME
-# A private, durable checker survives reboots and never invokes installation.
 {
   printf '%s\n' '#!/bin/sh' 'set -eu' 'set +x'
   printf "ovos_locale='%s'\novos_device='%s'\novos_experience='%s'\novos_method='%s'\novos_skills='%s'\n" "$ovos_locale" "$ovos_device" "$ovos_experience" "$ovos_method" "$ovos_skills"
@@ -1535,9 +1518,6 @@ if [ "$ovos_llm" != off ]; then
   export LLM_API_URL LLM_API_KEY LLM_MODEL LLM_PERSONA LLM_MAX_TOKENS LLM_TEMPERATURE LLM_TOP_P
 fi
 say installing
-# An interrupted older launcher may have left a root-only installer venv.
-# Preserve that exact disposable runtime before asking upstream to rebuild it.
-# Do not force REUSE_CACHED_ARTIFACTS=false: upstream also clears shared caches.
 ovos_venvs="$ovos_home/.venvs"
 ovos_installer_runtime="$ovos_venvs/ovos-installer"
 for ovos_path in "$ovos_venvs" "$ovos_installer_runtime"; do
@@ -1552,34 +1532,22 @@ if [ -d "$ovos_installer_runtime" ]; then
   say runtimeBackup
   printf '  %s\n' "$ovos_runtime_backup/runtime"
 fi
-# Recheck after interactive input, before elevated moves.
 for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
   if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then say unsafeConfig >&2; exit 1; fi
 done
 for ovos_path in "$ovos_home/.config/ovos-installer/scenario.yaml" "$ovos_home/.config/ovos-installer/check-setup.sh" "$ovos_home/.config/ovos-installer/status-token" "$ovos_home/.config/ovos-installer/status-installed"; do
   if [ -L "$ovos_path" ] || { [ -e "$ovos_path" ] && [ ! -f "$ovos_path" ]; }; then say unsafeConfig >&2; exit 1; fi
 done
-# Clear an earlier receipt before activating any new attempt, including when
-# someone explicitly reruns the same tracking token and installation fails.
 mv "${10}" "$ovos_home/.config/ovos-installer/status-installed"
 mv "$ovos_scenario" "$ovos_home/.config/ovos-installer/scenario.yaml"
 mv "$8" "$ovos_home/.config/ovos-installer/check-setup.sh"
 mv "$9" "$ovos_home/.config/ovos-installer/status-token"
-# sudo may use root's HOME; load only the validated original account's file.
 ovos_track=''
 IFS= read -r ovos_track < "$ovos_home/.config/ovos-installer/status-token" || ovos_track=''
 export RUN_AS="$SUDO_USER"
 export RUN_AS_HOME="$ovos_home"
-# The upstream bootstrap can hide setup.sh's failure and delete a HOME checkout.
-# Execute the resolved setup directly and preserve its exact result.
 report_status installing
-# Installer dependencies are created as root but also used by Ansible tasks
-# running as the regular account. Do not pass our private staging umask to
-# that child: it would make venv bin/lib directories root-only. Keep 077 for
-# this launcher and its tokens; upstream explicitly protects its own secrets.
 (
-  # Only a tracked wizard run may request an automatic failure report, and
-  # only with our private receipt. Never trust inherited report settings.
   unset OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
   exec 3>&-
   if [ -n "$ovos_track" ] && [ "${12}" = "${ovos_source%/source}/error-report" ] && [ -f "${12}" ] && [ ! -L "${12}" ]; then
@@ -1588,7 +1556,6 @@ report_status installing
     OVOS_INSTALLER_AUTO_REPORT=1
     export OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
   fi
-  # Do not expose regular-user cleanup directory handles to installer children.
   exec 4<&- 6<&-
   umask 022
   if [ -n "$ovos_track" ]; then
@@ -1597,9 +1564,6 @@ report_status installing
   fi
   exec "$ovos_bash" setup.sh
 )
-# The pre-created receipt belongs to the regular user and remains mode0600.
-# Recheck after the installer ran; failure to persist progress never changes
-# an actual zero installer result. A checker only replays a matching receipt.
 ovos_receipt_safe=true
 for ovos_path in "$ovos_home/.config" "$ovos_home/.config/ovos-installer"; do
   if [ ! -d "$ovos_path" ] || [ -L "$ovos_path" ]; then ovos_receipt_safe=false; fi
@@ -1613,8 +1577,6 @@ if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_scenario_guard/ac
   ovos_installed=true
   cleanup_scenario
   say installReturned
-  # Incomplete verification is not an installer failure. The checker itself
-  # returns 3 to distinguish it from a user-confirmed first voice response.
   sh "$ovos_cfg/check-setup.sh" || :
 else
   ovos_result=$?

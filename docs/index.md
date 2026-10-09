@@ -1,6 +1,20 @@
-Last Edit: Codex - 2026-10-09 - Motive: Document separate audio checks and safe removal of generated scenarios.
+Last Edit: Codex - 2026-10-09 - Motive: Document completed installation steps, final audio checks and safe scenario cleanup.
 
 # Launcher developer guide
+
+## Confirmed installation steps (2.7.0)
+
+[`CallbackModule.completion`](../lib/ansible_progress.py) adds three fixed receipts while preserving the four existing in-progress phases. It matches the role, task file and exact task name reviewed against installer `main` at `53b2fd6f335c96b3b0c4d540f6f1e75a229d484f`. Unknown upstream tasks give less detail. Changed and unchanged successful tasks count; check mode, skipped tasks, all-skipped loops and aggregates containing any failed/nonzero-exit item do not.
+
+| Receipt | Successful checkpoint |
+| --- | --- |
+| `packages_installed` | Virtualenv: `Copy Python requirements.txt files` in `venv.yml`, after package preparation and optional GUI work. Containers: `Start docker service` in `common.yml`, after Docker dependencies. |
+| `audio_configured` | Sound: `Resolve ALSA default backend for .asoundrc` in `install.yml`, followed by a successful task in the next `ovos_timezone` role. An ignored sound failure blocks this receipt. Mac and hub paths that skip the sound role do not receive it. |
+| `components_installed` | Virtualenv: the complete selected-requirements loop `Install Open Voice OS in Python venv`. Containers: `Deploy docker-compose stack` in `composer.yml`, confirming the core stack deployment. |
+
+These receipts confirm installation work, not an audible response. The API derives its separate `services_started` receipt only from the existing `services_ready` health check, which checks all expected services. Launchd loading or writing service files alone is not sufficient. Optional container skills and subsequent speech configuration can continue after the core component receipt. See [wizard installation progress](https://github.com/OpenVoiceOS/ovos-start/blob/dev/docs/install-progress.md).
+
+[`test_ansible_progress.py`](../test/test_ansible_progress.py) covers exact task identities, conditional skips, partial aggregate failures, ignored sound failures and real harmless Ansible plays. [`shell_source`](../scripts/build-launcher.py) omits explanatory shell-only comment lines from the generated artifact to preserve the bootstrap argument-size reserve; source comments, generated shebangs, SPDX/ShellCheck directives, literal scenario data and byte-exact embedded Python remain.
 
 ## Audio checks and scenario cleanup (2.7.0)
 
@@ -88,7 +102,7 @@ New launcher revisions report to `start-api.smartgic.io`. Older immutable launch
 
 `v2.sh CODE --track TOKEN` accepts a separate 64-character lowercase hexadecimal write capability. `CODE` and its one-hour validation remain unchanged. Unknown arguments or malformed capabilities fail before file/network effects. `--decode` and `--scenario` never send progress or persist the capability. Plain `v2.sh CODE` remains supported without callbacks.
 
-[`report_status`](../lib/callback.sh) sends `{"event":"EVENT"}` to the fixed HTTPS relay at `https://start-api.smartgic.io/v1/events`, with an optional validated `errorUrl` only for `failed`. Allowed events are `started`, `downloading`, `installing`, `installed`, `services_ready`, `audio_checking`, `audio_passed`, `audio_failed`, `microphone_checking`, `microphone_passed`, `microphone_failed`, `voice_ready`, `needs_attention`, `failed` and `cancelled`. The token goes in the Authorization header through curl config stdin, never curl's argv. Curl disables automatic `.curlrc` loading, permits HTTPS only, does not follow redirects or retry, and limits connection/total time to 2/3 seconds. Missing curl and every transport failure are ignored. The relay receives the report URL, never report contents, answers or installer secrets. The copyable terminal command contains a private status-write capability; do not publish that complete command.
+[`report_status`](../lib/callback.sh) sends `{"event":"EVENT"}` to the fixed HTTPS relay at `https://start-api.smartgic.io/v1/events`, with an optional validated `errorUrl` only for `failed`. Allowed shell events are `started`, `downloading`, `installing`, `installed`, `services_ready`, `audio_checking`, `audio_passed`, `audio_failed`, `microphone_checking`, `microphone_passed`, `microphone_failed`, `voice_ready`, `needs_attention`, `failed` and `cancelled`. The token goes in the Authorization header through curl config stdin, never curl's argv. Curl disables automatic `.curlrc` loading, permits HTTPS only, does not follow redirects or retry, and limits connection/total time to 2/3 seconds. Missing curl and every transport failure are ignored. The relay receives the report URL, never report contents, answers or installer secrets. The copyable terminal command contains a private status-write capability; do not publish that complete command.
 
 The relay, separately maintained by the wizard, enforces capability lifetime (24 hours). This expiry does not renew or replace the one-hour recipe start deadline. Do not treat the recipe checksum as callback authentication. Reports are best effort and can arrive with earlier events missing. A relay outage, expired token, reboot or power loss can leave the browser behind the terminal; the terminal remains authoritative. There is no inbound listener on the device.
 

@@ -1,4 +1,4 @@
-"""Report fixed installer phases from successful Ansible role tasks only."""
+"""Report fixed phases and completed checkpoints without forwarding task data."""
 from __future__ import annotations
 
 import os
@@ -18,11 +18,18 @@ PHASES = {
     "ovos_services": 3, "ovos_finalize": 4,
 }
 EVENTS = ("", "stage_system", "stage_packages", "stage_services", "stage_finalize")
+COMPLETED = ("packages_installed", "audio_configured", "components_installed")
+CHECKPOINTS = {
+    ("ovos_virtualenv", "venv.yml", "Copy Python requirements.txt files"): "packages_installed",
+    ("ovos_containers", "common.yml", "Start docker service"): "packages_installed",
+    ("ovos_virtualenv", "venv.yml", "Install Open Voice OS in Python venv"): "components_installed",
+    ("ovos_containers", "composer.yml", "Deploy docker-compose stack"): "components_installed",
+}
 
 
 def report_phase(event: str) -> None:
     """Send one bounded, best-effort enum without exporting the private bearer."""
-    if event not in EVENTS[1:]:
+    if event not in EVENTS[1:] + COMPLETED:
         return
     try:
         home = Path(os.environ.get("RUN_AS_HOME", ""))
@@ -71,15 +78,51 @@ class CallbackModule(CallbackBase):
         """Start with no confirmed phase; each phase is attempted at most once."""
         super().__init__(*args, **kwargs)
         self.phase = 0
+        self.completed: set[str] = set()
+        self.sound_pending = False
+        self.sound_failed = False
+
+    def completion(self, result: object, role: str) -> None:
+        """Confirm known successful checkpoints, never partial or simulated loops."""
+        task, data = result._task, result._result
+        if task.check_mode or data.get("failed") or data.get("skipped") or data.get("rc", 0) != 0:
+            return
+        items = data.get("results", [data])
+        if (not isinstance(items, list) or not items
+                or any(not isinstance(item, dict) or item.get("failed") or item.get("rc", 0) != 0 for item in items)
+                or all(item.get("skipped") for item in items)):
+            return
+        path = Path(task.get_path().rsplit(":", 1)[0])
+        if path.parts[-4:-1] != ("roles", role, "tasks"):
+            return
+        event = CHECKPOINTS.get((role, path.name, task.name))
+        if not self.sound_failed and (role, path.name, task.name) == ("ovos_sound", "install.yml", "Resolve ALSA default backend for .asoundrc"):
+            self.sound_pending = True
+        if role == "ovos_timezone" and self.sound_pending:
+            event, self.sound_pending = "audio_configured", False
+        if event and event not in self.completed:
+            self.completed.add(event)
+            report_phase(event)
+
+    def v2_runner_on_failed(self, result: object, ignore_errors: bool = False) -> None:
+        """An ignored sound failure must not become an audio-configuration receipt."""
+        try:
+            if result._task._role.get_name() == "ovos_sound":
+                self.sound_pending = False
+                self.sound_failed = True
+        except (AttributeError, TypeError):
+            pass
 
     def v2_runner_on_ok(self, result: object) -> None:
-        """Advance on executed role tasks, ignoring names, arguments and output."""
+        """Advance coarse phases and confirm allowlisted task completion receipts."""
         try:
-            role = result._task._role
-            phase = PHASES.get(role.get_name() if role else "", 0)
+            metadata = result._task._role
+            role = metadata.get_name() if metadata else ""
+            phase = PHASES.get(role, 0)
             if phase > self.phase:
                 self.phase = phase
                 report_phase(EVENTS[phase])
+            self.completion(result, role)
         except (AttributeError, TypeError):
             # Unknown upstream metadata means less detail, never guessed progress.
             pass
