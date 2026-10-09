@@ -1,6 +1,20 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record release 2.3.2 Git isolation, local reproduction and regression validation.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic wizard failure reports and inherited-flag regression evidence.
 
 # Maintenance report
+
+## 2026-10-08 — Version 2.4.1: automatic wizard failure reports
+
+The [tracked setup child](lib/launcher.sh.in) now requests automatic installer error reporting only after opening its private FD3 receipt. It clears both inherited report flags for every setup, so an untracked launcher retains the installer prompt. Report URL validation, atomic failure callbacks, original failure status and cancellation behavior remain covered by [`test_error_reports.py`](test/test_error_reports.py). Merged the simplified README and NLnet/NGI0 sponsorship from `dev`, preserving both and adding a brief upload notice.
+
+Validation: **423 Python cases and 38 Node tests passed**, including 43 report-handoff cases. Generated-source parity, `sh -n`, Bash POSIX syntax, ShellCheck and whitespace checks passed. Tests use isolated fake installers, privilege tools and network clients; no device was installed and no logs were uploaded.
+
+Both installer paths are pinned to verified immutable report revisions. After updating those pins, 17 pin/build regression cases passed. Ten additional offline cross-repository cases used each final installer's actual `on_error`, automatic-report gate and sanitizer with the generated launcher; a fake curl captured redacted content and returned a URL. They verified one atomic failure callback and preserved status23, no upload after success/cancellation or an untracked run with inherited flags, and no URL after upload failure.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** Scoped automatic reporting to wizard setup, added inherited-flag regression cases, regenerated the launcher, preserved current README sponsorship and updated report documentation.
+- **Oversight:** The user explicitly requested automatic uploads for wizard installs. The coordinating agent reviews the installer/launcher/wizard integration and owns Site publication; the upstream installer and launcher PRs remain separate from deployment.
 
 ## 2026-10-08 — Version 2.3.2: inherited Git context isolation
 

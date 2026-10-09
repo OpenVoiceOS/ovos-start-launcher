@@ -10,6 +10,8 @@ This script installs [OpenVoiceOS](https://www.openvoiceos.org/) using the choic
 
 Run the command as your normal user. The launcher asks for administrator access when needed. Setup codes expire after one hour; return to the wizard for a new command if yours expires. Keep your install command private.
 
+If a wizard installation fails, the installer automatically uploads its error report to [paste.uoi.io](https://paste.uoi.io) and shows the report link in the wizard. Running the launcher without wizard tracking keeps the upload prompt.
+
 ## Check your setup
 
 After installation or a restart, run:

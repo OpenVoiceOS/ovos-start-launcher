@@ -1,6 +1,16 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record the verified Git context isolation fix in release 2.3.2.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic wizard-report scope and inherited-flag isolation.
 
 # Audit
+
+## 2026-10-08 — Version 2.4.1: wizard failure reports
+
+The [installer child](lib/launcher.sh.in) clears inherited `OVOS_INSTALLER_AUTO_REPORT` and `OVOS_INSTALLER_REPORT_FD`, closes FD3, and enables automatic reports only after reopening the current tracked attempt's private receipt. [`test_plain_launch_has_no_report_channel_even_with_inherited_flag`](test/test_error_reports.py) covers eight inherited flag combinations, including `1` with FD3. [`test_wizard_report_flags_are_derived_from_its_private_receipt`](test/test_error_reports.py) verifies that a forged inherited descriptor cannot redirect the tracked channel.
+
+[`read_error_report`](lib/launcher.sh.in) continues to refuse symlinks, nonregular files, oversized/multiline receipts and URLs outside the exact HTTPS paste host. Only a non-signal failure includes the optional link, and [`test_success_and_cancellation_never_send_report_links`](test/test_error_reports.py) verifies the boundary even when a fixture writes a URL on success/cancellation. The relay receives only a URL; the pinned installer owns sanitized log upload directly to the paste service. Its report content can be read by anyone with that link. Upload and callback failures cannot convert an installation failure into success.
+
+Evidence: **423 Python cases, including 43 report cases, and 38 Node tests passed**; source generation, POSIX/Bash syntax and ShellCheck passed. Test installation/network/privilege operations are local fakes. Physical-device acceptance and live log upload were not performed.
+
+An offline integration check against both final installer revisions exercised the real error handler, upload gate and sanitizer through the generated launcher. Ten cases verified credential redaction before the fake HTTP boundary, mode0600 report files, fixed HTTPS endpoint with curlrc disabled and no TLS bypass/redirect, no success/cancellation/untracked upload, and original failure preservation when uploading failed. The callback contained only the validated URL and event; no report body or status-write bearer reached the paste payload.
 
 ## 2026-10-08 — Version 2.3.2: inherited Git context isolation
 

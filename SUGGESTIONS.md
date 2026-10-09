@@ -1,6 +1,10 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record completed inherited Git context isolation.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic wizard failure reports and preserved standalone prompts.
 
 # Suggestions
+
+## Completed: automatic wizard failure-report links
+
+**Problem:** A user had to approve an upload and copy its link out of Terminal after a failed installation. **Implemented:** The tracked installer child receives explicit automatic reporting only alongside a private receipt descriptor; the failure callback carries one validated URL. The wizard exposes that link and a copy action. Untracked setup retains the prompt and clears inherited reporting flags. **Impact:** Simpler support handoff without transferring report contents through the status relay. Evidence: [`test_error_reports.py`](test/test_error_reports.py), especially `test_wizard_report_flags_are_derived_from_its_private_receipt` and `test_plain_launch_has_no_report_channel_even_with_inherited_flag`.
 
 ## Completed: isolate Git repository context
 

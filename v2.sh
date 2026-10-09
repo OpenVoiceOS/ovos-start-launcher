@@ -958,9 +958,9 @@ report_status started
 say download
 report_status downloading
 # Both paths are immutable and include the optional consented report handoff.
-ovos_revision=0eab8e46023c9ebef78c2a63ca22fe23e893e1e2
+ovos_revision=44fcada5cd29e0f6a307f39961f510ca1060b5d2
 if [ "$ovos_installer" = pinned ]; then
-  ovos_revision=6276d7b47ccd45d7a7b0f905325a821301d59172
+  ovos_revision=e406a0cb93376e7dbf750bf4629a11079f8f8108
   say preview
 fi
 ovos_source="$ovos_tmp/source"
@@ -1485,14 +1485,15 @@ report_status installing
 # that child: it would make venv bin/lib directories root-only. Keep 077 for
 # this launcher and its tokens; upstream explicitly protects its own secrets.
 (
-  # Ignore an inherited report descriptor. Only a tracked run receives our
-  # private receipt; ordinary terminal output is never parsed or uploaded.
-  unset OVOS_INSTALLER_REPORT_FD
+  # Only a tracked wizard run may request an automatic failure report, and
+  # only with our private receipt. Never trust inherited report settings.
+  unset OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
   exec 3>&-
   if [ -n "$ovos_track" ] && [ "${13}" = "${ovos_source%/source}/error-report" ] && [ -f "${13}" ] && [ ! -L "${13}" ]; then
     exec 3> "${13}"
     OVOS_INSTALLER_REPORT_FD=3
-    export OVOS_INSTALLER_REPORT_FD
+    OVOS_INSTALLER_AUTO_REPORT=1
+    export OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
   fi
   umask 022
   if [ -n "$ovos_track" ]; then

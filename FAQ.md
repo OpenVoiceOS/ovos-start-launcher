@@ -1,6 +1,10 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain isolation from inherited Git repository settings.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain automatic error reports for wizard installations.
 
 # Frequently asked questions
+
+## Why does a failed wizard installation upload an error report automatically?
+
+The wizard enables a failure report so its error screen can show a clickable support link without another Terminal question. The installer uploads the report to `paste.uoi.io`; the relay receives only its validated URL. An untracked launcher run keeps the upload prompt. [`test_plain_launch_has_no_report_channel_even_with_inherited_flag`](test/test_error_reports.py) verifies that inherited reporting flags cannot enable this behavior for untracked runs. Failed uploads preserve the installation error and leave Terminal guidance available.
 
 ## Can Git settings from a hook or terminal affect another checkout?
 
@@ -20,7 +24,7 @@ Copy a fresh command from the updated wizard after the failed attempt has ended.
 
 ## How does the wizard follow installation?
 
-The wizard can append `--track` and a private status-write capability to the command. The launcher sends fixed progress names to a fixed HTTPS relay, never installation logs, voice recordings, API keys or device identifiers. Keep the complete command private. The ordinary short setup code contains no secret. See [`report_status`](lib/callback.sh#L3) and [protocol details](docs/index.md#optional-installation-progress-220).
+The wizard appends `--track` and a private status-write capability to the command. The launcher sends fixed progress names and, after an uploaded failure report, its validated paste URL to a fixed HTTPS relay. Report contents are uploaded separately by the installer to `paste.uoi.io`. Keep the complete command private. The ordinary short setup code contains no secret. See [`report_status`](lib/callback.sh#L3) and [protocol details](docs/index.md#optional-installation-progress-220).
 
 ## What if the browser closes, the relay is down or the device restarts?
 

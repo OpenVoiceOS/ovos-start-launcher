@@ -1,4 +1,4 @@
-"""Exercise consented error-report handoff without uploading logs or installing."""
+"""Exercise wizard error-report handoff without uploading logs or installing."""
 from __future__ import annotations
 
 import json
@@ -30,7 +30,8 @@ def report_installer(sandbox: Sandbox, payload: bytes = b"", *, status: int = 23
 home = pathlib.Path(os.environ['HOME'])
 receipt = pathlib.Path.cwd().parent / 'error-report'
 descriptor = os.environ.get('OVOS_INSTALLER_REPORT_FD')
-data = {{'descriptor': descriptor, 'receipt_exists': receipt.exists()}}
+data = {{'descriptor': descriptor, 'receipt_exists': receipt.exists(),
+         'auto_report': os.environ.get('OVOS_INSTALLER_AUTO_REPORT')}}
 if descriptor is not None:
     info = os.fstat(int(descriptor))
     data.update(mode=stat.S_IMODE(info.st_mode), regular=stat.S_ISREG(info.st_mode),
@@ -64,7 +65,7 @@ raise SystemExit({status})
 
 @pytest.mark.parametrize("url", [REPORT, REPORT + "/", "https://paste.uoi.io/" + "A" * 128 + "/"])
 def test_failed_install_reports_one_private_validated_url_atomically(sandbox: Sandbox, url: str) -> None:
-    """A final failure includes only the consented URL, even after checkout cleanup."""
+    """A wizard failure includes its report URL, even after checkout cleanup."""
     report_installer(sandbox, (url + "\n").encode(), remove_source=True)
     result = tracked_run(sandbox)
     assert result.returncode == 23, result.stderr
@@ -72,7 +73,7 @@ def test_failed_install_reports_one_private_validated_url_atomically(sandbox: Sa
     assert event_payloads(sandbox)[-1] == {"event": "failed", "errorUrl": url}
     assert all(set(event) == {"event"} for event in event_payloads(sandbox)[:-1])
     assert json.loads((sandbox.home / "report-handoff.json").read_text()) == {
-        "descriptor": "3", "receipt_exists": True, "mode": 0o600,
+        "descriptor": "3", "auto_report": "1", "receipt_exists": True, "mode": 0o600,
         "regular": True, "same_file": True, "directory_mode": 0o700,
     }
     assert url not in result.stdout + result.stderr
@@ -116,15 +117,35 @@ def test_success_and_cancellation_never_send_report_links(sandbox: Sandbox, stat
     assert events(sandbox)[-1] == ("needs_attention" if status == 0 else "cancelled")
 
 
-def test_plain_launch_has_no_report_channel_even_with_inherited_flag(sandbox: Sandbox) -> None:
-    """Opting out of tracking removes the inherited flag and closes the reserved FD."""
+@pytest.mark.parametrize("descriptor", ["3", "99"])
+@pytest.mark.parametrize("auto_report", ["1", "true", "0", "unexpected"])
+def test_plain_launch_has_no_report_channel_even_with_inherited_flag(
+    sandbox: Sandbox, descriptor: str, auto_report: str,
+) -> None:
+    """Untracked setup always clears inherited report flags and the reserved FD."""
     report_installer(sandbox)
-    result = tracked_run(sandbox, arguments=[raw_code()], changes={"OVOS_INSTALLER_REPORT_FD": "99"})
+    result = tracked_run(sandbox, arguments=[raw_code()], changes={
+        "OVOS_INSTALLER_REPORT_FD": descriptor, "OVOS_INSTALLER_AUTO_REPORT": auto_report,
+    })
     assert result.returncode == 23
     assert json.loads((sandbox.home / "report-handoff.json").read_text()) == {
-        "descriptor": None, "receipt_exists": False, "unexpected_fd": False,
+        "descriptor": None, "auto_report": None, "receipt_exists": False, "unexpected_fd": False,
     }
     assert callbacks(sandbox) == []
+
+
+def test_wizard_report_flags_are_derived_from_its_private_receipt(sandbox: Sandbox) -> None:
+    """Inherited settings cannot redirect or disable the tracked receipt channel."""
+    report_installer(sandbox, (REPORT + "\n").encode())
+    result = tracked_run(sandbox, changes={
+        "OVOS_INSTALLER_REPORT_FD": "99", "OVOS_INSTALLER_AUTO_REPORT": "unexpected",
+    })
+    assert result.returncode == 23
+    received = json.loads((sandbox.home / "report-handoff.json").read_text())
+    assert received["descriptor"] == "3"
+    assert received["auto_report"] == "1"
+    assert received["same_file"] is True
+    assert event_payloads(sandbox)[-1] == {"event": "failed", "errorUrl": REPORT}
 
 
 def test_report_is_not_reused_for_another_attempt_with_the_same_token(sandbox: Sandbox) -> None:
