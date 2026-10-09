@@ -10,7 +10,7 @@ import sys
 
 import pytest
 
-from test_launcher import Sandbox, raw_code, run_launcher, sandbox
+from test_launcher import MAIN_PIN, Sandbox, raw_code, run_launcher, sandbox
 
 
 def repository_snapshot(repository: Path) -> dict[str, bytes]:
@@ -33,7 +33,14 @@ def test_inherited_git_context_cannot_modify_an_unrelated_repository(
     assert real_git is not None
     root = sandbox.home.parent
     user_config = root / "user.gitconfig"
-    user_config.write_text("[audit]\n\tmarker = preserve-user-settings\n")
+    # Fixture commits must not start background maintenance: a transient lock
+    # disappearing after the snapshot is not a mutation by the launcher.
+    # Keep the snapshot strict so every unexpected repository change is caught.
+    user_config.write_text(
+        "[audit]\n\tmarker = preserve-user-settings\n"
+        "[maintenance]\n\tauto = false\n"
+        "[gc]\n\tauto = 0\n"
+    )
     clean_env = {
         "PATH": os.pathsep.join((str(Path(real_git).parent), "/usr/bin", "/bin")),
         "HOME": str(sandbox.home), "GIT_CONFIG_NOSYSTEM": "1",
@@ -57,6 +64,11 @@ def test_inherited_git_context_cannot_modify_an_unrelated_repository(
     (upstream / "setup.sh").write_text('#!/bin/sh\nexec "$FAKE_PYTHON" "$FAKE_RECORDER"\n')
     git(upstream, "add", ".")
     git(upstream, "commit", "--quiet", "-m", "Harmless fixture installer")
+    # Keep exact-commit verification real while using an offline harmless pin.
+    upstream_pin = git(upstream, "rev-parse", "HEAD").stdout.strip()
+    launcher = root / "offline-launcher.sh"
+    launcher.write_text(sandbox.launcher.read_text().replace(MAIN_PIN, upstream_pin))
+    sandbox.env["FAKE_LAUNCHER"] = str(launcher)
 
     unrelated = root / "unrelated-repository"
     unrelated.mkdir()

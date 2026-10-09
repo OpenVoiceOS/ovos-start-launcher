@@ -17,7 +17,8 @@ import time
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN = "6ffd465028bac299e5235d619819bfdc734af073"
+MAIN_PIN = "fb1b377513720ef074deb36a33714aa1c4454e3e"
+PIN = "ff29aa7b9d1ec0d267ad31bc10a6948c490b1b08"
 ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 ISSUED_AT = 1_700_000_000
 MAX_TIMESTAMP = (1 << 40) - 1
@@ -87,12 +88,13 @@ if name == 'git':
     while operation_args and operation_args[0] == '-c': operation_args = operation_args[2:]
     operation = operation_args[0]
     if os.environ.get('FAIL_GIT') == operation: sys.exit(23)
+    if operation == 'fetch': (source / '.fixture-ref').write_text(operation_args[-1])
     if operation == 'checkout':
         (source / 'utils').mkdir()
         shutil.copyfile(os.environ['FAKE_INSTALLER'], source / 'setup.sh')
         shutil.copyfile(os.environ['FAKE_RUNTIME_FILE'], source / 'utils/bash_runtime.sh')
     if operation == 'rev-parse':
-        print(os.environ.get('FAKE_SHA', '6ffd465028bac299e5235d619819bfdc734af073'))
+        print(os.environ.get('FAKE_SHA', (source / '.fixture-ref').read_text()))
     sys.exit(0)
 if name == 'sudo':
     assert args[0] == 'sh', args
@@ -510,18 +512,24 @@ def test_existing_checkout_is_never_replaced(sandbox: Sandbox, kind: str) -> Non
     assert_untouched(sandbox)
 
 
-@pytest.mark.parametrize(("speech", "changes"), [
-    *((speech, {"FAIL_GIT": operation}) for speech in ("auto", "public") for operation in ("init", "fetch", "checkout")),
-    ("public", {"FAIL_GIT": "rev-parse"}),
-    ("public", {"FAKE_SHA": "0" * 40}),
+@pytest.mark.parametrize("overrides", [
+    {}, {"speech": "public"}, LOCAL,
+    {"device": "mac", "channel": "alpha"},
+    {"device": "mac", "channel": "alpha", "speech": "public"},
+    {"device": "mac", **LOCAL},
+])
+@pytest.mark.parametrize("changes", [
+    *({"FAIL_GIT": operation} for operation in ("init", "fetch", "checkout", "rev-parse")),
+    {"FAKE_SHA": "0" * 40},
 ])
 def test_failed_download_or_pin_check_preserves_active_configuration(
-    sandbox: Sandbox, speech: str, changes: dict[str, str]
+    sandbox: Sandbox, overrides: dict[str, object], changes: dict[str, str]
 ) -> None:
-    """Even partial downloads and incorrect revisions cannot overwrite a user scenario."""
+    """Both immutable paths reject fetch/SHA failures before touching active settings."""
     sandbox.seed_scenario()
-    _, code = recipe({"speech": speech})
-    result = run_launcher(sandbox, code, changes=changes)
+    state, code = recipe(overrides)
+    target = "Darwin" if state["device"] == "mac" else "Linux"
+    result = run_launcher(sandbox, code, changes={"FAKE_OS": target, **changes})
     assert result.returncode != 0
     assert sandbox.scenario.read_text() == "original-user-settings\n"
     assert not list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))
@@ -531,10 +539,10 @@ def test_failed_download_or_pin_check_preserves_active_configuration(
 
 
 @pytest.mark.parametrize("overrides", [{}, {"speech": "public"}, LOCAL, {"device": "server", "experience": "hub", "method": "containers", "skills": False}])
-def test_auto_and_preview_installers_back_up_and_receive_exact_recipe(
+def test_linux_installers_back_up_and_receive_exact_recipe(
     sandbox: Sandbox, overrides: dict[str, object]
 ) -> None:
-    """Only the fixture installer runs with locale, private modes and verified preview pin."""
+    """Only the fixture installer runs with locale, private modes and a verified pin."""
     sandbox.seed_scenario()
     state, code = recipe({"locale": "fr-fr", "telemetry": True, **overrides})
     result = run_launcher(sandbox, code)
@@ -547,7 +555,7 @@ def test_auto_and_preview_installers_back_up_and_receive_exact_recipe(
     calls = sandbox.calls()
     assert calls[-1]["command"] == "sudo"
     fetch = next(call for call in calls if "fetch" in call["args"])
-    assert fetch["args"][-1] == ("main" if state["speech"] == "auto" else PIN)
+    assert fetch["args"][-1] == MAIN_PIN
     assert sandbox.received()["RUN_AS"] == "fixture-user"
     assert sandbox.received()["RUN_AS_HOME"] == str(sandbox.home)
     assert "curl" not in [call["command"] for call in calls]
@@ -566,7 +574,7 @@ def test_installer_runs_under_a_umask_others_can_read(sandbox: Sandbox) -> None:
 
 
 @pytest.mark.parametrize("runtime", ["missing-first", "unavailable"])
-def test_preview_runtime_search_handles_missing_candidates(sandbox: Sandbox, runtime: str) -> None:
+def test_mac_runtime_search_handles_missing_candidates(sandbox: Sandbox, runtime: str) -> None:
     """A missing candidate must not abort later candidates or hide the useful diagnostic."""
     sandbox.seed_scenario()
     _, code = recipe({"device": "mac", "channel": "alpha", "speech": "public"})
@@ -849,7 +857,7 @@ def test_installer_failure_keeps_recovery_checker_and_never_reports_success(sand
     assert len(list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))) == 1
     assert [call["command"] for call in sandbox.calls()].count("sudo") == 1
     assert "curl" not in [call["command"] for call in sandbox.calls()]
-    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == ("main" if speech == "auto" else PIN)
+    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == MAIN_PIN
 
 
 def test_sound_check_uses_installed_bus_api_and_waits_for_human_confirmation(sandbox: Sandbox) -> None:
@@ -909,17 +917,34 @@ class MessageBusClient:
     assert (sandbox.home / "sound-closed").exists()
 
 
-def test_mac_default_speech_preserves_pinned_intel_and_silicon_support(sandbox: Sandbox) -> None:
-    """Mac defaults use the reviewed architecture contract without forcing a speech provider."""
-    state, code = recipe({"device": "mac", "cpu": "intel-mac", "channel": "alpha"})
-    result = run_launcher(sandbox, code, changes={"FAKE_OS": "Darwin"})
+@pytest.mark.parametrize(("overrides", "target", "expected_pin"), [
+    ({"device": "computer"}, "Linux", MAIN_PIN),
+    ({"device": "computer", "speech": "public"}, "Linux", MAIN_PIN),
+    ({"device": "computer", **LOCAL}, "Linux", MAIN_PIN),
+    ({"device": "mac", "cpu": "intel-mac", "channel": "alpha"}, "Darwin", PIN),
+    ({"device": "mac", "cpu": "intel-mac", "channel": "alpha", "speech": "public"}, "Darwin", PIN),
+    ({"device": "mac", **LOCAL}, "Darwin", PIN),
+])
+def test_linux_and_mac_speech_choices_select_the_reviewed_installer(
+    sandbox: Sandbox, overrides: dict[str, object], target: str, expected_pin: str
+) -> None:
+    """Speech choices reach the intended immutable installer with the exact scenario."""
+    state, code = recipe(overrides)
+    result = run_launcher(sandbox, code, changes={"FAKE_OS": target})
     assert result.returncode == 0, result.stderr
+    assert "PR #648" not in result.stdout
     assert sandbox.scenario.read_text() == expected_scenario(state)
-    assert "speech_engine:" not in sandbox.scenario.read_text()
+    if state["speech"] == "auto":
+        assert "speech_engine:" not in sandbox.scenario.read_text()
     assert sandbox.received()["RUN_AS"] == "fixture-user"
     calls = sandbox.calls()
     assert "curl" not in [call["command"] for call in calls]
-    assert next(call for call in calls if "fetch" in call["args"])["args"][-1] == PIN
+    fetch = next(call for call in calls if "fetch" in call["args"])
+    assert fetch["args"][-2:] == [
+        "https://github.com/OpenVoiceOS/ovos-installer.git", expected_pin,
+    ]
+    assert len(expected_pin) == 40
+    assert any("rev-parse" in call["args"] for call in calls)
 
 
 @pytest.mark.parametrize("speech", ("auto", "public"))

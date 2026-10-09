@@ -12,7 +12,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from test_callbacks import TOKEN, events, tracked_run
+from test_callbacks import ENDPOINT, TOKEN, events, tracked_run
 from test_launcher import ROOT, Sandbox, raw_code, sandbox
 
 SPEC = importlib.util.spec_from_file_location("ovos_start_progress", ROOT / "lib/ansible_progress.py")
@@ -84,6 +84,7 @@ def test_phase_transport_failure_is_bounded_private_and_never_retried(
         assert kwargs["timeout"] == 4 and kwargs["check"] is False
         assert kwargs["stdout"] == kwargs["stderr"] == subprocess.DEVNULL
         assert str(kwargs["input"]).count(TOKEN) == 1
+        assert f'url = "{ENDPOINT}"' in str(kwargs["input"])
         assert len(str(kwargs["input"]).splitlines()) == 5
 
 

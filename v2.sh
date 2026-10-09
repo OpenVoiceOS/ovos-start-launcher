@@ -56,7 +56,6 @@ message() {
     en-us:hub) printf '%s' 'This is a hub. Check a connected voice satellite to verify microphone and speaker operation.';;
     en-us:help) printf '%s' 'Need a hand? Community chat: https://matrix.to/#/#openvoiceos:matrix.org';;
     en-us:closed) printf '%s' 'No interactive terminal is available. Run the check command in a terminal when you are ready.';;
-    en-us:preview) printf '%s' 'Uses the reviewed experimental speech installer (PR #648).';;
     en-us:unsafeConfig) printf '%s' 'The setup folder contains an unexpected file or link. Move it aside, then try again. Your settings were not replaced.';;
     en-us:locked) printf '%s' 'A setup is running, or an interrupted attempt left a lock. First make sure no setup is running. Then remove this lock folder and try again:';;
     en-us:runtimeBackup) printf '%s' 'Previous installer tools saved to:';;
@@ -109,7 +108,6 @@ message() {
     fr-fr:hub) printf '%s' 'Cet appareil est un serveur central. Testez le micro et le haut-parleur sur un satellite connecté.';;
     fr-fr:help) printf '%s' 'Besoin d’un coup de main ? Discussion communautaire : https://matrix.to/#/#openvoiceos:matrix.org';;
     fr-fr:closed) printf '%s' 'Aucun terminal interactif n’est disponible. Lancez la commande de vérification dans un terminal lorsque vous serez prêt.';;
-    fr-fr:preview) printf '%s' 'Utilise la version expérimentale vérifiée du programme d’installation vocal (PR #648).';;
     fr-fr:unsafeConfig) printf '%s' 'Le dossier de configuration contient un fichier ou un lien inattendu. Déplacez-le, puis réessayez. Vos réglages n’ont pas été remplacés.';;
     fr-fr:locked) printf '%s' 'Une installation est en cours, ou une tentative interrompue a laissé un verrou. Vérifiez d’abord qu’aucune installation ne tourne. Supprimez ensuite ce dossier de verrouillage, puis réessayez :';;
     fr-fr:runtimeBackup) printf '%s' 'Anciens outils d’installation sauvegardés ici :';;
@@ -162,7 +160,6 @@ message() {
     de-de:hub) printf '%s' 'Dies ist eine Zentrale. Prüfe Mikrofon und Lautsprecher an einem verbundenen Sprachsatelliten.';;
     de-de:help) printf '%s' 'Brauchst du Hilfe? Community-Chat: https://matrix.to/#/#openvoiceos:matrix.org';;
     de-de:closed) printf '%s' 'Kein interaktives Terminal verfügbar. Führe den Prüfbefehl später in einem Terminal aus.';;
-    de-de:preview) printf '%s' 'Verwendet das geprüfte experimentelle Sprach-Installationsprogramm (PR #648).';;
     de-de:unsafeConfig) printf '%s' 'Im Einrichtungsordner liegt eine unerwartete Datei oder Verknüpfung. Verschiebe sie und versuche es erneut. Deine Einstellungen wurden nicht ersetzt.';;
     de-de:locked) printf '%s' 'Eine Einrichtung läuft noch oder hat nach einem Abbruch eine Sperre hinterlassen. Prüfe zuerst, dass keine Einrichtung mehr läuft. Entferne dann diesen Sperrordner und versuche es erneut:';;
     de-de:runtimeBackup) printf '%s' 'Bisherige Installationstools gesichert unter:';;
@@ -215,7 +212,6 @@ message() {
     es-es:hub) printf '%s' 'Este dispositivo es un servidor central. Prueba el micrófono y el altavoz en un satélite conectado.';;
     es-es:help) printf '%s' '¿Necesitas ayuda? Chat de la comunidad: https://matrix.to/#/#openvoiceos:matrix.org';;
     es-es:closed) printf '%s' 'No hay un terminal interactivo. Ejecuta el comando de comprobación en un terminal cuando quieras continuar.';;
-    es-es:preview) printf '%s' 'Utiliza el instalador experimental de voz revisado (PR #648).';;
     es-es:unsafeConfig) printf '%s' 'La carpeta de configuración contiene un archivo o enlace inesperado. Muévelo a otro lugar y vuelve a intentarlo. No se han sustituido tus ajustes.';;
     es-es:locked) printf '%s' 'Hay una instalación en curso o un intento interrumpido ha dejado un bloqueo. Primero comprueba que no haya ninguna instalación en marcha. Después elimina esta carpeta de bloqueo y vuelve a intentarlo:';;
     es-es:runtimeBackup) printf '%s' 'Herramientas del instalador anteriores guardadas en:';;
@@ -268,7 +264,6 @@ message() {
     it-it:hub) printf '%s' 'Questo dispositivo è un hub. Verifica microfono e altoparlante su un satellite collegato.';;
     it-it:help) printf '%s' 'Serve aiuto? Chat della comunità: https://matrix.to/#/#openvoiceos:matrix.org';;
     it-it:closed) printf '%s' 'Non è disponibile un terminale interattivo. Esegui il comando di verifica in un terminale quando sei pronto.';;
-    it-it:preview) printf '%s' 'Usa il programma di installazione vocale sperimentale verificato (PR #648).';;
     it-it:unsafeConfig) printf '%s' 'La cartella di configurazione contiene un file o collegamento inatteso. Spostalo altrove e riprova. Le tue impostazioni non sono state sostituite.';;
     it-it:locked) printf '%s' 'È in corso un’installazione, oppure un tentativo interrotto ha lasciato un blocco. Prima verifica che non ci siano installazioni in corso. Poi rimuovi questa cartella di blocco e riprova:';;
     it-it:runtimeBackup) printf '%s' 'Strumenti di installazione precedenti salvati in:';;
@@ -321,7 +316,6 @@ message() {
     nl-nl:hub) printf '%s' 'Dit apparaat is een hub. Test microfoon en luidspreker op een verbonden satelliet.';;
     nl-nl:help) printf '%s' 'Hulp nodig? Communitychat: https://matrix.to/#/#openvoiceos:matrix.org';;
     nl-nl:closed) printf '%s' 'Er is geen interactieve terminal. Voer het controlecommando later in een terminal uit.';;
-    nl-nl:preview) printf '%s' 'Gebruikt de beoordeelde experimentele spraakinstaller (PR #648).';;
     nl-nl:unsafeConfig) printf '%s' 'De instelmap bevat een onverwacht bestand of een onverwachte koppeling. Verplaats dit naar een andere plek en probeer het opnieuw. Je instellingen zijn niet vervangen.';;
     nl-nl:locked) printf '%s' 'Er loopt een installatie, of een onderbroken poging heeft een vergrendeling achtergelaten. Controleer eerst of er geen installatie meer draait. Verwijder daarna deze vergrendelingsmap en probeer het opnieuw:';;
     nl-nl:runtimeBackup) printf '%s' 'Vorige installatiehulpmiddelen bewaard in:';;
@@ -374,7 +368,6 @@ message() {
     pt-pt:hub) printf '%s' 'Este dispositivo é um servidor central. Testa o microfone e o altifalante num satélite ligado.';;
     pt-pt:help) printf '%s' 'Precisas de ajuda? Conversa da comunidade: https://matrix.to/#/#openvoiceos:matrix.org';;
     pt-pt:closed) printf '%s' 'Não há um terminal interativo disponível. Executa o comando de verificação num terminal quando quiseres continuar.';;
-    pt-pt:preview) printf '%s' 'Usa o instalador experimental de voz revisto (PR #648).';;
     pt-pt:unsafeConfig) printf '%s' 'A pasta de configuração contém um ficheiro ou uma ligação inesperados. Move-os para outro local e tenta novamente. As tuas definições não foram substituídas.';;
     pt-pt:locked) printf '%s' 'Está a decorrer uma instalação, ou uma tentativa interrompida deixou um bloqueio. Primeiro, confirma que não está a decorrer nenhuma instalação. Depois remove esta pasta de bloqueio e tenta novamente:';;
     pt-pt:runtimeBackup) printf '%s' 'Ferramentas de instalação anteriores guardadas em:';;
@@ -427,7 +420,6 @@ message() {
     ca-es:hub) printf '%s' 'Aquest dispositiu és un servidor central. Prova el micròfon i l’altaveu en un satèl·lit connectat.';;
     ca-es:help) printf '%s' 'Et cal ajuda? Xat de la comunitat: https://matrix.to/#/#openvoiceos:matrix.org';;
     ca-es:closed) printf '%s' 'No hi ha cap terminal interactiu disponible. Executa l’ordre de comprovació en un terminal quan vulguis continuar.';;
-    ca-es:preview) printf '%s' 'Fa servir l’instal·lador experimental de veu revisat (PR #648).';;
     ca-es:unsafeConfig) printf '%s' 'La carpeta de configuració conté un fitxer o un enllaç inesperat. Mou-lo a un altre lloc i torna-ho a provar. Els ajustos no s’han substituït.';;
     ca-es:locked) printf '%s' 'Hi ha una instal·lació en curs, o un intent interromput ha deixat un bloqueig. Primer comprova que no hi hagi cap instal·lació en marxa. Després elimina aquesta carpeta de bloqueig i torna-ho a provar:';;
     ca-es:runtimeBackup) printf '%s' 'Eines d’instal·lació anteriors desades a:';;
@@ -480,7 +472,6 @@ message() {
     eu-es:hub) printf '%s' 'Gailu hau zerbitzari nagusia da. Probatu mikrofonoa eta bozgorailua konektatutako satelite batean.';;
     eu-es:help) printf '%s' 'Laguntza behar duzu? Komunitatearen txata: https://matrix.to/#/#openvoiceos:matrix.org';;
     eu-es:closed) printf '%s' 'Ez dago terminal interaktiborik. Prest zaudenean, exekutatu egiaztapen-komandoa terminal batean.';;
-    eu-es:preview) printf '%s' 'Berrikusitako ahots-instalatzaile esperimentala erabiltzen du (PR #648).';;
     eu-es:unsafeConfig) printf '%s' 'Konfigurazio-karpetan espero ez zen fitxategi edo esteka bat dago. Mugitu beste toki batera eta saiatu berriro. Ezarpenak ez dira ordeztu.';;
     eu-es:locked) printf '%s' 'Instalazio bat martxan dago, edo etendako saiakera batek blokeoa utzi du. Lehenik, ziurtatu ez dagoela instalaziorik martxan. Ondoren, ezabatu blokeo-karpeta hau eta saiatu berriro:';;
     eu-es:runtimeBackup) printf '%s' 'Aurreko instalazio-tresnak hemen gorde dira:';;
@@ -533,7 +524,6 @@ message() {
     gl-es:hub) printf '%s' 'Este dispositivo é un servidor central. Proba o micrófono e o altofalante nun satélite conectado.';;
     gl-es:help) printf '%s' 'Precisas axuda? Chat da comunidade: https://matrix.to/#/#openvoiceos:matrix.org';;
     gl-es:closed) printf '%s' 'Non hai un terminal interactivo dispoñible. Executa o comando de comprobación nun terminal cando queiras continuar.';;
-    gl-es:preview) printf '%s' 'Usa o instalador experimental de voz revisado (PR #648).';;
     gl-es:unsafeConfig) printf '%s' 'O cartafol de configuración contén un ficheiro ou unha ligazón inesperados. Móveos a outro lugar e téntao de novo. Non se substituíron os teus axustes.';;
     gl-es:locked) printf '%s' 'Hai unha instalación en curso ou un intento interrompido deixou un bloqueo. Primeiro comproba que non haxa ningunha instalación en marcha. Despois elimina este cartafol de bloqueo e téntao de novo:';;
     gl-es:runtimeBackup) printf '%s' 'Ferramentas de instalación anteriores gardadas en:';;
@@ -586,7 +576,6 @@ message() {
     hi-in:hub) printf '%s' 'यह डिवाइस एक हब है। जुड़े हुए वॉइस सैटेलाइट पर माइक्रोफ़ोन और स्पीकर जाँचें।';;
     hi-in:help) printf '%s' 'मदद चाहिए? समुदाय से बात करें: https://matrix.to/#/#openvoiceos:matrix.org';;
     hi-in:closed) printf '%s' 'इंटरैक्टिव टर्मिनल उपलब्ध नहीं है। तैयार होने पर जाँच वाला कमांड किसी टर्मिनल में चलाएँ।';;
-    hi-in:preview) printf '%s' 'जाँचे गए प्रयोगात्मक वॉइस इंस्टॉलर का उपयोग करता है (PR #648)।';;
     hi-in:unsafeConfig) printf '%s' 'सेटअप फ़ोल्डर में कोई अनपेक्षित फ़ाइल या लिंक है। उसे दूसरी जगह ले जाएँ, फिर कोशिश करें। आपकी सेटिंग नहीं बदली गई हैं।';;
     hi-in:locked) printf '%s' 'कोई इंस्टॉलेशन चल रहा है, या बीच में रुके प्रयास का लॉक रह गया है। पहले सुनिश्चित करें कि कोई इंस्टॉलेशन नहीं चल रहा है। फिर यह लॉक फ़ोल्डर हटाएँ और दोबारा कोशिश करें:';;
     hi-in:runtimeBackup) printf '%s' 'इंस्टॉल करने वाले पिछले टूल यहाँ सुरक्षित हैं:';;
@@ -639,7 +628,6 @@ message() {
     kab-dz:hub) printf '%s' 'Ibenk-a d alemmas. Senqed amikru akked usmeɣri n yimesli deg usatelit yeqqnen.';;
     kab-dz:help) printf '%s' 'Tesriḍ tallalt? Asqerdec n tmezdagnut: https://matrix.to/#/#openvoiceos:matrix.org';;
     kab-dz:closed) printf '%s' 'Ulac tadiwent amyigawant. Selkem taladna n usenqed deg tadiwent mi ara theggiḍ.';;
-    kab-dz:preview) printf '%s' 'Yesseqdac asebdad n taɣect armitan yettwasenqden (PR #648).';;
     kab-dz:unsafeConfig) printf '%s' 'Akaram n useɣwer yesɛa afaylu neɣ aseɣwen ur nettwarǧi ara. Senkez-it ɣer umḍiq-nniḍen, syen ɛreḍ tikkelt-nniḍen. Iɣewwaren-ik ur ttwasemselsin ara.';;
     kab-dz:locked) printf '%s' 'Asbeddi la iteddu, neɣ asbeddi yeḥbes yeǧǧa akaram n usekṛu. Senqed qbel belli ulac asbeddi iteddun. Syen kkes akaram-a n usekṛu, ɛreḍ tikkelt-nniḍen:';;
     kab-dz:runtimeBackup) printf '%s' 'Allalen n usebded iqburen ttwaskelsen deg:';;
@@ -651,7 +639,7 @@ say() { message "$1"; printf '\n'; }
 # shellcheck disable=SC2016
 write_messages() {
   printf '%s\n' 'message() {' '  case "$1" in'
-  for ovos_key in audioFailed audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac preview regular required resume revision runtimeBackup servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceOk voicePhrase voiceQuestion; do
+  for ovos_key in audioFailed audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac regular required resume revision runtimeBackup servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceOk voicePhrase voiceQuestion; do
     printf '%s' "    $ovos_key) printf '%s' '"
     message "$ovos_key" | sed "s/'/'\\\\''/g"
     printf '%s\n' "';;"
@@ -691,23 +679,35 @@ if [ "$#" = 3 ] && [ "$2" = --track ]; then
 elif [ "$#" != 1 ]; then
   fail 'Paste the complete command from OVOS Start, including your setup code.'
 fi
-# Minimal, optional progress reporting. The capability can only write status.
-# Never accept a URL, message, log, credential or device identifier from input.
+# Minimal, optional progress reporting. Never accept arbitrary destinations,
+# messages, logs, credentials or device identifiers from installer output.
+valid_error_url() {
+  case "$1" in https://paste.uoi.io/*) :;; *) return 1;; esac
+  ovos_error_id=${1#https://paste.uoi.io/}
+  ovos_error_id=${ovos_error_id%/}
+  case "$ovos_error_id" in ''|*[!A-Za-z0-9_-]*) return 1;; esac
+  [ "${#ovos_error_id}" -le 128 ]
+}
+
 report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0
   case "$ovos_track" in *[!0-9a-f]*) return 0;; esac
   case "$1" in started|downloading|installing|installed|services_ready|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
+  ovos_error_field=''
+  if [ "$1" = failed ] && valid_error_url "${2:-}"; then
+    ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""
+  fi
   command -v curl >/dev/null 2>&1 || return 0
   # -q must be first: an inherited curlrc must not enable tracing or redirects.
   # Keep the bearer out of argv. Ignore every transport failure; installation
   # never depends on the browser or status relay being reachable.
   curl -q --config - --proto '=https' --connect-timeout 2 --max-time 3 --silent --fail --output /dev/null <<OVOS_STATUS >/dev/null 2>&1 || :
-url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"
+url = "https://start-api.smartgic.io/v1/events"
 request = "POST"
 header = "Authorization: Bearer $ovos_track"
 header = "Content-Type: application/json"
-data = "{\"event\":\"$1\"}"
+data = "{\"event\":\"$1\"$ovos_error_field}"
 OVOS_STATUS
 }
 
@@ -864,12 +864,29 @@ fi
 if [ "$ovos_mode" = scenario ]; then scenario; exit 0; fi
 
 ovos_tmp=''
+ovos_error_receipt=''
 ovos_lock=''
 ovos_installed=false
 ovos_cleanup_result=0
+# The private receipt survives upstream checkout cleanup. It contains one
+# consented paste URL, never arbitrary terminal output or a previous attempt.
+read_error_report() (
+  [ -n "$1" ] && [ -f "$1" ] && [ ! -L "$1" ] || exit 0
+  ovos_error_size=$(wc -c < "$1") || exit 0
+  [ "$ovos_error_size" -gt 0 ] && [ "$ovos_error_size" -le 151 ] || exit 0
+  IFS= read -r ovos_error_url < "$1" || exit 0
+  # Reject extra lines, including empty lines stripped by command substitution.
+  [ "$ovos_error_size" -eq "$((${#ovos_error_url} + 1))" ] || exit 0
+  valid_error_url "$ovos_error_url" || exit 0
+  printf '%s' "$ovos_error_url"
+)
+
 cleanup() {
   if [ "$ovos_installed" != true ] && [ "$1" -ne 0 ]; then
-    case "$1" in 129|130|143) report_status cancelled;; *) report_status failed;; esac
+    case "$1" in
+      129|130|143) report_status cancelled;;
+      *) report_status failed "$(read_error_report "$ovos_error_receipt")";;
+    esac
   fi
   [ -z "$ovos_tmp" ] || rm -rf "$ovos_tmp" || :
   [ -z "$ovos_lock" ] || rmdir "$ovos_lock" 2>/dev/null || :
@@ -879,10 +896,10 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
 
-# The reviewed macOS contract supports Intel and Apple Silicon. Current main
-# changes that promise; keep Mac defaults on the same pinned source as preview.
+# Linux uses the reviewed main-based revision for every speech choice.
+# macOS retains its reviewed Intel and Apple Silicon compatibility revision.
 ovos_installer=main
-if [ "$ovos_speech" != auto ] || [ "$ovos_device" = mac ]; then ovos_installer=pinned; fi
+if [ "$ovos_device" = mac ]; then ovos_installer=pinned; fi
 say checking
 [ "$(id -u)" -ne 0 ] || fail_message regular
 if [ "$ovos_device" = mac ]; then
@@ -920,13 +937,18 @@ if ! mkdir "$ovos_pending_lock" 2>/dev/null; then
 fi
 ovos_lock=$ovos_pending_lock
 ovos_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ovos-start.XXXXXX")
+if [ -n "$ovos_track" ]; then
+  ovos_error_receipt="$ovos_tmp/error-report"
+  : > "$ovos_error_receipt"
+  chmod 600 "$ovos_error_receipt"
+fi
 report_status started
 say download
 report_status downloading
-ovos_revision=main
+# Both paths are immutable and include the optional consented report handoff.
+ovos_revision=fb1b377513720ef074deb36a33714aa1c4454e3e
 if [ "$ovos_installer" = pinned ]; then
-  ovos_revision=6ffd465028bac299e5235d619819bfdc734af073
-  say preview
+  ovos_revision=ff29aa7b9d1ec0d267ad31bc10a6948c490b1b08
 fi
 ovos_source="$ovos_tmp/source"
 mkdir "$ovos_source"
@@ -943,9 +965,7 @@ git -C "$ovos_source" init --quiet --template= || fail_message downloadFailed
 # Never wait for an unexpected Git credential prompt; abort a stalled transfer.
 GIT_TERMINAL_PROMPT=0 git -C "$ovos_source" -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git "$ovos_revision" || fail_message downloadFailed
 git -C "$ovos_source" -c core.hooksPath=/dev/null checkout --quiet --detach FETCH_HEAD || fail_message downloadFailed
-if [ "$ovos_installer" = pinned ]; then
-  [ "$(git -C "$ovos_source" rev-parse HEAD)" = "$ovos_revision" ] || fail_message revision
-fi
+[ "$(git -C "$ovos_source" rev-parse HEAD)" = "$ovos_revision" ] || fail_message revision
 # This notification plugin reads role metadata, never terminal logs or secrets.
 # It only exists for tracked runs and leaves upstream stdout callbacks intact.
 if [ -n "$ovos_track" ]; then
@@ -994,7 +1014,7 @@ def report_phase(event: str) -> None:
         if not re.fullmatch(r"[0-9a-f]{64}\n?", token):
             return
         config = (
-            'url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"\n'
+            'url = "https://start-api.smartgic.io/v1/events"\n'
             'request = "POST"\n'
             f'header = "Authorization: Bearer {token.rstrip()}"\n'
             'header = "Content-Type: application/json"\n'
@@ -1059,23 +1079,35 @@ printf '%s\n' "$ovos_track" > "$ovos_tmp/status-installed"
 chmod 600 "$ovos_tmp/status-token" "$ovos_tmp/status-installed" "$ovos_tmp/status-installed-empty"
 write_messages > "$ovos_tmp/runtime.sh"
 cat >> "$ovos_tmp/runtime.sh" <<'OVOS_RUNTIME'
-# Minimal, optional progress reporting. The capability can only write status.
-# Never accept a URL, message, log, credential or device identifier from input.
+# Minimal, optional progress reporting. Never accept arbitrary destinations,
+# messages, logs, credentials or device identifiers from installer output.
+valid_error_url() {
+  case "$1" in https://paste.uoi.io/*) :;; *) return 1;; esac
+  ovos_error_id=${1#https://paste.uoi.io/}
+  ovos_error_id=${ovos_error_id%/}
+  case "$ovos_error_id" in ''|*[!A-Za-z0-9_-]*) return 1;; esac
+  [ "${#ovos_error_id}" -le 128 ]
+}
+
 report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0
   case "$ovos_track" in *[!0-9a-f]*) return 0;; esac
   case "$1" in started|downloading|installing|installed|services_ready|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
+  ovos_error_field=''
+  if [ "$1" = failed ] && valid_error_url "${2:-}"; then
+    ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""
+  fi
   command -v curl >/dev/null 2>&1 || return 0
   # -q must be first: an inherited curlrc must not enable tracing or redirects.
   # Keep the bearer out of argv. Ignore every transport failure; installation
   # never depends on the browser or status relay being reachable.
   curl -q --config - --proto '=https' --connect-timeout 2 --max-time 3 --silent --fail --output /dev/null <<OVOS_STATUS >/dev/null 2>&1 || :
-url = "https://ovos-install-status.goldyfruit.chatgpt.site/v1/events"
+url = "https://start-api.smartgic.io/v1/events"
 request = "POST"
 header = "Authorization: Bearer $ovos_track"
 header = "Content-Type: application/json"
-data = "{\"event\":\"$1\"}"
+data = "{\"event\":\"$1\"$ovos_error_field}"
 OVOS_STATUS
 }
 
@@ -1440,6 +1472,16 @@ report_status installing
 # that child: it would make venv bin/lib directories root-only. Keep 077 for
 # this launcher and its tokens; upstream explicitly protects its own secrets.
 (
+  # Only a tracked wizard run may request an automatic failure report, and
+  # only with our private receipt. Never trust inherited report settings.
+  unset OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
+  exec 3>&-
+  if [ -n "$ovos_track" ] && [ "${13}" = "${ovos_source%/source}/error-report" ] && [ -f "${13}" ] && [ ! -L "${13}" ]; then
+    exec 3> "${13}"
+    OVOS_INSTALLER_REPORT_FD=3
+    OVOS_INSTALLER_AUTO_REPORT=1
+    export OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
+  fi
   umask 022
   if [ -n "$ovos_track" ]; then
     export ANSIBLE_CALLBACK_PLUGINS="$ovos_source/.ovos-start-callbacks${ANSIBLE_CALLBACK_PLUGINS:+:$ANSIBLE_CALLBACK_PLUGINS}"
@@ -1459,7 +1501,7 @@ if [ -L "$ovos_receipt" ] || { [ -e "$ovos_receipt" ] && [ ! -f "$ovos_receipt" 
 if [ "$ovos_receipt_safe" = true ]; then mv "${12}" "$ovos_receipt" || :; fi
 report_status installed
 OVOS_LAUNCH
-if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed"; then
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_installer" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
   ovos_installed=true
   say installReturned
   # Incomplete verification is not an installer failure. The checker itself
