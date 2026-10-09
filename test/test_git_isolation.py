@@ -33,7 +33,14 @@ def test_inherited_git_context_cannot_modify_an_unrelated_repository(
     assert real_git is not None
     root = sandbox.home.parent
     user_config = root / "user.gitconfig"
-    user_config.write_text("[audit]\n\tmarker = preserve-user-settings\n")
+    # Fixture commits must not start background maintenance: a transient lock
+    # disappearing after the snapshot is not a mutation by the launcher.
+    # Keep the snapshot strict so every unexpected repository change is caught.
+    user_config.write_text(
+        "[audit]\n\tmarker = preserve-user-settings\n"
+        "[maintenance]\n\tauto = false\n"
+        "[gc]\n\tauto = 0\n"
+    )
     clean_env = {
         "PATH": os.pathsep.join((str(Path(real_git).parent), "/usr/bin", "/bin")),
         "HOME": str(sandbox.home), "GIT_CONFIG_NOSYSTEM": "1",
