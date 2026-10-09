@@ -701,19 +701,6 @@ valid_error_url() {
   [ "${#ovos_error_id}" -le 128 ]
 }
 
-# The installer writes exactly one consented paste URL, not terminal output.
-# The receipt lives outside its checkout so upstream cleanup cannot remove it.
-read_error_report() (
-  [ -n "$1" ] && [ -f "$1" ] && [ ! -L "$1" ] || exit 0
-  ovos_error_size=$(wc -c < "$1") || exit 0
-  [ "$ovos_error_size" -gt 0 ] && [ "$ovos_error_size" -le 151 ] || exit 0
-  IFS= read -r ovos_error_url < "$1" || exit 0
-  # Reject extra lines, including empty lines stripped by command substitution.
-  [ "$ovos_error_size" -eq "$((${#ovos_error_url} + 1))" ] || exit 0
-  valid_error_url "$ovos_error_url" || exit 0
-  printf '%s' "$ovos_error_url"
-)
-
 report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0
@@ -893,6 +880,19 @@ ovos_error_receipt=''
 ovos_lock=''
 ovos_installed=false
 ovos_cleanup_result=0
+# The private receipt survives upstream checkout cleanup. It contains one
+# consented paste URL, never arbitrary terminal output or a previous attempt.
+read_error_report() (
+  [ -n "$1" ] && [ -f "$1" ] && [ ! -L "$1" ] || exit 0
+  ovos_error_size=$(wc -c < "$1") || exit 0
+  [ "$ovos_error_size" -gt 0 ] && [ "$ovos_error_size" -le 151 ] || exit 0
+  IFS= read -r ovos_error_url < "$1" || exit 0
+  # Reject extra lines, including empty lines stripped by command substitution.
+  [ "$ovos_error_size" -eq "$((${#ovos_error_url} + 1))" ] || exit 0
+  valid_error_url "$ovos_error_url" || exit 0
+  printf '%s' "$ovos_error_url"
+)
+
 cleanup() {
   if [ "$ovos_installed" != true ] && [ "$1" -ne 0 ]; then
     case "$1" in
@@ -957,9 +957,10 @@ fi
 report_status started
 say download
 report_status downloading
-ovos_revision=main
+# Both paths are immutable and include the optional consented report handoff.
+ovos_revision=0eab8e46023c9ebef78c2a63ca22fe23e893e1e2
 if [ "$ovos_installer" = pinned ]; then
-  ovos_revision=6ffd465028bac299e5235d619819bfdc734af073
+  ovos_revision=6276d7b47ccd45d7a7b0f905325a821301d59172
   say preview
 fi
 ovos_source="$ovos_tmp/source"
@@ -977,9 +978,7 @@ git -C "$ovos_source" init --quiet --template= || fail_message downloadFailed
 # Never wait for an unexpected Git credential prompt; abort a stalled transfer.
 GIT_TERMINAL_PROMPT=0 git -C "$ovos_source" -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet --depth=1 https://github.com/OpenVoiceOS/ovos-installer.git "$ovos_revision" || fail_message downloadFailed
 git -C "$ovos_source" -c core.hooksPath=/dev/null checkout --quiet --detach FETCH_HEAD || fail_message downloadFailed
-if [ "$ovos_installer" = pinned ]; then
-  [ "$(git -C "$ovos_source" rev-parse HEAD)" = "$ovos_revision" ] || fail_message revision
-fi
+[ "$(git -C "$ovos_source" rev-parse HEAD)" = "$ovos_revision" ] || fail_message revision
 # This notification plugin reads role metadata, never terminal logs or secrets.
 # It only exists for tracked runs and leaves upstream stdout callbacks intact.
 if [ -n "$ovos_track" ]; then
@@ -1102,19 +1101,6 @@ valid_error_url() {
   case "$ovos_error_id" in ''|*[!A-Za-z0-9_-]*) return 1;; esac
   [ "${#ovos_error_id}" -le 128 ]
 }
-
-# The installer writes exactly one consented paste URL, not terminal output.
-# The receipt lives outside its checkout so upstream cleanup cannot remove it.
-read_error_report() (
-  [ -n "$1" ] && [ -f "$1" ] && [ ! -L "$1" ] || exit 0
-  ovos_error_size=$(wc -c < "$1") || exit 0
-  [ "$ovos_error_size" -gt 0 ] && [ "$ovos_error_size" -le 151 ] || exit 0
-  IFS= read -r ovos_error_url < "$1" || exit 0
-  # Reject extra lines, including empty lines stripped by command substitution.
-  [ "$ovos_error_size" -eq "$((${#ovos_error_url} + 1))" ] || exit 0
-  valid_error_url "$ovos_error_url" || exit 0
-  printf '%s' "$ovos_error_url"
-)
 
 report_status() {
   [ -n "${ovos_track:-}" ] || return 0

@@ -8,19 +8,6 @@ valid_error_url() {
   [ "${#ovos_error_id}" -le 128 ]
 }
 
-# The installer writes exactly one consented paste URL, not terminal output.
-# The receipt lives outside its checkout so upstream cleanup cannot remove it.
-read_error_report() (
-  [ -n "$1" ] && [ -f "$1" ] && [ ! -L "$1" ] || exit 0
-  ovos_error_size=$(wc -c < "$1") || exit 0
-  [ "$ovos_error_size" -gt 0 ] && [ "$ovos_error_size" -le 151 ] || exit 0
-  IFS= read -r ovos_error_url < "$1" || exit 0
-  # Reject extra lines, including empty lines stripped by command substitution.
-  [ "$ovos_error_size" -eq "$((${#ovos_error_url} + 1))" ] || exit 0
-  valid_error_url "$ovos_error_url" || exit 0
-  printf '%s' "$ovos_error_url"
-)
-
 report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0

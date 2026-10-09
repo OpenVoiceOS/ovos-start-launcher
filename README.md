@@ -11,7 +11,7 @@ Copy the complete command from your finished wizard and run it as your regular u
 - [Known limits](AUDIT.md)
 - [Questions](FAQ.md)
 
-A 64-bit OS is required. All Mac recipes and explicit local/online speech use the reviewed experimental PR #648 revision, not the current main release. Passwords and API keys are entered only on the target terminal. Codes are public settings, not passwords.
+A 64-bit OS is required. Installer versions are pinned and verified before running. Mac recipes and explicit local/online speech retain the existing experimental compatibility version, with the error-report handoff added. Passwords and API keys are entered only on the target terminal. Codes are public settings, not passwords.
 
 Codes contain 16 Base32 characters, grouped `XXXX-XXXX-XXXX-XXXX`. They are valid when `issuedAt <= now < issuedAt + 3600`. At the deadline, the launcher refuses the code. Future timestamps and unavailable or malformed clocks also fail before installer downloads or settings changes. `v2.sh` is the only published launcher. The old `v1.sh` address is retired; copy a new command from the wizard. Timeless eight-character codes are still refused.
 

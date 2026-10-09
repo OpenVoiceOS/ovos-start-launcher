@@ -10,7 +10,7 @@ import sys
 
 import pytest
 
-from test_launcher import Sandbox, raw_code, run_launcher, sandbox
+from test_launcher import MAIN_PIN, Sandbox, raw_code, run_launcher, sandbox
 
 
 def repository_snapshot(repository: Path) -> dict[str, bytes]:
@@ -57,6 +57,11 @@ def test_inherited_git_context_cannot_modify_an_unrelated_repository(
     (upstream / "setup.sh").write_text('#!/bin/sh\nexec "$FAKE_PYTHON" "$FAKE_RECORDER"\n')
     git(upstream, "add", ".")
     git(upstream, "commit", "--quiet", "-m", "Harmless fixture installer")
+    # Keep exact-commit verification real while using an offline harmless pin.
+    upstream_pin = git(upstream, "rev-parse", "HEAD").stdout.strip()
+    launcher = root / "offline-launcher.sh"
+    launcher.write_text(sandbox.launcher.read_text().replace(MAIN_PIN, upstream_pin))
+    sandbox.env["FAKE_LAUNCHER"] = str(launcher)
 
     unrelated = root / "unrelated-repository"
     unrelated.mkdir()

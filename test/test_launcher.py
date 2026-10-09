@@ -17,7 +17,8 @@ import time
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN = "6ffd465028bac299e5235d619819bfdc734af073"
+MAIN_PIN = "0eab8e46023c9ebef78c2a63ca22fe23e893e1e2"
+PIN = "6276d7b47ccd45d7a7b0f905325a821301d59172"
 ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 ISSUED_AT = 1_700_000_000
 MAX_TIMESTAMP = (1 << 40) - 1
@@ -87,12 +88,13 @@ if name == 'git':
     while operation_args and operation_args[0] == '-c': operation_args = operation_args[2:]
     operation = operation_args[0]
     if os.environ.get('FAIL_GIT') == operation: sys.exit(23)
+    if operation == 'fetch': (source / '.fixture-ref').write_text(operation_args[-1])
     if operation == 'checkout':
         (source / 'utils').mkdir()
         shutil.copyfile(os.environ['FAKE_INSTALLER'], source / 'setup.sh')
         shutil.copyfile(os.environ['FAKE_RUNTIME_FILE'], source / 'utils/bash_runtime.sh')
     if operation == 'rev-parse':
-        print(os.environ.get('FAKE_SHA', '6ffd465028bac299e5235d619819bfdc734af073'))
+        print(os.environ.get('FAKE_SHA', (source / '.fixture-ref').read_text()))
     sys.exit(0)
 if name == 'sudo':
     assert args[0] == 'sh', args
@@ -512,8 +514,8 @@ def test_existing_checkout_is_never_replaced(sandbox: Sandbox, kind: str) -> Non
 
 @pytest.mark.parametrize(("speech", "changes"), [
     *((speech, {"FAIL_GIT": operation}) for speech in ("auto", "public") for operation in ("init", "fetch", "checkout")),
-    ("public", {"FAIL_GIT": "rev-parse"}),
-    ("public", {"FAKE_SHA": "0" * 40}),
+    *((speech, {"FAIL_GIT": "rev-parse"}) for speech in ("auto", "public")),
+    *((speech, {"FAKE_SHA": "0" * 40}) for speech in ("auto", "public")),
 ])
 def test_failed_download_or_pin_check_preserves_active_configuration(
     sandbox: Sandbox, speech: str, changes: dict[str, str]
@@ -534,7 +536,7 @@ def test_failed_download_or_pin_check_preserves_active_configuration(
 def test_auto_and_preview_installers_back_up_and_receive_exact_recipe(
     sandbox: Sandbox, overrides: dict[str, object]
 ) -> None:
-    """Only the fixture installer runs with locale, private modes and verified preview pin."""
+    """Only the fixture installer runs with locale, private modes and a verified pin."""
     sandbox.seed_scenario()
     state, code = recipe({"locale": "fr-fr", "telemetry": True, **overrides})
     result = run_launcher(sandbox, code)
@@ -547,7 +549,7 @@ def test_auto_and_preview_installers_back_up_and_receive_exact_recipe(
     calls = sandbox.calls()
     assert calls[-1]["command"] == "sudo"
     fetch = next(call for call in calls if "fetch" in call["args"])
-    assert fetch["args"][-1] == ("main" if state["speech"] == "auto" else PIN)
+    assert fetch["args"][-1] == (MAIN_PIN if state["speech"] == "auto" else PIN)
     assert sandbox.received()["RUN_AS"] == "fixture-user"
     assert sandbox.received()["RUN_AS_HOME"] == str(sandbox.home)
     assert "curl" not in [call["command"] for call in calls]
@@ -849,7 +851,7 @@ def test_installer_failure_keeps_recovery_checker_and_never_reports_success(sand
     assert len(list(sandbox.scenario.parent.glob("scenario.yaml.backup.*"))) == 1
     assert [call["command"] for call in sandbox.calls()].count("sudo") == 1
     assert "curl" not in [call["command"] for call in sandbox.calls()]
-    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == ("main" if speech == "auto" else PIN)
+    assert next(call for call in sandbox.calls() if "fetch" in call["args"])["args"][-1] == (MAIN_PIN if speech == "auto" else PIN)
 
 
 def test_sound_check_uses_installed_bus_api_and_waits_for_human_confirmation(sandbox: Sandbox) -> None:
