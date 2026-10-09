@@ -44,12 +44,12 @@ message() {
     en-us:servicesUnknown) printf '%s' 'Automatic service checks are unavailable here. Installation and voice operation have not been verified.';;
     en-us:checkMenu) printf '%s' 'Next: 1 = try the speaker and microphone, 2 = check services again, Enter = finish later: ';;
     en-us:audioTest) printf '%s' 'Sending a short sound check through OVOS. Listen to your device.';;
-    en-us:audioQuestion) printf '%s' 'Did you hear it? 1 = yes, 2 = try again, Enter = finish later: ';;
+    en-us:audioQuestion) printf '%s' 'Did you hear it? 1 = yes, 2 = try again, 3 = no, Enter = finish later: ';;
     en-us:audioOk) printf '%s' 'Speaker test confirmed by you.';;
     en-us:audioFailed) printf '%s' 'The sound check could not reach OVOS. Check service status, volume and your selected audio device.';;
     en-us:voiceIntro) printf '%s' 'Now speak near the microphone. Use your configured wake word if you changed it:';;
     en-us:voicePhrase) printf '%s' 'Hey Mycroft, what time is it?';;
-    en-us:voiceQuestion) printf '%s' 'Did OVOS answer correctly? 1 = yes, 2 = try again, Enter = finish later: ';;
+    en-us:voiceQuestion) printf '%s' 'Did OVOS answer correctly? 1 = yes, 2 = try again, 3 = no, Enter = finish later: ';;
     en-us:voiceOk) printf '%s' 'First voice response confirmed by you. Enjoy OVOS!';;
     en-us:incomplete) printf '%s' 'The check is unfinished. You can return to it with the command above.';;
     en-us:customVoice) printf '%s' 'You chose no bundled skills. Try the wake word and a command from a skill you installed; the example time question may not be available.';;
@@ -59,6 +59,8 @@ message() {
     en-us:unsafeConfig) printf '%s' 'The setup folder contains an unexpected file or link. Move it aside, then try again. Your settings were not replaced.';;
     en-us:locked) printf '%s' 'A setup is running, or an interrupted attempt left a lock. First make sure no setup is running. Then remove this lock folder and try again:';;
     en-us:runtimeBackup) printf '%s' 'Previous installer tools saved to:';;
+    en-us:audioNo) printf '%s' 'No sound was heard. Check the volume and selected speaker, then run the check again.';;
+    en-us:voiceNo) printf '%s' 'No correct voice response was confirmed. Check your microphone and wake word, then try again.';;
     fr-fr:bits) printf '%s' 'OVOS nécessite un système 64 bits. Aucune modification n’a été faite.';;
     fr-fr:invalid) printf '%s' 'Ce code est incorrect ou incomplet. Copiez une nouvelle commande depuis le guide.';;
     fr-fr:expired) printf '%s' 'Ce code a expiré au bout d’une heure. Générez-en un nouveau dans le guide.';;
@@ -96,12 +98,12 @@ message() {
     fr-fr:servicesUnknown) printf '%s' 'La vérification automatique des services n’est pas disponible ici. L’installation et la voix restent à vérifier.';;
     fr-fr:checkMenu) printf '%s' 'Suite : 1 = essayer le son et le micro, 2 = revérifier les services, Entrée = terminer plus tard : ';;
     fr-fr:audioTest) printf '%s' 'OVOS va prononcer une courte phrase. Écoutez votre appareil.';;
-    fr-fr:audioQuestion) printf '%s' 'Avez-vous entendu la phrase ? 1 = oui, 2 = réessayer, Entrée = plus tard : ';;
+    fr-fr:audioQuestion) printf '%s' 'Avez-vous entendu la phrase ? 1 = oui, 2 = réessayer, 3 = non, Entrée = plus tard : ';;
     fr-fr:audioOk) printf '%s' 'Vous avez confirmé que le haut-parleur fonctionne.';;
     fr-fr:audioFailed) printf '%s' 'Le test sonore n’a pas pu joindre OVOS. Vérifiez les services, le volume et la sortie audio choisie.';;
     fr-fr:voiceIntro) printf '%s' 'Parlez maintenant près du micro. Si vous avez changé le mot d’activation, utilisez le vôtre :';;
     fr-fr:voicePhrase) printf '%s' 'Hey Mycroft, quelle heure est-il ?';;
-    fr-fr:voiceQuestion) printf '%s' 'OVOS a-t-il répondu correctement ? 1 = oui, 2 = réessayer, Entrée = plus tard : ';;
+    fr-fr:voiceQuestion) printf '%s' 'OVOS a-t-il répondu correctement ? 1 = oui, 2 = réessayer, 3 = non, Entrée = plus tard : ';;
     fr-fr:voiceOk) printf '%s' 'Vous avez confirmé la première réponse vocale. Profitez d’OVOS !';;
     fr-fr:incomplete) printf '%s' 'Les vérifications restent à terminer. Reprenez-les avec la commande ci-dessus.';;
     fr-fr:customVoice) printf '%s' 'Vous n’avez pas choisi les compétences incluses. Essayez le mot d’activation puis une commande d’une compétence installée ; la question sur l’heure peut ne pas fonctionner.';;
@@ -111,6 +113,8 @@ message() {
     fr-fr:unsafeConfig) printf '%s' 'Le dossier de configuration contient un fichier ou un lien inattendu. Déplacez-le, puis réessayez. Vos réglages n’ont pas été remplacés.';;
     fr-fr:locked) printf '%s' 'Une installation est en cours, ou une tentative interrompue a laissé un verrou. Vérifiez d’abord qu’aucune installation ne tourne. Supprimez ensuite ce dossier de verrouillage, puis réessayez :';;
     fr-fr:runtimeBackup) printf '%s' 'Anciens outils d’installation sauvegardés ici :';;
+    fr-fr:audioNo) printf '%s' 'Aucun son entendu. Vérifiez le volume et le haut-parleur sélectionné, puis relancez le test.';;
+    fr-fr:voiceNo) printf '%s' 'Aucune réponse vocale correcte confirmée. Vérifiez le microphone et le mot de réveil, puis réessayez.';;
     de-de:bits) printf '%s' 'OVOS benötigt ein 64-Bit-Betriebssystem. Es wurde nichts geändert.';;
     de-de:invalid) printf '%s' 'Dieser Einrichtungscode ist ungültig oder unvollständig. Kopiere einen neuen Befehl aus dem Assistenten.';;
     de-de:expired) printf '%s' 'Dieser Code ist nach einer Stunde abgelaufen. Erstelle im Assistenten einen neuen.';;
@@ -148,12 +152,12 @@ message() {
     de-de:servicesUnknown) printf '%s' 'Eine automatische Dienstprüfung ist hier nicht möglich. Installation und Sprachbedienung sind noch nicht bestätigt.';;
     de-de:checkMenu) printf '%s' 'Weiter: 1 = Lautsprecher und Mikrofon testen, 2 = Dienste erneut prüfen, Eingabe = später: ';;
     de-de:audioTest) printf '%s' 'OVOS gibt gleich einen kurzen Testsatz aus. Höre auf dein Gerät.';;
-    de-de:audioQuestion) printf '%s' 'Hast du den Satz gehört? 1 = ja, 2 = erneut testen, Eingabe = später: ';;
+    de-de:audioQuestion) printf '%s' 'Hast du den Satz gehört? 1 = ja, 2 = erneut testen, 3 = nein, Eingabe = später: ';;
     de-de:audioOk) printf '%s' 'Du hast den Lautsprechertest bestätigt.';;
     de-de:audioFailed) printf '%s' 'Der Audiotest konnte OVOS nicht erreichen. Prüfe Dienste, Lautstärke und das gewählte Audiogerät.';;
     de-de:voiceIntro) printf '%s' 'Sprich jetzt in der Nähe des Mikrofons. Falls du das Aktivierungswort geändert hast, verwende dein eigenes:';;
     de-de:voicePhrase) printf '%s' 'Hey Mycroft, wie spät ist es?';;
-    de-de:voiceQuestion) printf '%s' 'Hat OVOS richtig geantwortet? 1 = ja, 2 = erneut versuchen, Eingabe = später: ';;
+    de-de:voiceQuestion) printf '%s' 'Hat OVOS richtig geantwortet? 1 = ja, 2 = erneut versuchen, 3 = nein, Eingabe = später: ';;
     de-de:voiceOk) printf '%s' 'Du hast die erste Sprachantwort bestätigt. Viel Spaß mit OVOS!';;
     de-de:incomplete) printf '%s' 'Die Prüfung ist noch offen. Mit dem obigen Befehl kannst du sie fortsetzen.';;
     de-de:customVoice) printf '%s' 'Du hast keine mitgelieferten Skills gewählt. Teste einen Befehl eines selbst installierten Skills; die Zeitfrage ist möglicherweise nicht verfügbar.';;
@@ -163,6 +167,8 @@ message() {
     de-de:unsafeConfig) printf '%s' 'Im Einrichtungsordner liegt eine unerwartete Datei oder Verknüpfung. Verschiebe sie und versuche es erneut. Deine Einstellungen wurden nicht ersetzt.';;
     de-de:locked) printf '%s' 'Eine Einrichtung läuft noch oder hat nach einem Abbruch eine Sperre hinterlassen. Prüfe zuerst, dass keine Einrichtung mehr läuft. Entferne dann diesen Sperrordner und versuche es erneut:';;
     de-de:runtimeBackup) printf '%s' 'Bisherige Installationstools gesichert unter:';;
+    de-de:audioNo) printf '%s' 'Kein Ton gehört. Prüfe die Lautstärke und den gewählten Lautsprecher und teste erneut.';;
+    de-de:voiceNo) printf '%s' 'Keine richtige Sprachantwort bestätigt. Prüfe Mikrofon und Aktivierungswort und versuche es erneut.';;
     es-es:bits) printf '%s' 'OVOS necesita un sistema operativo de 64 bits. No se ha cambiado nada.';;
     es-es:invalid) printf '%s' 'El código no es válido o está incompleto. Copia un comando nuevo del asistente.';;
     es-es:expired) printf '%s' 'Este código ha caducado tras una hora. Genera uno nuevo en el asistente.';;
@@ -200,12 +206,12 @@ message() {
     es-es:servicesUnknown) printf '%s' 'Aquí no se pueden comprobar los servicios automáticamente. La instalación y la voz siguen sin verificar.';;
     es-es:checkMenu) printf '%s' 'Siguiente: 1 = probar altavoz y micrófono, 2 = comprobar servicios otra vez, Intro = más tarde: ';;
     es-es:audioTest) printf '%s' 'OVOS va a reproducir una frase breve. Escucha tu dispositivo.';;
-    es-es:audioQuestion) printf '%s' '¿La has oído? 1 = sí, 2 = repetir, Intro = más tarde: ';;
+    es-es:audioQuestion) printf '%s' '¿La has oído? 1 = sí, 2 = repetir, 3 = no, Intro = más tarde: ';;
     es-es:audioOk) printf '%s' 'Has confirmado que el altavoz funciona.';;
     es-es:audioFailed) printf '%s' 'La prueba de sonido no ha podido conectar con OVOS. Revisa los servicios, el volumen y el dispositivo de audio elegido.';;
     es-es:voiceIntro) printf '%s' 'Habla cerca del micrófono. Si has cambiado la palabra de activación, utiliza la tuya:';;
     es-es:voicePhrase) printf '%s' 'Hey Mycroft, ¿qué hora es?';;
-    es-es:voiceQuestion) printf '%s' '¿OVOS ha respondido correctamente? 1 = sí, 2 = repetir, Intro = más tarde: ';;
+    es-es:voiceQuestion) printf '%s' '¿OVOS ha respondido correctamente? 1 = sí, 2 = repetir, 3 = no, Intro = más tarde: ';;
     es-es:voiceOk) printf '%s' 'Has confirmado la primera respuesta de voz. ¡Disfruta de OVOS!';;
     es-es:incomplete) printf '%s' 'La comprobación queda pendiente. Puedes retomarla con el comando anterior.';;
     es-es:customVoice) printf '%s' 'No has elegido las habilidades incluidas. Prueba un comando de una habilidad instalada por ti; la pregunta sobre la hora puede no estar disponible.';;
@@ -215,6 +221,8 @@ message() {
     es-es:unsafeConfig) printf '%s' 'La carpeta de configuración contiene un archivo o enlace inesperado. Muévelo a otro lugar y vuelve a intentarlo. No se han sustituido tus ajustes.';;
     es-es:locked) printf '%s' 'Hay una instalación en curso o un intento interrumpido ha dejado un bloqueo. Primero comprueba que no haya ninguna instalación en marcha. Después elimina esta carpeta de bloqueo y vuelve a intentarlo:';;
     es-es:runtimeBackup) printf '%s' 'Herramientas del instalador anteriores guardadas en:';;
+    es-es:audioNo) printf '%s' 'No se ha oído ningún sonido. Comprueba el volumen y el altavoz seleccionado y repite la prueba.';;
+    es-es:voiceNo) printf '%s' 'No se ha confirmado una respuesta de voz correcta. Comprueba el micrófono y la palabra de activación y vuelve a intentarlo.';;
     it-it:bits) printf '%s' 'OVOS richiede un sistema operativo a 64 bit. Non è stato modificato nulla.';;
     it-it:invalid) printf '%s' 'Il codice non è valido o è incompleto. Copia un nuovo comando dalla procedura guidata.';;
     it-it:expired) printf '%s' 'Questo codice è scaduto dopo un’ora. Creane uno nuovo nella procedura guidata.';;
@@ -252,12 +260,12 @@ message() {
     it-it:servicesUnknown) printf '%s' 'Qui non è disponibile il controllo automatico dei servizi. Installazione e voce restano da verificare.';;
     it-it:checkMenu) printf '%s' 'Avanti: 1 = prova altoparlante e microfono, 2 = ricontrolla i servizi, Invio = più tardi: ';;
     it-it:audioTest) printf '%s' 'OVOS pronuncerà una breve frase di prova. Ascolta il dispositivo.';;
-    it-it:audioQuestion) printf '%s' 'Hai sentito la frase? 1 = sì, 2 = riprova, Invio = più tardi: ';;
+    it-it:audioQuestion) printf '%s' 'Hai sentito la frase? 1 = sì, 2 = riprova, 3 = no, Invio = più tardi: ';;
     it-it:audioOk) printf '%s' 'Hai confermato che l’altoparlante funziona.';;
     it-it:audioFailed) printf '%s' 'La prova audio non ha raggiunto OVOS. Controlla servizi, volume e dispositivo audio selezionato.';;
     it-it:voiceIntro) printf '%s' 'Ora parla vicino al microfono. Se hai cambiato la parola di attivazione, usa la tua:';;
     it-it:voicePhrase) printf '%s' 'Hey Mycroft, che ore sono?';;
-    it-it:voiceQuestion) printf '%s' 'OVOS ha risposto correttamente? 1 = sì, 2 = riprova, Invio = più tardi: ';;
+    it-it:voiceQuestion) printf '%s' 'OVOS ha risposto correttamente? 1 = sì, 2 = riprova, 3 = no, Invio = più tardi: ';;
     it-it:voiceOk) printf '%s' 'Hai confermato la prima risposta vocale. Buon divertimento con OVOS!';;
     it-it:incomplete) printf '%s' 'Il controllo non è completo. Puoi riprenderlo con il comando sopra.';;
     it-it:customVoice) printf '%s' 'Non hai scelto le abilità incluse. Prova un comando di un’abilità installata da te; la domanda sull’ora potrebbe non essere disponibile.';;
@@ -267,6 +275,8 @@ message() {
     it-it:unsafeConfig) printf '%s' 'La cartella di configurazione contiene un file o collegamento inatteso. Spostalo altrove e riprova. Le tue impostazioni non sono state sostituite.';;
     it-it:locked) printf '%s' 'È in corso un’installazione, oppure un tentativo interrotto ha lasciato un blocco. Prima verifica che non ci siano installazioni in corso. Poi rimuovi questa cartella di blocco e riprova:';;
     it-it:runtimeBackup) printf '%s' 'Strumenti di installazione precedenti salvati in:';;
+    it-it:audioNo) printf '%s' 'Nessun suono sentito. Controlla il volume e l’altoparlante selezionato, poi ripeti il test.';;
+    it-it:voiceNo) printf '%s' 'Nessuna risposta vocale corretta confermata. Controlla il microfono e la parola di attivazione, poi riprova.';;
     nl-nl:bits) printf '%s' 'OVOS heeft een 64-bits besturingssysteem nodig. Er is niets gewijzigd.';;
     nl-nl:invalid) printf '%s' 'Deze instelcode is ongeldig of onvolledig. Kopieer een nieuw commando uit de wizard.';;
     nl-nl:expired) printf '%s' 'Deze code is na een uur verlopen. Maak een nieuwe code in de wizard.';;
@@ -304,12 +314,12 @@ message() {
     nl-nl:servicesUnknown) printf '%s' 'Automatisch controleren is hier niet mogelijk. De installatie en spraak zijn nog niet geverifieerd.';;
     nl-nl:checkMenu) printf '%s' 'Verder: 1 = luidspreker en microfoon testen, 2 = diensten opnieuw controleren, Enter = later: ';;
     nl-nl:audioTest) printf '%s' 'OVOS gaat een korte testzin uitspreken. Luister naar je apparaat.';;
-    nl-nl:audioQuestion) printf '%s' 'Heb je de zin gehoord? 1 = ja, 2 = opnieuw proberen, Enter = later: ';;
+    nl-nl:audioQuestion) printf '%s' 'Heb je de zin gehoord? 1 = ja, 2 = opnieuw proberen, 3 = nee, Enter = later: ';;
     nl-nl:audioOk) printf '%s' 'Je hebt bevestigd dat de luidspreker werkt.';;
     nl-nl:audioFailed) printf '%s' 'De geluidstest kon OVOS niet bereiken. Controleer diensten, volume en het gekozen audioapparaat.';;
     nl-nl:voiceIntro) printf '%s' 'Spreek nu bij de microfoon. Gebruik je eigen wekwoord als je dat hebt aangepast:';;
     nl-nl:voicePhrase) printf '%s' 'Hey Mycroft, hoe laat is het?';;
-    nl-nl:voiceQuestion) printf '%s' 'Gaf OVOS het juiste antwoord? 1 = ja, 2 = opnieuw proberen, Enter = later: ';;
+    nl-nl:voiceQuestion) printf '%s' 'Gaf OVOS het juiste antwoord? 1 = ja, 2 = opnieuw proberen, 3 = nee, Enter = later: ';;
     nl-nl:voiceOk) printf '%s' 'Je hebt het eerste gesproken antwoord bevestigd. Veel plezier met OVOS!';;
     nl-nl:incomplete) printf '%s' 'De controle is nog niet afgerond. Je kunt doorgaan met het commando hierboven.';;
     nl-nl:customVoice) printf '%s' 'Je hebt geen meegeleverde vaardigheden gekozen. Probeer een commando van een zelf geïnstalleerde vaardigheid; de tijdsvraag werkt mogelijk niet.';;
@@ -319,6 +329,8 @@ message() {
     nl-nl:unsafeConfig) printf '%s' 'De instelmap bevat een onverwacht bestand of een onverwachte koppeling. Verplaats dit naar een andere plek en probeer het opnieuw. Je instellingen zijn niet vervangen.';;
     nl-nl:locked) printf '%s' 'Er loopt een installatie, of een onderbroken poging heeft een vergrendeling achtergelaten. Controleer eerst of er geen installatie meer draait. Verwijder daarna deze vergrendelingsmap en probeer het opnieuw:';;
     nl-nl:runtimeBackup) printf '%s' 'Vorige installatiehulpmiddelen bewaard in:';;
+    nl-nl:audioNo) printf '%s' 'Geen geluid gehoord. Controleer het volume en de gekozen luidspreker en voer de test opnieuw uit.';;
+    nl-nl:voiceNo) printf '%s' 'Geen juist gesproken antwoord bevestigd. Controleer de microfoon en het activeringswoord en probeer opnieuw.';;
     pt-pt:bits) printf '%s' 'O OVOS precisa de um sistema operativo de 64 bits. Não foi feita nenhuma alteração.';;
     pt-pt:invalid) printf '%s' 'O código é inválido ou está incompleto. Copia um novo comando do assistente.';;
     pt-pt:expired) printf '%s' 'Este código expirou ao fim de uma hora. Gera outro no assistente.';;
@@ -356,12 +368,12 @@ message() {
     pt-pt:servicesUnknown) printf '%s' 'A verificação automática dos serviços não está disponível aqui. A instalação e a voz continuam por verificar.';;
     pt-pt:checkMenu) printf '%s' 'Seguinte: 1 = testar altifalante e microfone, 2 = voltar a verificar serviços, Enter = mais tarde: ';;
     pt-pt:audioTest) printf '%s' 'O OVOS vai dizer uma frase curta. Ouve o dispositivo.';;
-    pt-pt:audioQuestion) printf '%s' 'Ouviste a frase? 1 = sim, 2 = repetir, Enter = mais tarde: ';;
+    pt-pt:audioQuestion) printf '%s' 'Ouviste a frase? 1 = sim, 2 = repetir, 3 = não, Enter = mais tarde: ';;
     pt-pt:audioOk) printf '%s' 'Confirmaste que o altifalante funciona.';;
     pt-pt:audioFailed) printf '%s' 'O teste de som não conseguiu contactar o OVOS. Verifica os serviços, o volume e o dispositivo de áudio escolhido.';;
     pt-pt:voiceIntro) printf '%s' 'Fala agora perto do microfone. Se alteraste a palavra de ativação, usa a tua:';;
     pt-pt:voicePhrase) printf '%s' 'Hey Mycroft, que horas são?';;
-    pt-pt:voiceQuestion) printf '%s' 'O OVOS respondeu corretamente? 1 = sim, 2 = repetir, Enter = mais tarde: ';;
+    pt-pt:voiceQuestion) printf '%s' 'O OVOS respondeu corretamente? 1 = sim, 2 = repetir, 3 = não, Enter = mais tarde: ';;
     pt-pt:voiceOk) printf '%s' 'Confirmaste a primeira resposta por voz. Diverte-te com o OVOS!';;
     pt-pt:incomplete) printf '%s' 'A verificação está por terminar. Podes retomá-la com o comando acima.';;
     pt-pt:customVoice) printf '%s' 'Não escolheste as competências incluídas. Testa um comando de uma competência que instalaste; a pergunta sobre as horas pode não estar disponível.';;
@@ -371,6 +383,8 @@ message() {
     pt-pt:unsafeConfig) printf '%s' 'A pasta de configuração contém um ficheiro ou uma ligação inesperados. Move-os para outro local e tenta novamente. As tuas definições não foram substituídas.';;
     pt-pt:locked) printf '%s' 'Está a decorrer uma instalação, ou uma tentativa interrompida deixou um bloqueio. Primeiro, confirma que não está a decorrer nenhuma instalação. Depois remove esta pasta de bloqueio e tenta novamente:';;
     pt-pt:runtimeBackup) printf '%s' 'Ferramentas de instalação anteriores guardadas em:';;
+    pt-pt:audioNo) printf '%s' 'Não se ouviu som. Verifica o volume e o altifalante selecionado e repete o teste.';;
+    pt-pt:voiceNo) printf '%s' 'Não foi confirmada uma resposta de voz correta. Verifica o microfone e a palavra de ativação e tenta novamente.';;
     ca-es:bits) printf '%s' 'OVOS necessita un sistema operatiu de 64 bits. No s’ha canviat res.';;
     ca-es:invalid) printf '%s' 'El codi no és vàlid o és incomplet. Copia una ordre nova de l’assistent.';;
     ca-es:expired) printf '%s' 'Aquest codi ha caducat al cap d’una hora. Genera’n un de nou a l’assistent.';;
@@ -408,12 +422,12 @@ message() {
     ca-es:servicesUnknown) printf '%s' 'Aquí no es poden comprovar els serveis automàticament. La instal·lació i la veu encara no estan verificades.';;
     ca-es:checkMenu) printf '%s' 'Següent: 1 = provar altaveu i micròfon, 2 = comprovar serveis de nou, Retorn = més tard: ';;
     ca-es:audioTest) printf '%s' 'OVOS dirà una frase breu. Escolta el dispositiu.';;
-    ca-es:audioQuestion) printf '%s' 'L’has sentida? 1 = sí, 2 = repetir, Retorn = més tard: ';;
+    ca-es:audioQuestion) printf '%s' 'L’has sentida? 1 = sí, 2 = repetir, 3 = no, Retorn = més tard: ';;
     ca-es:audioOk) printf '%s' 'Has confirmat que l’altaveu funciona.';;
     ca-es:audioFailed) printf '%s' 'La prova de so no ha pogut contactar amb OVOS. Revisa els serveis, el volum i el dispositiu d’àudio triat.';;
     ca-es:voiceIntro) printf '%s' 'Parla ara a prop del micròfon. Si has canviat la paraula d’activació, fes servir la teva:';;
     ca-es:voicePhrase) printf '%s' 'Hey Mycroft, quina hora és?';;
-    ca-es:voiceQuestion) printf '%s' 'OVOS ha respost correctament? 1 = sí, 2 = repetir, Retorn = més tard: ';;
+    ca-es:voiceQuestion) printf '%s' 'OVOS ha respost correctament? 1 = sí, 2 = repetir, 3 = no, Retorn = més tard: ';;
     ca-es:voiceOk) printf '%s' 'Has confirmat la primera resposta de veu. Gaudeix d’OVOS!';;
     ca-es:incomplete) printf '%s' 'La comprovació queda pendent. Pots reprendre-la amb l’ordre de sobre.';;
     ca-es:customVoice) printf '%s' 'No has triat les habilitats incloses. Prova una ordre d’una habilitat que hagis instal·lat; la pregunta sobre l’hora pot no estar disponible.';;
@@ -423,6 +437,8 @@ message() {
     ca-es:unsafeConfig) printf '%s' 'La carpeta de configuració conté un fitxer o un enllaç inesperat. Mou-lo a un altre lloc i torna-ho a provar. Els ajustos no s’han substituït.';;
     ca-es:locked) printf '%s' 'Hi ha una instal·lació en curs, o un intent interromput ha deixat un bloqueig. Primer comprova que no hi hagi cap instal·lació en marxa. Després elimina aquesta carpeta de bloqueig i torna-ho a provar:';;
     ca-es:runtimeBackup) printf '%s' 'Eines d’instal·lació anteriors desades a:';;
+    ca-es:audioNo) printf '%s' 'No s’ha sentit cap so. Comprova el volum i l’altaveu seleccionat i repeteix la prova.';;
+    ca-es:voiceNo) printf '%s' 'No s’ha confirmat una resposta de veu correcta. Comprova el micròfon i la paraula d’activació i torna-ho a provar.';;
     eu-es:bits) printf '%s' 'OVOSek 64 biteko sistema eragilea behar du. Ez da ezer aldatu.';;
     eu-es:invalid) printf '%s' 'Konfigurazio-kodea ez da baliozkoa edo osatu gabe dago. Kopiatu beste komando bat morroitik.';;
     eu-es:expired) printf '%s' 'Kodea ordubete igarota iraungi da. Sortu beste bat morroian.';;
@@ -460,12 +476,12 @@ message() {
     eu-es:servicesUnknown) printf '%s' 'Hemen ezin dira zerbitzuak automatikoki egiaztatu. Instalazioa eta ahotsa egiaztatu gabe daude.';;
     eu-es:checkMenu) printf '%s' 'Hurrengoa: 1 = bozgorailua eta mikrofonoa probatu, 2 = zerbitzuak berriro egiaztatu, Sartu = geroago: ';;
     eu-es:audioTest) printf '%s' 'OVOSek probako esaldi labur bat esango du. Entzun gailua.';;
-    eu-es:audioQuestion) printf '%s' 'Entzun duzu? 1 = bai, 2 = berriro probatu, Sartu = geroago: ';;
+    eu-es:audioQuestion) printf '%s' 'Entzun duzu? 1 = bai, 2 = berriro probatu, 3 = ez, Sartu = geroago: ';;
     eu-es:audioOk) printf '%s' 'Bozgorailua badabilela baieztatu duzu.';;
     eu-es:audioFailed) printf '%s' 'Soinu-probak ezin izan du OVOSekin konektatu. Egiaztatu zerbitzuak, bolumena eta aukeratutako audio-gailua.';;
     eu-es:voiceIntro) printf '%s' 'Hitz egin mikrofonotik gertu. Esnatze-hitza aldatu baduzu, erabili zurea:';;
     eu-es:voicePhrase) printf '%s' 'Hey Mycroft, zer ordu da?';;
-    eu-es:voiceQuestion) printf '%s' 'OVOSek zuzen erantzun du? 1 = bai, 2 = berriro probatu, Sartu = geroago: ';;
+    eu-es:voiceQuestion) printf '%s' 'OVOSek zuzen erantzun du? 1 = bai, 2 = berriro probatu, 3 = ez, Sartu = geroago: ';;
     eu-es:voiceOk) printf '%s' 'Lehen ahots-erantzuna baieztatu duzu. Gozatu OVOSekin!';;
     eu-es:incomplete) printf '%s' 'Egiaztapena amaitu gabe dago. Goiko komandoarekin jarrai dezakezu.';;
     eu-es:customVoice) printf '%s' 'Ez dituzu barneko trebetasunak aukeratu. Probatu zuk instalatutako baten komandoa; ordua galdetzeko aukera ez dago agian erabilgarri.';;
@@ -475,6 +491,8 @@ message() {
     eu-es:unsafeConfig) printf '%s' 'Konfigurazio-karpetan espero ez zen fitxategi edo esteka bat dago. Mugitu beste toki batera eta saiatu berriro. Ezarpenak ez dira ordeztu.';;
     eu-es:locked) printf '%s' 'Instalazio bat martxan dago, edo etendako saiakera batek blokeoa utzi du. Lehenik, ziurtatu ez dagoela instalaziorik martxan. Ondoren, ezabatu blokeo-karpeta hau eta saiatu berriro:';;
     eu-es:runtimeBackup) printf '%s' 'Aurreko instalazio-tresnak hemen gorde dira:';;
+    eu-es:audioNo) printf '%s' 'Ez da soinurik entzun. Egiaztatu bolumena eta hautatutako bozgorailua, eta egin proba berriro.';;
+    eu-es:voiceNo) printf '%s' 'Ez da ahots-erantzun zuzenik baieztatu. Egiaztatu mikrofonoa eta aktibazio-hitza, eta saiatu berriro.';;
     gl-es:bits) printf '%s' 'OVOS precisa un sistema operativo de 64 bits. Non se cambiou nada.';;
     gl-es:invalid) printf '%s' 'O código non é válido ou está incompleto. Copia un comando novo do asistente.';;
     gl-es:expired) printf '%s' 'Este código caducou ao cabo dunha hora. Xera outro no asistente.';;
@@ -512,12 +530,12 @@ message() {
     gl-es:servicesUnknown) printf '%s' 'Aquí non se poden comprobar os servizos automaticamente. A instalación e a voz seguen sen verificar.';;
     gl-es:checkMenu) printf '%s' 'Seguinte: 1 = probar altofalante e micrófono, 2 = comprobar servizos de novo, Intro = máis tarde: ';;
     gl-es:audioTest) printf '%s' 'OVOS vai dicir unha frase curta. Escoita o dispositivo.';;
-    gl-es:audioQuestion) printf '%s' 'Escoitáchela? 1 = si, 2 = repetir, Intro = máis tarde: ';;
+    gl-es:audioQuestion) printf '%s' 'Escoitáchela? 1 = si, 2 = repetir, 3 = non, Intro = máis tarde: ';;
     gl-es:audioOk) printf '%s' 'Confirmaches que o altofalante funciona.';;
     gl-es:audioFailed) printf '%s' 'A proba de son non puido conectar con OVOS. Revisa os servizos, o volume e o dispositivo de son escollido.';;
     gl-es:voiceIntro) printf '%s' 'Fala agora preto do micrófono. Se cambiaches a palabra de activación, usa a túa:';;
     gl-es:voicePhrase) printf '%s' 'Hey Mycroft, que hora é?';;
-    gl-es:voiceQuestion) printf '%s' 'OVOS respondeu correctamente? 1 = si, 2 = repetir, Intro = máis tarde: ';;
+    gl-es:voiceQuestion) printf '%s' 'OVOS respondeu correctamente? 1 = si, 2 = repetir, 3 = non, Intro = máis tarde: ';;
     gl-es:voiceOk) printf '%s' 'Confirmaches a primeira resposta de voz. Goza de OVOS!';;
     gl-es:incomplete) printf '%s' 'A comprobación queda pendente. Podes retomala co comando anterior.';;
     gl-es:customVoice) printf '%s' 'Non escolliches as habilidades incluídas. Proba un comando dunha habilidade que instalases; a pregunta sobre a hora pode non estar dispoñible.';;
@@ -527,6 +545,8 @@ message() {
     gl-es:unsafeConfig) printf '%s' 'O cartafol de configuración contén un ficheiro ou unha ligazón inesperados. Móveos a outro lugar e téntao de novo. Non se substituíron os teus axustes.';;
     gl-es:locked) printf '%s' 'Hai unha instalación en curso ou un intento interrompido deixou un bloqueo. Primeiro comproba que non haxa ningunha instalación en marcha. Despois elimina este cartafol de bloqueo e téntao de novo:';;
     gl-es:runtimeBackup) printf '%s' 'Ferramentas de instalación anteriores gardadas en:';;
+    gl-es:audioNo) printf '%s' 'Non se escoitou ningún son. Comproba o volume e o altofalante seleccionado e repite a proba.';;
+    gl-es:voiceNo) printf '%s' 'Non se confirmou unha resposta de voz correcta. Comproba o micrófono e a palabra de activación e téntao de novo.';;
     hi-in:bits) printf '%s' 'OVOS के लिए 64-बिट ऑपरेटिंग सिस्टम चाहिए। कोई बदलाव नहीं किया गया।';;
     hi-in:invalid) printf '%s' 'सेटअप कोड गलत या अधूरा है। विज़ार्ड से नया कमांड कॉपी करें।';;
     hi-in:expired) printf '%s' 'एक घंटा पूरा होने पर यह कोड समाप्त हो गया। विज़ार्ड में नया कोड बनाएँ।';;
@@ -564,12 +584,12 @@ message() {
     hi-in:servicesUnknown) printf '%s' 'यहाँ सेवाओं की अपने-आप जाँच उपलब्ध नहीं है। इंस्टॉलेशन और आवाज़ की पुष्टि अभी बाकी है।';;
     hi-in:checkMenu) printf '%s' 'आगे: 1 = स्पीकर और माइक्रोफ़ोन जाँचें, 2 = सेवाएँ फिर जाँचें, Enter = बाद में: ';;
     hi-in:audioTest) printf '%s' 'OVOS एक छोटा वाक्य बोलेगा। अपने डिवाइस को सुनें।';;
-    hi-in:audioQuestion) printf '%s' 'क्या आपने सुना? 1 = हाँ, 2 = फिर कोशिश करें, Enter = बाद में: ';;
+    hi-in:audioQuestion) printf '%s' 'क्या आपने सुना? 1 = हाँ, 2 = फिर कोशिश करें, 3 = नहीं, Enter = बाद में: ';;
     hi-in:audioOk) printf '%s' 'आपने स्पीकर के काम करने की पुष्टि की।';;
     hi-in:audioFailed) printf '%s' 'आवाज़ की जाँच OVOS से नहीं जुड़ सकी। सेवाएँ, वॉल्यूम और चुना हुआ ऑडियो डिवाइस जाँचें।';;
     hi-in:voiceIntro) printf '%s' 'अब माइक्रोफ़ोन के पास बोलें। अगर आपने जगाने वाला शब्द बदला है तो अपना शब्द बोलें:';;
     hi-in:voicePhrase) printf '%s' 'Hey Mycroft, समय क्या हुआ?';;
-    hi-in:voiceQuestion) printf '%s' 'क्या OVOS ने सही जवाब दिया? 1 = हाँ, 2 = फिर कोशिश करें, Enter = बाद में: ';;
+    hi-in:voiceQuestion) printf '%s' 'क्या OVOS ने सही जवाब दिया? 1 = हाँ, 2 = फिर कोशिश करें, 3 = नहीं, Enter = बाद में: ';;
     hi-in:voiceOk) printf '%s' 'आपने पहले बोले गए जवाब की पुष्टि की। OVOS का आनंद लें!';;
     hi-in:incomplete) printf '%s' 'जाँच अभी अधूरी है। ऊपर दिए कमांड से इसे बाद में जारी रख सकते हैं।';;
     hi-in:customVoice) printf '%s' 'आपने साथ मिलने वाले कौशल नहीं चुने हैं। अपने इंस्टॉल किए कौशल का कमांड आज़माएँ; समय वाला सवाल शायद उपलब्ध न हो।';;
@@ -579,6 +599,8 @@ message() {
     hi-in:unsafeConfig) printf '%s' 'सेटअप फ़ोल्डर में कोई अनपेक्षित फ़ाइल या लिंक है। उसे दूसरी जगह ले जाएँ, फिर कोशिश करें। आपकी सेटिंग नहीं बदली गई हैं।';;
     hi-in:locked) printf '%s' 'कोई इंस्टॉलेशन चल रहा है, या बीच में रुके प्रयास का लॉक रह गया है। पहले सुनिश्चित करें कि कोई इंस्टॉलेशन नहीं चल रहा है। फिर यह लॉक फ़ोल्डर हटाएँ और दोबारा कोशिश करें:';;
     hi-in:runtimeBackup) printf '%s' 'इंस्टॉल करने वाले पिछले टूल यहाँ सुरक्षित हैं:';;
+    hi-in:audioNo) printf '%s' 'कोई आवाज़ नहीं सुनाई दी। आवाज़ का स्तर और चुना गया स्पीकर जाँचें, फिर दोबारा जाँच चलाएँ।';;
+    hi-in:voiceNo) printf '%s' 'सही आवाज़ वाला जवाब पुष्ट नहीं हुआ। माइक्रोफ़ोन और जगाने वाला शब्द जाँचें, फिर कोशिश करें।';;
     kab-dz:bits) printf '%s' 'OVOS yesra anagraw n wammud 64 ibiten. Ulac abeddel i yettwaxedmen.';;
     kab-dz:invalid) printf '%s' 'Tangalt n usbeddi mačči d tameɣtut neɣ ur temmid ara. Nɣel taladna tamaynut seg umallal.';;
     kab-dz:expired) printf '%s' 'Tangalt-a tfukk seld yiwen n usrag. Snulfu-d tayeḍ deg umallal.';;
@@ -616,12 +638,12 @@ message() {
     kab-dz:servicesUnknown) printf '%s' 'Asenqed awurman n yimeẓla ulac-it da. Asbeddi akked taɣect mazal ur ttwasenqden ara.';;
     kab-dz:checkMenu) printf '%s' 'Ɣer zdat: 1 = ɛreḍ imesli akked umikru, 2 = senqed imeẓla tikkelt-nniḍen, Enter = ticki: ';;
     kab-dz:audioTest) printf '%s' 'OVOS ad d-yini tafyirt tawezlant. Ḥess i yibenk-ik.';;
-    kab-dz:audioQuestion) printf '%s' 'Tesliḍ-as? 1 = ih, 2 = ales aɛraḍ, Enter = ticki: ';;
+    kab-dz:audioQuestion) printf '%s' 'Tesliḍ-as? 1 = ih, 2 = ales aɛraḍ, 3 = ala, Enter = ticki: ';;
     kab-dz:audioOk) printf '%s' 'Tessebteḍ belli asmeɣri n yimesli iteddu.';;
     kab-dz:audioFailed) printf '%s' 'Aɛraḍ n yimesli ur yezmir ara ad iqqen ɣer OVOS. Senqed imeẓla, aswir n yimesli akked yibenk n yimesli yettwafernen.';;
     kab-dz:voiceIntro) printf '%s' 'Tura mmeslay ɣer tama n umikru. Ma tbeddleḍ awal n usaki, seqdec win-ik:';;
     kab-dz:voicePhrase) printf '%s' 'Hey Mycroft, acḥal n usrag?';;
-    kab-dz:voiceQuestion) printf '%s' 'OVOS yerra-d akken iwata? 1 = ih, 2 = ales aɛraḍ, Enter = ticki: ';;
+    kab-dz:voiceQuestion) printf '%s' 'OVOS yerra-d akken iwata? 1 = ih, 2 = ales aɛraḍ, 3 = ala, Enter = ticki: ';;
     kab-dz:voiceOk) printf '%s' 'Tessebteḍ tiririt tamezwarut s taɣect. Zhu s OVOS!';;
     kab-dz:incomplete) printf '%s' 'Asenqed mazal ur ifuk ara. Tzemreḍ ad tkemmleḍ s taladna nnig-a.';;
     kab-dz:customVoice) printf '%s' 'Ur tferneḍ ara tizemmar yeddan. Ɛreḍ taladna n tezmert i tesbeddeḍ; asteqsi ɣef usrag yezmer ur yelli ara.';;
@@ -631,6 +653,8 @@ message() {
     kab-dz:unsafeConfig) printf '%s' 'Akaram n useɣwer yesɛa afaylu neɣ aseɣwen ur nettwarǧi ara. Senkez-it ɣer umḍiq-nniḍen, syen ɛreḍ tikkelt-nniḍen. Iɣewwaren-ik ur ttwasemselsin ara.';;
     kab-dz:locked) printf '%s' 'Asbeddi la iteddu, neɣ asbeddi yeḥbes yeǧǧa akaram n usekṛu. Senqed qbel belli ulac asbeddi iteddun. Syen kkes akaram-a n usekṛu, ɛreḍ tikkelt-nniḍen:';;
     kab-dz:runtimeBackup) printf '%s' 'Allalen n usebded iqburen ttwaskelsen deg:';;
+    kab-dz:audioNo) printf '%s' 'Ulac imesli yettwasslen. Senqed aswir n yimesli d usiɣen n yimesli yettwafernen, syin ales asenqed.';;
+    kab-dz:voiceNo) printf '%s' 'Ulac tiririt n taɣect tameɣtut yettwasentmen. Senqed amikru d wawal n usaki, syin ales aɛraḍ.';;
     *) printf '%s' 'OVOS: unknown message';;
   esac
 }
@@ -639,7 +663,7 @@ say() { message "$1"; printf '\n'; }
 # shellcheck disable=SC2016
 write_messages() {
   printf '%s\n' 'message() {' '  case "$1" in'
-  for ovos_key in audioFailed audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac regular required resume revision runtimeBackup servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceOk voicePhrase voiceQuestion; do
+  for ovos_key in audioFailed audioNo audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac regular required resume revision runtimeBackup servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceNo voiceOk voicePhrase voiceQuestion; do
     printf '%s' "    $ovos_key) printf '%s' '"
     message "$ovos_key" | sed "s/'/'\\\\''/g"
     printf '%s\n' "';;"
@@ -693,7 +717,7 @@ report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0
   case "$ovos_track" in *[!0-9a-f]*) return 0;; esac
-  case "$1" in started|downloading|installing|installed|services_ready|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
+  case "$1" in started|downloading|installing|installed|services_ready|audio_checking|audio_passed|audio_failed|microphone_checking|microphone_passed|microphone_failed|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
   ovos_error_field=''
   if [ "$1" = failed ] && valid_error_url "${2:-}"; then
     ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""
@@ -868,6 +892,7 @@ if [ "$ovos_mode" = scenario ]; then scenario; exit 0; fi
 ovos_tmp=''
 ovos_error_receipt=''
 ovos_lock=''
+ovos_scenario_guard=''
 ovos_installed=false
 ovos_cleanup_result=0
 # The private receipt survives upstream checkout cleanup. It contains one
@@ -883,6 +908,72 @@ read_error_report() (
   printf '%s' "$ovos_error_url"
 )
 
+# Cleanup runs as the original user, never under sudo. Python is installed by
+# a completed setup; early failures without it preserve the private scenario.
+cleanup_scenario() {
+  [ -n "$ovos_scenario_guard" ] || return 0
+  for ovos_cleanup_python in "$(command -v python3 || true)" "$HOME/.venvs/ovos-installer/bin/python3" "$HOME/.venvs/ovos/bin/python3"; do
+    [ -x "$ovos_cleanup_python" ] || continue
+    if "$ovos_cleanup_python" -I -S - "${ovos_scenario_guard##*/}" <<'OVOS_SCENARIO_CLEANUP'
+"""Remove only the finished wizard's scenario, as its original unprivileged user."""
+import os
+import stat
+import sys
+
+
+def identity(info: os.stat_result) -> tuple[int, int]:
+    """Identify an inode without following a pathname or symlink."""
+    return info.st_dev, info.st_ino
+
+
+def cleanup(config: int, staging: int, folder_name: str) -> None:
+    """Use inherited directory handles and quarantine before identity deletion."""
+    owned = os.stat("owned", dir_fd=staging, follow_symlinks=False)
+    if not stat.S_ISREG(owned.st_mode):
+        return
+    try:
+        active = os.stat("scenario.yaml", dir_fd=config, follow_symlinks=False)
+        if stat.S_ISREG(active.st_mode) and identity(active) == identity(owned):
+            os.rename("scenario.yaml", "candidate", src_dir_fd=config, dst_dir_fd=staging)
+            captured = os.stat("candidate", dir_fd=staging, follow_symlinks=False)
+            if stat.S_ISREG(captured.st_mode) and identity(captured) == identity(owned):
+                os.unlink("candidate", dir_fd=staging)
+            else:
+                # Never overwrite a racing writer or follow a new destination
+                # directory. If restoration fails, retain the captured object.
+                try:
+                    os.link("candidate", "scenario.yaml", src_dir_fd=staging,
+                            dst_dir_fd=config, follow_symlinks=False)
+                    os.unlink("candidate", dir_fd=staging)
+                except OSError:
+                    pass
+    except FileNotFoundError:
+        pass
+    for name in ("owned", "active"):
+        try:
+            os.unlink(name, dir_fd=staging)
+        except FileNotFoundError:
+            pass
+    # Remove only an empty staging directory still associated with this handle.
+    folder = os.stat(folder_name, dir_fd=config, follow_symlinks=False)
+    if stat.S_ISDIR(folder.st_mode) and identity(folder) == identity(os.fstat(staging)):
+        os.rmdir(folder_name, dir_fd=config)
+
+
+if __name__ == "__main__":
+    try:
+        cleanup(4, 6, sys.argv[1])
+    except OSError:
+        # Setup's actual exit status must survive any permission or cleanup error.
+        pass
+
+OVOS_SCENARIO_CLEANUP
+    then break; fi
+  done
+  ovos_scenario_guard=''
+  exec 4<&- 6<&-
+}
+
 cleanup() {
   if [ "$ovos_installed" != true ] && [ "$1" -ne 0 ]; then
     case "$1" in
@@ -890,6 +981,7 @@ cleanup() {
       *) report_status failed "$(read_error_report "$ovos_error_receipt")";;
     esac
   fi
+  cleanup_scenario
   [ -z "$ovos_tmp" ] || rm -rf "$ovos_tmp" || :
   [ -z "$ovos_lock" ] || rmdir "$ovos_lock" 2>/dev/null || :
 }
@@ -1071,7 +1163,14 @@ if [ -e "$ovos_cfg/scenario.yaml" ] || [ -L "$ovos_cfg/scenario.yaml" ]; then
   chmod 600 "$ovos_backup"
   say backup; printf '%s\n' "$ovos_backup"
 fi
-scenario > "$ovos_tmp/scenario.yaml"
+# Stage on the config filesystem so sudo's eventual move preserves identity.
+# Pin both directories in the regular-user parent; sudo closes its inherited
+# descriptors. Cleanup never follows a later replacement of either pathname.
+exec 4< "$ovos_cfg"
+ovos_scenario_guard=$(mktemp -d "$ovos_cfg/.scenario-cleanup.XXXXXX")
+exec 6< "$ovos_scenario_guard"
+scenario > "$ovos_scenario_guard/owned"
+ln "$ovos_scenario_guard/owned" "$ovos_scenario_guard/active"
 printf '%s\n' "$ovos_track" > "$ovos_tmp/status-token"
 printf '%s\n' "$ovos_track" > "$ovos_tmp/status-installed"
 : > "$ovos_tmp/status-installed-empty"
@@ -1092,7 +1191,7 @@ report_status() {
   [ -n "${ovos_track:-}" ] || return 0
   [ "${#ovos_track}" = 64 ] || return 0
   case "$ovos_track" in *[!0-9a-f]*) return 0;; esac
-  case "$1" in started|downloading|installing|installed|services_ready|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
+  case "$1" in started|downloading|installing|installed|services_ready|audio_checking|audio_passed|audio_failed|microphone_checking|microphone_passed|microphone_failed|voice_ready|needs_attention|failed|cancelled) :;; *) return 0;; esac
   ovos_error_field=''
   if [ "$1" = failed ] && valid_error_url "${2:-}"; then
     ovos_error_field=",\\\"errorUrl\\\":\\\"$2\\\""
@@ -1338,32 +1437,40 @@ check_setup_inner() {
     esac
   done
   while :; do
+    report_status audio_checking
     say audioTest
-    if ! sound_check; then say audioFailed; say help; break; fi
+    if ! sound_check; then say audioFailed; say help; report_status audio_failed; return 3; fi
     terminal_choice audioQuestion || { say incomplete; return 3; }
     case "$ovos_answer" in
-      1) say audioOk; break;;
+      1) say audioOk; report_status audio_passed; break;;
       2) continue;;
+      3) say audioNo; say help; report_status audio_failed; return 3;;
       *) say incomplete; return 3;;
     esac
   done
   say voiceIntro
   if [ "$ovos_skills" = true ]; then say voicePhrase; else say customVoice; fi
   while :; do
+    report_status microphone_checking
     terminal_choice voiceQuestion || { say incomplete; return 3; }
     case "$ovos_answer" in
-      1) say voiceOk; report_status voice_ready; return 0;;
+      1) say voiceOk; report_status microphone_passed; report_status voice_ready; return 0;;
       2) say voiceIntro; [ "$ovos_skills" != true ] || say voicePhrase;;
+      3) say voiceNo; say help; report_status microphone_failed; return 3;;
       *) say incomplete; say help; return 3;;
     esac
   done
 }
 
-check_setup() {
+check_setup() (
+  # An interrupted question is unfinished, not a failed hardware check.
+  trap 'report_status needs_attention; exit 130' INT
+  trap 'report_status needs_attention; exit 143' TERM
+  trap 'report_status needs_attention; exit 129' HUP
   if check_setup_inner; then return 0; fi
   report_status needs_attention
   return 3
-}
+)
 
 OVOS_RUNTIME
 # A private, durable checker survives reboots and never invokes installation.
@@ -1481,6 +1588,8 @@ report_status installing
     OVOS_INSTALLER_AUTO_REPORT=1
     export OVOS_INSTALLER_REPORT_FD OVOS_INSTALLER_AUTO_REPORT
   fi
+  # Do not expose regular-user cleanup directory handles to installer children.
+  exec 4<&- 6<&-
   umask 022
   if [ -n "$ovos_track" ]; then
     export ANSIBLE_CALLBACK_PLUGINS="$ovos_source/.ovos-start-callbacks${ANSIBLE_CALLBACK_PLUGINS:+:$ANSIBLE_CALLBACK_PLUGINS}"
@@ -1500,8 +1609,9 @@ if [ -L "$ovos_receipt" ] || { [ -e "$ovos_receipt" ] && [ ! -f "$ovos_receipt" 
 if [ "$ovos_receipt_safe" = true ]; then mv "${11}" "$ovos_receipt" || :; fi
 report_status installed
 OVOS_LAUNCH
-if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_tmp/scenario.yaml" "$ovos_locale" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
+if sudo sh "$ovos_tmp/launch.sh" "$ovos_source" "$HOME" "$ovos_scenario_guard/active" "$ovos_locale" "$ovos_ha" "$ovos_llm" "$ovos_tmp/runtime.sh" "$ovos_tmp/check-setup.sh" "$ovos_tmp/status-token" "$ovos_tmp/status-installed-empty" "$ovos_tmp/status-installed" "$ovos_error_receipt"; then
   ovos_installed=true
+  cleanup_scenario
   say installReturned
   # Incomplete verification is not an installer failure. The checker itself
   # returns 3 to distinguish it from a user-confirmed first voice response.

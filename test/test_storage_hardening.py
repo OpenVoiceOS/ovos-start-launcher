@@ -134,7 +134,7 @@ def test_regular_configuration_and_checker_are_replaced_with_private_files(sandb
     assert len(backups) == 1
     assert backups[0].read_text() == "original-user-settings\n"
     assert backups[0].stat().st_mode & 0o777 == 0o600
-    assert sandbox.scenario.stat().st_mode & 0o777 == 0o600
+    assert not sandbox.scenario.exists()
     assert checker.stat().st_mode & 0o777 == 0o700
     assert checker.read_text() != "old recovery helper\n"
     assert not (sandbox.scenario.parent / ".launcher-lock").exists()
@@ -175,7 +175,7 @@ def test_installer_venv_is_accessible_without_exposing_launcher_secrets(
     # was installed (0777 in GitHub's hosted toolcache). What the user needs is
     # to read it.
     assert (venv / "bin/activate").stat().st_mode & 0o444 == 0o444
-    assert sandbox.scenario.stat().st_mode & 0o777 == 0o600
+    assert not sandbox.scenario.exists()
     assert (sandbox.scenario.parent / "status-token").stat().st_mode & 0o777 == 0o600
     assert (sandbox.scenario.parent / "status-installed").stat().st_mode & 0o777 == 0o600
     assert (sandbox.scenario.parent / "check-setup.sh").stat().st_mode & 0o777 == 0o700
