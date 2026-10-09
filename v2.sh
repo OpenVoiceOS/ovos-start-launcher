@@ -855,7 +855,9 @@ scenario() {
   ovos_gui=false
   case "$ovos_device" in mark2|devkit) ovos_gui=true; printf '%s\n' "hardware: $ovos_device";; esac
   ovos_has_llm=false; [ "$ovos_llm" = off ] || ovos_has_llm=true
-  printf '%s\n' 'features:' "  skills: $ovos_skills" "  extra_skills: $ovos_extra" "  gui: $ovos_gui" "  homeassistant: $ovos_ha" "  llm: $ovos_has_llm" 'raspberry_pi_tuning: false' "share_telemetry: $ovos_telemetry" 'share_usage_telemetry: false'
+  ovos_pi_tuning=false
+  case "$ovos_device" in pi|mark1|mark2|devkit) ovos_pi_tuning=true;; esac
+  printf '%s\n' 'features:' "  skills: $ovos_skills" "  extra_skills: $ovos_extra" "  gui: $ovos_gui" "  homeassistant: $ovos_ha" "  llm: $ovos_has_llm" "raspberry_pi_tuning: $ovos_pi_tuning" "share_telemetry: $ovos_telemetry" 'share_usage_telemetry: false'
 }
 if [ "$ovos_mode" = decode ]; then
   printf '{"device":"%s","experience":"%s","locale":"%s","method":"%s","channel":"%s","expertise":"%s","speech":"%s","memory":"%s","cpu":"%s","piModel":"%s","llmMode":"%s","extraSkills":%s,"telemetry":%s,"skills":%s,"homeassistant":%s}\n' "$ovos_device" "$ovos_experience" "$ovos_locale" "$ovos_method" "$ovos_channel" "$ovos_expertise" "$ovos_speech" "$ovos_memory" "$ovos_cpu" "$ovos_pi" "$ovos_llm" "$ovos_extra" "$ovos_telemetry" "$ovos_skills" "$ovos_ha"

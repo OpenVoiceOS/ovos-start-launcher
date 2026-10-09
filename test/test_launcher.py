@@ -258,10 +258,32 @@ def expected_scenario(state: dict[str, object]) -> str:
         lines.append(f"hardware: {state['device']}")
     features = {"skills": state["skills"], "extra_skills": state["extraSkills"],
                 "gui": screen, "homeassistant": state["homeassistant"], "llm": state["llmMode"] != "off"}
+    pi_tuning = state["device"] in ("pi", "mark1", "mark2", "devkit")
     lines += ["features:", *(f"  {key}: {str(value).lower()}" for key, value in features.items()),
-              "raspberry_pi_tuning: false", f"share_telemetry: {str(state['telemetry']).lower()}",
+              f"raspberry_pi_tuning: {str(pi_tuning).lower()}", f"share_telemetry: {str(state['telemetry']).lower()}",
               "share_usage_telemetry: false"]
     return "\n".join(lines) + "\n"
+
+
+@pytest.mark.parametrize(("device", "expected"), (
+    ("pi", "true"), ("computer", "false"), ("mark1", "true"),
+    ("mark2", "true"), ("devkit", "true"), ("jetson", "false"),
+    ("server", "false"), ("mac", "false"), ("windows", "false"),
+    ("other", "false"),
+))
+def test_pi_tuning_is_enabled_only_for_raspberry_pi_targets(
+    sandbox: Sandbox, device: str, expected: str
+) -> None:
+    """Derive tuning from every hardware target without changing the code schema."""
+    code = raw_code({"device": device, "channel": "alpha",
+                     "experience": "hub" if device == "server" else "ready"})
+    result = run_launcher(sandbox, code, "--scenario")
+    assert result.returncode == 0, result.stderr
+    tuning = [line for line in result.stdout.splitlines()
+              if line.startswith("raspberry_pi_tuning:")]
+    assert tuning == [f"raspberry_pi_tuning: {expected}"]
+    assert "overclock" not in result.stdout
+    assert_untouched(sandbox)
 
 
 CASES = [
