@@ -69,11 +69,22 @@ if name in ('systemctl', 'launchctl', 'docker'):
     if name == 'docker': print('ovos_messagebus\novos_core\novos_audio\novos_listener\nhivemind_listener')
     sys.exit(0)
 with (home / 'calls.jsonl').open('a') as log:
-    log.write(json.dumps({'command': name, 'args': args}) + '\n')
+    log.write(json.dumps({'command': name, 'args': args,
+        'ha_token_exported': bool(os.environ.get('HOMEASSISTANT_API_KEY'))}) + '\n')
 if name == 'curl':
     if '--config' in args:
+        config = sys.stdin.read()
+        if 'https://start-api.smartgic.io/v1/homeassistant' in config:
+            output = pathlib.Path(args[args.index('--output') + 1])
+            with (home / 'homeassistant-requests.jsonl').open('a') as log:
+                log.write(json.dumps({'args': args, 'config': config,
+                    'mode': output.stat().st_mode & 0o777}) + '\n')
+            response = os.environ.get('FAKE_HA_RESPONSE_FILE')
+            if response: output.write_bytes(pathlib.Path(response).read_bytes())
+            print(os.environ.get('FAKE_HA_HTTP', '204'), end='')
+            sys.exit(int(os.environ.get('FAKE_HA_STATUS', '0')))
         with (home / 'callbacks.jsonl').open('a') as log:
-            log.write(json.dumps({'args': args, 'config': sys.stdin.read()}) + '\n')
+            log.write(json.dumps({'args': args, 'config': config}) + '\n')
         sys.exit(int(os.environ.get('FAKE_CALLBACK_STATUS', '0')))
     if '-o' not in args:
         if os.environ.get('FAIL_BOOTSTRAP'):

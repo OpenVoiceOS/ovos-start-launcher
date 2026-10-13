@@ -1,4 +1,4 @@
-<!-- Last Edit: Codex - 2026-10-09 - Motive: Point the launcher documentation to the OpenVoiceOS.org wizard. -->
+<!-- Last Edit: Codex - 2026-10-12 - Motive: Explain private Home Assistant setup from the wizard. -->
 
 # OVOS Start launcher
 
@@ -17,6 +17,8 @@ The website and progress API live in [ovos-start](https://github.com/OpenVoiceOS
 3. Paste it into your device's terminal and follow the prompts.
 
 Run as your normal user; the launcher asks for administrator access when needed. Keep the command private. If it expires after one hour, get a new one from the wizard.
+
+Home Assistant details saved in the wizard are passed privately to your device, so you do not need to enter them again in Terminal. They are never included in the copied command or shared setup link.
 
 ## Check your setup
 

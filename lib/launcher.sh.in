@@ -336,6 +336,7 @@ cat > "$ovos_tmp/launch.sh" <<'OVOS_LAUNCH'
 #!/bin/sh
 set -eu
 set +x
+unset HOMEASSISTANT_URL HOMEASSISTANT_API_KEY
 umask 077
 ovos_source=$1
 ovos_home=$2
@@ -344,9 +345,14 @@ export LOCALE="$4"
 ovos_ha=$5
 ovos_llm=$6
 ovos_tty=''
+ovos_ha_response=''
 ovos_locale=$LOCALE
 . "$7"
+# @HOMEASSISTANT_HANDOFF@
 cleanup_launcher() {
+  exec 5<&-
+  [ -z "$ovos_ha_response" ] || rm -f "$ovos_ha_response" || :
+  unset HOMEASSISTANT_URL HOMEASSISTANT_API_KEY ovos_answer
   restore_tty
   case "$ovos_source" in */ovos-start.??????/source) cd /; rm -rf "$ovos_source" || :;; esac
 }
@@ -358,14 +364,24 @@ cd "$ovos_source"
 . ./utils/bash_runtime.sh
 ovos_bash=$(resolve_bash_runtime 4 || true)
 [ -n "$ovos_bash" ] || { say bash >&2; exit 1; }
-if [ "$ovos_ha" = true ] || [ "$ovos_llm" != off ]; then
+ovos_ha_prompt=false
+if [ "$ovos_ha" = true ]; then
+  ovos_track=''
+  IFS= read -r ovos_track < "$9" || { say haHandoffFailed >&2; exit 1; }
+  if claim_homeassistant; then :
+  elif [ "$?" -eq 1 ]; then ovos_ha_prompt=true
+  else say haHandoffFailed >&2; exit 1
+  fi
+fi
+if [ "$ovos_ha_prompt" = true ] || [ "$ovos_llm" != off ]; then
   if ! ( : < /dev/tty ) 2>/dev/null; then say closed >&2; exit 1; fi
   say cancelHint > /dev/tty
 fi
 if [ "$ovos_ha" = true ]; then
-  read_field haUrl url; HOMEASSISTANT_URL=$ovos_answer
-  read_field haToken secret; HOMEASSISTANT_API_KEY=$ovos_answer
-  export HOMEASSISTANT_URL HOMEASSISTANT_API_KEY
+  if [ "$ovos_ha_prompt" = true ]; then
+    read_field haUrl url; HOMEASSISTANT_URL=$ovos_answer
+    read_field haToken secret; HOMEASSISTANT_API_KEY=$ovos_answer
+  fi
 fi
 if [ "$ovos_llm" != off ]; then
   if [ "$ovos_llm" = local ]; then say llmLocal > /dev/tty; else say llmOnline > /dev/tty; fi
@@ -443,6 +459,7 @@ report_status installing
     export ANSIBLE_CALLBACK_PLUGINS="$ovos_source/.ovos-start-callbacks${ANSIBLE_CALLBACK_PLUGINS:+:$ANSIBLE_CALLBACK_PLUGINS}"
     export ANSIBLE_CALLBACKS_ENABLED="${ANSIBLE_CALLBACKS_ENABLED:-ansible.posix.profile_tasks},ovos_start_progress"
   fi
+  if [ "$ovos_ha" = true ]; then export HOMEASSISTANT_URL HOMEASSISTANT_API_KEY; fi
   exec "$ovos_bash" setup.sh
 )
 # The pre-created receipt belongs to the regular user and remains mode0600.

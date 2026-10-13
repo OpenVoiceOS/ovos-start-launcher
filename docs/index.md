@@ -1,6 +1,16 @@
-Last Edit: Codex - 2026-10-09 - Motive: Document completed installation steps, final audio checks and safe scenario cleanup.
+Last Edit: Codex - 2026-10-12 - Motive: Document the private, single-use Home Assistant handoff.
 
 # Launcher developer guide
+
+## Home Assistant wizard handoff (2.8.0)
+
+[`claim_homeassistant`](../lib/homeassistant.sh) runs inside the elevated launcher after sudo succeeds, before any Home Assistant prompt or configuration activation. It posts `{}` to the fixed `https://start-api.smartgic.io/v1/homeassistant` endpoint with the existing installer bearer in curl's standard-input configuration. No address or access token enters the command, recipe, callback, process arguments or recovery checker. The [wizard API](https://github.com/OpenVoiceOS/ovos-start/blob/dev/docs/self-hosting.md) binds the encrypted temporary handoff to the owner/session and removes it when claimed.
+
+A successful response is exactly two newline-terminated fields: URL and token, with a 4098-byte limit. The launcher accepts an HTTP(S) URL of at most 2048 characters without embedded credentials, query, fragment, whitespace or controls, and a 20–2048 character token containing only ASCII letters, digits, `.`, `_`, `~` and `-`. It validates these fields as data, never shell source. Curl disables configuration-file loading and redirects, enforces HTTPS and bounded connection/transfer time, and writes into a new mode-0600 response file. The file is deleted immediately after reading; exit/signal cleanup removes a partial response and clears the HA variables. Abrupt power loss or SIGKILL can leave a private temporary file.
+
+HTTP 204 means the session has no wizard credentials and preserves the existing Terminal prompts. Untracked commands also use Terminal. Consumed/expired credentials, other HTTP statuses, network errors and malformed responses stop before changing active settings; a localized message asks the user to enter the details again in the wizard and copy a fresh command. There is no silent fallback to a duplicate prompt after a failed handoff. AI-provider prompts remain separate.
+
+The launcher exports valid `HOMEASSISTANT_URL` and `HOMEASSISTANT_API_KEY` for the existing installer contract. Upstream [`setup.sh`](https://github.com/OpenVoiceOS/ovos-installer/blob/main/setup.sh) handles its private Ansible variables file and token cleanup; the final HA skill configuration must remain on the device for OVOS to use. [`test_homeassistant_handoff.py`](../test/test_homeassistant_handoff.py) exercises real generated launcher execution with fake curl/sudo/installer commands: successful delivery, legacy fallback, expiry, transport errors, invalid fields/framing, permission checks, temporary-file removal, and unchanged AI prompts.
 
 ## Confirmed installation steps (2.7.0)
 
@@ -154,7 +164,7 @@ Upstream [`macos_requirements`](https://github.com/OpenVoiceOS/ovos-installer/bl
 
 All recipes fetch `refs/heads/main` from `https://github.com/OpenVoiceOS/ovos-installer.git` without tags. The launcher requires `FETCH_HEAD^{commit}` to resolve to a full commit ID and verifies the detached `HEAD` against it before changing active settings. It resolves Bash 4+, then calls `setup.sh` with `RUN_AS`, `RUN_AS_HOME` and `LOCALE`, preserving its exit status. Automatic speech leaves `speech_engine` absent. No tag, PR head, old revision or alternate remote is used as a fallback.
 
-Credentials are read only on `/dev/tty` and exported to the target installer. A cancelled/failed secret read restores terminal echo. No secret is encoded in the recipe code or saved-choice URL. Launcher tests isolate network and privileged work; they do not prove a full installation on physical hardware.
+Home Assistant credentials come from the single-use wizard handoff when present; legacy Home Assistant and AI credentials are read on `/dev/tty`. Validated values are exported to the target installer. A cancelled/failed secret read restores terminal echo. No secret is encoded in the recipe code or saved-choice URL. Launcher tests isolate network and privileged work; they do not prove a full installation on physical hardware.
 
 ## Localized recovery and completion
 
