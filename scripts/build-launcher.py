@@ -48,6 +48,7 @@ write_messages() {
     return (launcher.replace("# @MESSAGES@", messages)
             .replace("# @CALLBACKS@", callbacks).replace("# @RUNTIME@", runtime)
             .replace("# @ANSIBLE_PROGRESS@", (ROOT / "lib/ansible_progress.py").read_text())
+            .replace("# @HOMEASSISTANT_HANDOFF@", shell_source(ROOT / "lib/homeassistant.sh"))
             .replace("# @SCENARIO_CLEANUP@", (ROOT / "lib/scenario_cleanup.py").read_text()))
 
 

@@ -59,6 +59,7 @@ message() {
     en-us:runtimeBackup) printf '%s' 'Previous installer tools saved to:';;
     en-us:audioNo) printf '%s' 'No sound was heard. Check the volume and selected speaker, then run the check again.';;
     en-us:voiceNo) printf '%s' 'No correct voice response was confirmed. Check your microphone and wake word, then try again.';;
+    en-us:haHandoffFailed) printf '%s' 'Could not load your Home Assistant details. Return to the wizard, enter them again, and copy a new command.';;
     fr-fr:bits) printf '%s' 'OVOS nécessite un système 64 bits. Aucune modification n’a été faite.';;
     fr-fr:invalid) printf '%s' 'Ce code est incorrect ou incomplet. Copiez une nouvelle commande depuis le guide.';;
     fr-fr:expired) printf '%s' 'Ce code a expiré au bout d’une heure. Générez-en un nouveau dans le guide.';;
@@ -113,6 +114,7 @@ message() {
     fr-fr:runtimeBackup) printf '%s' 'Anciens outils d’installation sauvegardés ici :';;
     fr-fr:audioNo) printf '%s' 'Aucun son entendu. Vérifiez le volume et le haut-parleur sélectionné, puis relancez le test.';;
     fr-fr:voiceNo) printf '%s' 'Aucune réponse vocale correcte confirmée. Vérifiez le microphone et le mot de réveil, puis réessayez.';;
+    fr-fr:haHandoffFailed) printf '%s' 'Impossible de récupérer vos informations Home Assistant. Revenez dans l’assistant, saisissez-les à nouveau et copiez une nouvelle commande.';;
     de-de:bits) printf '%s' 'OVOS benötigt ein 64-Bit-Betriebssystem. Es wurde nichts geändert.';;
     de-de:invalid) printf '%s' 'Dieser Einrichtungscode ist ungültig oder unvollständig. Kopiere einen neuen Befehl aus dem Assistenten.';;
     de-de:expired) printf '%s' 'Dieser Code ist nach einer Stunde abgelaufen. Erstelle im Assistenten einen neuen.';;
@@ -167,6 +169,7 @@ message() {
     de-de:runtimeBackup) printf '%s' 'Bisherige Installationstools gesichert unter:';;
     de-de:audioNo) printf '%s' 'Kein Ton gehört. Prüfe die Lautstärke und den gewählten Lautsprecher und teste erneut.';;
     de-de:voiceNo) printf '%s' 'Keine richtige Sprachantwort bestätigt. Prüfe Mikrofon und Aktivierungswort und versuche es erneut.';;
+    de-de:haHandoffFailed) printf '%s' 'Deine Home-Assistant-Daten konnten nicht geladen werden. Gib sie im Assistenten erneut ein und kopiere einen neuen Befehl.';;
     es-es:bits) printf '%s' 'OVOS necesita un sistema operativo de 64 bits. No se ha cambiado nada.';;
     es-es:invalid) printf '%s' 'El código no es válido o está incompleto. Copia un comando nuevo del asistente.';;
     es-es:expired) printf '%s' 'Este código ha caducado tras una hora. Genera uno nuevo en el asistente.';;
@@ -221,6 +224,7 @@ message() {
     es-es:runtimeBackup) printf '%s' 'Herramientas del instalador anteriores guardadas en:';;
     es-es:audioNo) printf '%s' 'No se ha oído ningún sonido. Comprueba el volumen y el altavoz seleccionado y repite la prueba.';;
     es-es:voiceNo) printf '%s' 'No se ha confirmado una respuesta de voz correcta. Comprueba el micrófono y la palabra de activación y vuelve a intentarlo.';;
+    es-es:haHandoffFailed) printf '%s' 'No se pudieron cargar tus datos de Home Assistant. Vuelve al asistente, introdúcelos de nuevo y copia un comando nuevo.';;
     it-it:bits) printf '%s' 'OVOS richiede un sistema operativo a 64 bit. Non è stato modificato nulla.';;
     it-it:invalid) printf '%s' 'Il codice non è valido o è incompleto. Copia un nuovo comando dalla procedura guidata.';;
     it-it:expired) printf '%s' 'Questo codice è scaduto dopo un’ora. Creane uno nuovo nella procedura guidata.';;
@@ -275,6 +279,7 @@ message() {
     it-it:runtimeBackup) printf '%s' 'Strumenti di installazione precedenti salvati in:';;
     it-it:audioNo) printf '%s' 'Nessun suono sentito. Controlla il volume e l’altoparlante selezionato, poi ripeti il test.';;
     it-it:voiceNo) printf '%s' 'Nessuna risposta vocale corretta confermata. Controlla il microfono e la parola di attivazione, poi riprova.';;
+    it-it:haHandoffFailed) printf '%s' 'Impossibile caricare i dati di Home Assistant. Torna alla procedura guidata, inseriscili di nuovo e copia un nuovo comando.';;
     nl-nl:bits) printf '%s' 'OVOS heeft een 64-bits besturingssysteem nodig. Er is niets gewijzigd.';;
     nl-nl:invalid) printf '%s' 'Deze instelcode is ongeldig of onvolledig. Kopieer een nieuw commando uit de wizard.';;
     nl-nl:expired) printf '%s' 'Deze code is na een uur verlopen. Maak een nieuwe code in de wizard.';;
@@ -329,6 +334,7 @@ message() {
     nl-nl:runtimeBackup) printf '%s' 'Vorige installatiehulpmiddelen bewaard in:';;
     nl-nl:audioNo) printf '%s' 'Geen geluid gehoord. Controleer het volume en de gekozen luidspreker en voer de test opnieuw uit.';;
     nl-nl:voiceNo) printf '%s' 'Geen juist gesproken antwoord bevestigd. Controleer de microfoon en het activeringswoord en probeer opnieuw.';;
+    nl-nl:haHandoffFailed) printf '%s' 'Je Home Assistant-gegevens konden niet worden geladen. Vul ze opnieuw in de wizard in en kopieer een nieuwe opdracht.';;
     pt-pt:bits) printf '%s' 'O OVOS precisa de um sistema operativo de 64 bits. Não foi feita nenhuma alteração.';;
     pt-pt:invalid) printf '%s' 'O código é inválido ou está incompleto. Copia um novo comando do assistente.';;
     pt-pt:expired) printf '%s' 'Este código expirou ao fim de uma hora. Gera outro no assistente.';;
@@ -383,6 +389,7 @@ message() {
     pt-pt:runtimeBackup) printf '%s' 'Ferramentas de instalação anteriores guardadas em:';;
     pt-pt:audioNo) printf '%s' 'Não se ouviu som. Verifica o volume e o altifalante selecionado e repete o teste.';;
     pt-pt:voiceNo) printf '%s' 'Não foi confirmada uma resposta de voz correta. Verifica o microfone e a palavra de ativação e tenta novamente.';;
+    pt-pt:haHandoffFailed) printf '%s' 'Não foi possível carregar os dados do Home Assistant. Volte ao assistente, introduza-os novamente e copie um novo comando.';;
     ca-es:bits) printf '%s' 'OVOS necessita un sistema operatiu de 64 bits. No s’ha canviat res.';;
     ca-es:invalid) printf '%s' 'El codi no és vàlid o és incomplet. Copia una ordre nova de l’assistent.';;
     ca-es:expired) printf '%s' 'Aquest codi ha caducat al cap d’una hora. Genera’n un de nou a l’assistent.';;
@@ -437,6 +444,7 @@ message() {
     ca-es:runtimeBackup) printf '%s' 'Eines d’instal·lació anteriors desades a:';;
     ca-es:audioNo) printf '%s' 'No s’ha sentit cap so. Comprova el volum i l’altaveu seleccionat i repeteix la prova.';;
     ca-es:voiceNo) printf '%s' 'No s’ha confirmat una resposta de veu correcta. Comprova el micròfon i la paraula d’activació i torna-ho a provar.';;
+    ca-es:haHandoffFailed) printf '%s' 'No s’han pogut carregar les dades de Home Assistant. Torna a l’assistent, introdueix-les de nou i copia una ordre nova.';;
     eu-es:bits) printf '%s' 'OVOSek 64 biteko sistema eragilea behar du. Ez da ezer aldatu.';;
     eu-es:invalid) printf '%s' 'Konfigurazio-kodea ez da baliozkoa edo osatu gabe dago. Kopiatu beste komando bat morroitik.';;
     eu-es:expired) printf '%s' 'Kodea ordubete igarota iraungi da. Sortu beste bat morroian.';;
@@ -491,6 +499,7 @@ message() {
     eu-es:runtimeBackup) printf '%s' 'Aurreko instalazio-tresnak hemen gorde dira:';;
     eu-es:audioNo) printf '%s' 'Ez da soinurik entzun. Egiaztatu bolumena eta hautatutako bozgorailua, eta egin proba berriro.';;
     eu-es:voiceNo) printf '%s' 'Ez da ahots-erantzun zuzenik baieztatu. Egiaztatu mikrofonoa eta aktibazio-hitza, eta saiatu berriro.';;
+    eu-es:haHandoffFailed) printf '%s' 'Ezin izan dira Home Assistant datuak kargatu. Itzuli morroira, sartu berriro eta kopiatu komando berri bat.';;
     gl-es:bits) printf '%s' 'OVOS precisa un sistema operativo de 64 bits. Non se cambiou nada.';;
     gl-es:invalid) printf '%s' 'O código non é válido ou está incompleto. Copia un comando novo do asistente.';;
     gl-es:expired) printf '%s' 'Este código caducou ao cabo dunha hora. Xera outro no asistente.';;
@@ -545,6 +554,7 @@ message() {
     gl-es:runtimeBackup) printf '%s' 'Ferramentas de instalación anteriores gardadas en:';;
     gl-es:audioNo) printf '%s' 'Non se escoitou ningún son. Comproba o volume e o altofalante seleccionado e repite a proba.';;
     gl-es:voiceNo) printf '%s' 'Non se confirmou unha resposta de voz correcta. Comproba o micrófono e a palabra de activación e téntao de novo.';;
+    gl-es:haHandoffFailed) printf '%s' 'Non se puideron cargar os datos de Home Assistant. Volve ao asistente, introdúceos de novo e copia unha orde nova.';;
     hi-in:bits) printf '%s' 'OVOS के लिए 64-बिट ऑपरेटिंग सिस्टम चाहिए। कोई बदलाव नहीं किया गया।';;
     hi-in:invalid) printf '%s' 'सेटअप कोड गलत या अधूरा है। विज़ार्ड से नया कमांड कॉपी करें।';;
     hi-in:expired) printf '%s' 'एक घंटा पूरा होने पर यह कोड समाप्त हो गया। विज़ार्ड में नया कोड बनाएँ।';;
@@ -599,6 +609,7 @@ message() {
     hi-in:runtimeBackup) printf '%s' 'इंस्टॉल करने वाले पिछले टूल यहाँ सुरक्षित हैं:';;
     hi-in:audioNo) printf '%s' 'कोई आवाज़ नहीं सुनाई दी। आवाज़ का स्तर और चुना गया स्पीकर जाँचें, फिर दोबारा जाँच चलाएँ।';;
     hi-in:voiceNo) printf '%s' 'सही आवाज़ वाला जवाब पुष्ट नहीं हुआ। माइक्रोफ़ोन और जगाने वाला शब्द जाँचें, फिर कोशिश करें।';;
+    hi-in:haHandoffFailed) printf '%s' 'Home Assistant की जानकारी लोड नहीं हो सकी। विज़ार्ड पर वापस जाएँ, जानकारी फिर से भरें और नया कमांड कॉपी करें।';;
     kab-dz:bits) printf '%s' 'OVOS yesra anagraw n wammud 64 ibiten. Ulac abeddel i yettwaxedmen.';;
     kab-dz:invalid) printf '%s' 'Tangalt n usbeddi mačči d tameɣtut neɣ ur temmid ara. Nɣel taladna tamaynut seg umallal.';;
     kab-dz:expired) printf '%s' 'Tangalt-a tfukk seld yiwen n usrag. Snulfu-d tayeḍ deg umallal.';;
@@ -653,6 +664,7 @@ message() {
     kab-dz:runtimeBackup) printf '%s' 'Allalen n usebded iqburen ttwaskelsen deg:';;
     kab-dz:audioNo) printf '%s' 'Ulac imesli yettwasslen. Senqed aswir n yimesli d usiɣen n yimesli yettwafernen, syin ales asenqed.';;
     kab-dz:voiceNo) printf '%s' 'Ulac tiririt n taɣect tameɣtut yettwasentmen. Senqed amikru d wawal n usaki, syin ales aɛraḍ.';;
+    kab-dz:haHandoffFailed) printf '%s' 'Ur nezmir ara ad d-nawi talɣut n Home Assistant. Uɣal ɣer umallal, sekcem-itt tikkelt-nniḍen, syen nɣel taladna tamaynut.';;
     *) printf '%s' 'OVOS: unknown message';;
   esac
 }
@@ -661,7 +673,7 @@ say() { message "$1"; printf '\n'; }
 # shellcheck disable=SC2016
 write_messages() {
   printf '%s\n' 'message() {' '  case "$1" in'
-  for ovos_key in audioFailed audioNo audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac regular required resume revision runtimeBackup servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceNo voiceOk voicePhrase voiceQuestion; do
+  for ovos_key in audioFailed audioNo audioOk audioQuestion audioTest backup bash bits cancelHint cancelled checkMenu checking clock closed customVoice dependency download downloadFailed existing expired future haHandoffFailed haToken haUrl health help hub incomplete installFailed installReturned installing invalid linux llmKey llmLocal llmModel llmOnline llmUrl locked mac regular required resume revision runtimeBackup servicesMissing servicesOk servicesUnknown unsafeConfig urlError voiceIntro voiceNo voiceOk voicePhrase voiceQuestion; do
     printf '%s' "    $ovos_key) printf '%s' '"
     message "$ovos_key" | sed "s/'/'\\\\''/g"
     printf '%s\n' "';;"
@@ -1471,6 +1483,7 @@ cat > "$ovos_tmp/launch.sh" <<'OVOS_LAUNCH'
 #!/bin/sh
 set -eu
 set +x
+unset HOMEASSISTANT_URL HOMEASSISTANT_API_KEY
 umask 077
 ovos_source=$1
 ovos_home=$2
@@ -1479,9 +1492,55 @@ export LOCALE="$4"
 ovos_ha=$5
 ovos_llm=$6
 ovos_tty=''
+ovos_ha_response=''
 ovos_locale=$LOCALE
 . "$7"
+claim_homeassistant() {
+  HOMEASSISTANT_URL=''
+  HOMEASSISTANT_API_KEY=''
+  [ -n "${ovos_track:-}" ] || return 1
+  [ "${#ovos_track}" -eq 64 ] || return 2
+  case "$ovos_track" in *[!0-9a-f]*) return 2;; esac
+  ovos_ha_response=$(mktemp "${TMPDIR:-/tmp}/ovos-ha.XXXXXX") || return 2
+  if ! ovos_ha_http=$(curl -q --config - --proto '=https' --connect-timeout 5 --max-time 20 --max-filesize 4098 --silent --output "$ovos_ha_response" --write-out '%{http_code}' <<OVOS_HA_REQUEST
+url = "https://start-api.smartgic.io/v1/homeassistant"
+request = "POST"
+header = "Authorization: Bearer $ovos_track"
+header = "Content-Type: application/json"
+data = "{}"
+OVOS_HA_REQUEST
+  ); then return 2; fi
+  case "$ovos_ha_http" in
+    204)
+      [ ! -s "$ovos_ha_response" ] || return 2
+      rm -f "$ovos_ha_response" || return 2
+      ovos_ha_response=''
+      return 1;;
+    200) :;;
+    *) return 2;;
+  esac
+  ovos_ha_bytes=$(wc -c < "$ovos_ha_response") || return 2
+  [ "$ovos_ha_bytes" -le 4098 ] || return 2
+  exec 5< "$ovos_ha_response"
+  IFS= read -r HOMEASSISTANT_URL <&5 || return 2
+  IFS= read -r HOMEASSISTANT_API_KEY <&5 || return 2
+  exec 5<&-
+  rm -f "$ovos_ha_response" || return 2
+  ovos_ha_response=''
+  ovos_ha_expected=$(printf '%s\n%s\n' "$HOMEASSISTANT_URL" "$HOMEASSISTANT_API_KEY" | wc -c) || return 2
+  [ "$ovos_ha_bytes" -eq "$ovos_ha_expected" ] || return 2
+  [ "${#HOMEASSISTANT_URL}" -le 2048 ] || return 2
+  case "$HOMEASSISTANT_URL" in *'?'*|*'#'*) return 2;; esac
+  valid_url "$HOMEASSISTANT_URL" || return 2
+  [ "${#HOMEASSISTANT_API_KEY}" -ge 20 ] && [ "${#HOMEASSISTANT_API_KEY}" -le 2048 ] || return 2
+  case "$HOMEASSISTANT_API_KEY" in *[!A-Za-z0-9._~-]*) return 2;; esac
+  return 0
+}
+
 cleanup_launcher() {
+  exec 5<&-
+  [ -z "$ovos_ha_response" ] || rm -f "$ovos_ha_response" || :
+  unset HOMEASSISTANT_URL HOMEASSISTANT_API_KEY ovos_answer
   restore_tty
   case "$ovos_source" in */ovos-start.??????/source) cd /; rm -rf "$ovos_source" || :;; esac
 }
@@ -1493,14 +1552,24 @@ cd "$ovos_source"
 . ./utils/bash_runtime.sh
 ovos_bash=$(resolve_bash_runtime 4 || true)
 [ -n "$ovos_bash" ] || { say bash >&2; exit 1; }
-if [ "$ovos_ha" = true ] || [ "$ovos_llm" != off ]; then
+ovos_ha_prompt=false
+if [ "$ovos_ha" = true ]; then
+  ovos_track=''
+  IFS= read -r ovos_track < "$9" || { say haHandoffFailed >&2; exit 1; }
+  if claim_homeassistant; then :
+  elif [ "$?" -eq 1 ]; then ovos_ha_prompt=true
+  else say haHandoffFailed >&2; exit 1
+  fi
+fi
+if [ "$ovos_ha_prompt" = true ] || [ "$ovos_llm" != off ]; then
   if ! ( : < /dev/tty ) 2>/dev/null; then say closed >&2; exit 1; fi
   say cancelHint > /dev/tty
 fi
 if [ "$ovos_ha" = true ]; then
-  read_field haUrl url; HOMEASSISTANT_URL=$ovos_answer
-  read_field haToken secret; HOMEASSISTANT_API_KEY=$ovos_answer
-  export HOMEASSISTANT_URL HOMEASSISTANT_API_KEY
+  if [ "$ovos_ha_prompt" = true ]; then
+    read_field haUrl url; HOMEASSISTANT_URL=$ovos_answer
+    read_field haToken secret; HOMEASSISTANT_API_KEY=$ovos_answer
+  fi
 fi
 if [ "$ovos_llm" != off ]; then
   if [ "$ovos_llm" = local ]; then say llmLocal > /dev/tty; else say llmOnline > /dev/tty; fi
@@ -1562,6 +1631,7 @@ report_status installing
     export ANSIBLE_CALLBACK_PLUGINS="$ovos_source/.ovos-start-callbacks${ANSIBLE_CALLBACK_PLUGINS:+:$ANSIBLE_CALLBACK_PLUGINS}"
     export ANSIBLE_CALLBACKS_ENABLED="${ANSIBLE_CALLBACKS_ENABLED:-ansible.posix.profile_tasks},ovos_start_progress"
   fi
+  if [ "$ovos_ha" = true ]; then export HOMEASSISTANT_URL HOMEASSISTANT_API_KEY; fi
   exec "$ovos_bash" setup.sh
 )
 ovos_receipt_safe=true

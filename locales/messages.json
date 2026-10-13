@@ -53,7 +53,8 @@
     "locked": "A setup is running, or an interrupted attempt left a lock. First make sure no setup is running. Then remove this lock folder and try again:",
     "runtimeBackup": "Previous installer tools saved to:",
     "audioNo": "No sound was heard. Check the volume and selected speaker, then run the check again.",
-    "voiceNo": "No correct voice response was confirmed. Check your microphone and wake word, then try again."
+    "voiceNo": "No correct voice response was confirmed. Check your microphone and wake word, then try again.",
+    "haHandoffFailed": "Could not load your Home Assistant details. Return to the wizard, enter them again, and copy a new command."
   },
   "fr-fr": {
     "bits": "OVOS nécessite un système 64 bits. Aucune modification n’a été faite.",
@@ -109,7 +110,8 @@
     "locked": "Une installation est en cours, ou une tentative interrompue a laissé un verrou. Vérifiez d’abord qu’aucune installation ne tourne. Supprimez ensuite ce dossier de verrouillage, puis réessayez :",
     "runtimeBackup": "Anciens outils d’installation sauvegardés ici :",
     "audioNo": "Aucun son entendu. Vérifiez le volume et le haut-parleur sélectionné, puis relancez le test.",
-    "voiceNo": "Aucune réponse vocale correcte confirmée. Vérifiez le microphone et le mot de réveil, puis réessayez."
+    "voiceNo": "Aucune réponse vocale correcte confirmée. Vérifiez le microphone et le mot de réveil, puis réessayez.",
+    "haHandoffFailed": "Impossible de récupérer vos informations Home Assistant. Revenez dans l’assistant, saisissez-les à nouveau et copiez une nouvelle commande."
   },
   "de-de": {
     "bits": "OVOS benötigt ein 64-Bit-Betriebssystem. Es wurde nichts geändert.",
@@ -165,7 +167,8 @@
     "locked": "Eine Einrichtung läuft noch oder hat nach einem Abbruch eine Sperre hinterlassen. Prüfe zuerst, dass keine Einrichtung mehr läuft. Entferne dann diesen Sperrordner und versuche es erneut:",
     "runtimeBackup": "Bisherige Installationstools gesichert unter:",
     "audioNo": "Kein Ton gehört. Prüfe die Lautstärke und den gewählten Lautsprecher und teste erneut.",
-    "voiceNo": "Keine richtige Sprachantwort bestätigt. Prüfe Mikrofon und Aktivierungswort und versuche es erneut."
+    "voiceNo": "Keine richtige Sprachantwort bestätigt. Prüfe Mikrofon und Aktivierungswort und versuche es erneut.",
+    "haHandoffFailed": "Deine Home-Assistant-Daten konnten nicht geladen werden. Gib sie im Assistenten erneut ein und kopiere einen neuen Befehl."
   },
   "es-es": {
     "bits": "OVOS necesita un sistema operativo de 64 bits. No se ha cambiado nada.",
@@ -221,7 +224,8 @@
     "locked": "Hay una instalación en curso o un intento interrumpido ha dejado un bloqueo. Primero comprueba que no haya ninguna instalación en marcha. Después elimina esta carpeta de bloqueo y vuelve a intentarlo:",
     "runtimeBackup": "Herramientas del instalador anteriores guardadas en:",
     "audioNo": "No se ha oído ningún sonido. Comprueba el volumen y el altavoz seleccionado y repite la prueba.",
-    "voiceNo": "No se ha confirmado una respuesta de voz correcta. Comprueba el micrófono y la palabra de activación y vuelve a intentarlo."
+    "voiceNo": "No se ha confirmado una respuesta de voz correcta. Comprueba el micrófono y la palabra de activación y vuelve a intentarlo.",
+    "haHandoffFailed": "No se pudieron cargar tus datos de Home Assistant. Vuelve al asistente, introdúcelos de nuevo y copia un comando nuevo."
   },
   "it-it": {
     "bits": "OVOS richiede un sistema operativo a 64 bit. Non è stato modificato nulla.",
@@ -277,7 +281,8 @@
     "locked": "È in corso un’installazione, oppure un tentativo interrotto ha lasciato un blocco. Prima verifica che non ci siano installazioni in corso. Poi rimuovi questa cartella di blocco e riprova:",
     "runtimeBackup": "Strumenti di installazione precedenti salvati in:",
     "audioNo": "Nessun suono sentito. Controlla il volume e l’altoparlante selezionato, poi ripeti il test.",
-    "voiceNo": "Nessuna risposta vocale corretta confermata. Controlla il microfono e la parola di attivazione, poi riprova."
+    "voiceNo": "Nessuna risposta vocale corretta confermata. Controlla il microfono e la parola di attivazione, poi riprova.",
+    "haHandoffFailed": "Impossibile caricare i dati di Home Assistant. Torna alla procedura guidata, inseriscili di nuovo e copia un nuovo comando."
   },
   "nl-nl": {
     "bits": "OVOS heeft een 64-bits besturingssysteem nodig. Er is niets gewijzigd.",
@@ -333,7 +338,8 @@
     "locked": "Er loopt een installatie, of een onderbroken poging heeft een vergrendeling achtergelaten. Controleer eerst of er geen installatie meer draait. Verwijder daarna deze vergrendelingsmap en probeer het opnieuw:",
     "runtimeBackup": "Vorige installatiehulpmiddelen bewaard in:",
     "audioNo": "Geen geluid gehoord. Controleer het volume en de gekozen luidspreker en voer de test opnieuw uit.",
-    "voiceNo": "Geen juist gesproken antwoord bevestigd. Controleer de microfoon en het activeringswoord en probeer opnieuw."
+    "voiceNo": "Geen juist gesproken antwoord bevestigd. Controleer de microfoon en het activeringswoord en probeer opnieuw.",
+    "haHandoffFailed": "Je Home Assistant-gegevens konden niet worden geladen. Vul ze opnieuw in de wizard in en kopieer een nieuwe opdracht."
   },
   "pt-pt": {
     "bits": "O OVOS precisa de um sistema operativo de 64 bits. Não foi feita nenhuma alteração.",
@@ -389,7 +395,8 @@
     "locked": "Está a decorrer uma instalação, ou uma tentativa interrompida deixou um bloqueio. Primeiro, confirma que não está a decorrer nenhuma instalação. Depois remove esta pasta de bloqueio e tenta novamente:",
     "runtimeBackup": "Ferramentas de instalação anteriores guardadas em:",
     "audioNo": "Não se ouviu som. Verifica o volume e o altifalante selecionado e repete o teste.",
-    "voiceNo": "Não foi confirmada uma resposta de voz correta. Verifica o microfone e a palavra de ativação e tenta novamente."
+    "voiceNo": "Não foi confirmada uma resposta de voz correta. Verifica o microfone e a palavra de ativação e tenta novamente.",
+    "haHandoffFailed": "Não foi possível carregar os dados do Home Assistant. Volte ao assistente, introduza-os novamente e copie um novo comando."
   },
   "ca-es": {
     "bits": "OVOS necessita un sistema operatiu de 64 bits. No s’ha canviat res.",
@@ -445,7 +452,8 @@
     "locked": "Hi ha una instal·lació en curs, o un intent interromput ha deixat un bloqueig. Primer comprova que no hi hagi cap instal·lació en marxa. Després elimina aquesta carpeta de bloqueig i torna-ho a provar:",
     "runtimeBackup": "Eines d’instal·lació anteriors desades a:",
     "audioNo": "No s’ha sentit cap so. Comprova el volum i l’altaveu seleccionat i repeteix la prova.",
-    "voiceNo": "No s’ha confirmat una resposta de veu correcta. Comprova el micròfon i la paraula d’activació i torna-ho a provar."
+    "voiceNo": "No s’ha confirmat una resposta de veu correcta. Comprova el micròfon i la paraula d’activació i torna-ho a provar.",
+    "haHandoffFailed": "No s’han pogut carregar les dades de Home Assistant. Torna a l’assistent, introdueix-les de nou i copia una ordre nova."
   },
   "eu-es": {
     "bits": "OVOSek 64 biteko sistema eragilea behar du. Ez da ezer aldatu.",
@@ -501,7 +509,8 @@
     "locked": "Instalazio bat martxan dago, edo etendako saiakera batek blokeoa utzi du. Lehenik, ziurtatu ez dagoela instalaziorik martxan. Ondoren, ezabatu blokeo-karpeta hau eta saiatu berriro:",
     "runtimeBackup": "Aurreko instalazio-tresnak hemen gorde dira:",
     "audioNo": "Ez da soinurik entzun. Egiaztatu bolumena eta hautatutako bozgorailua, eta egin proba berriro.",
-    "voiceNo": "Ez da ahots-erantzun zuzenik baieztatu. Egiaztatu mikrofonoa eta aktibazio-hitza, eta saiatu berriro."
+    "voiceNo": "Ez da ahots-erantzun zuzenik baieztatu. Egiaztatu mikrofonoa eta aktibazio-hitza, eta saiatu berriro.",
+    "haHandoffFailed": "Ezin izan dira Home Assistant datuak kargatu. Itzuli morroira, sartu berriro eta kopiatu komando berri bat."
   },
   "gl-es": {
     "bits": "OVOS precisa un sistema operativo de 64 bits. Non se cambiou nada.",
@@ -557,7 +566,8 @@
     "locked": "Hai unha instalación en curso ou un intento interrompido deixou un bloqueo. Primeiro comproba que non haxa ningunha instalación en marcha. Despois elimina este cartafol de bloqueo e téntao de novo:",
     "runtimeBackup": "Ferramentas de instalación anteriores gardadas en:",
     "audioNo": "Non se escoitou ningún son. Comproba o volume e o altofalante seleccionado e repite a proba.",
-    "voiceNo": "Non se confirmou unha resposta de voz correcta. Comproba o micrófono e a palabra de activación e téntao de novo."
+    "voiceNo": "Non se confirmou unha resposta de voz correcta. Comproba o micrófono e a palabra de activación e téntao de novo.",
+    "haHandoffFailed": "Non se puideron cargar os datos de Home Assistant. Volve ao asistente, introdúceos de novo e copia unha orde nova."
   },
   "hi-in": {
     "bits": "OVOS के लिए 64-बिट ऑपरेटिंग सिस्टम चाहिए। कोई बदलाव नहीं किया गया।",
@@ -613,7 +623,8 @@
     "locked": "कोई इंस्टॉलेशन चल रहा है, या बीच में रुके प्रयास का लॉक रह गया है। पहले सुनिश्चित करें कि कोई इंस्टॉलेशन नहीं चल रहा है। फिर यह लॉक फ़ोल्डर हटाएँ और दोबारा कोशिश करें:",
     "runtimeBackup": "इंस्टॉल करने वाले पिछले टूल यहाँ सुरक्षित हैं:",
     "audioNo": "कोई आवाज़ नहीं सुनाई दी। आवाज़ का स्तर और चुना गया स्पीकर जाँचें, फिर दोबारा जाँच चलाएँ।",
-    "voiceNo": "सही आवाज़ वाला जवाब पुष्ट नहीं हुआ। माइक्रोफ़ोन और जगाने वाला शब्द जाँचें, फिर कोशिश करें।"
+    "voiceNo": "सही आवाज़ वाला जवाब पुष्ट नहीं हुआ। माइक्रोफ़ोन और जगाने वाला शब्द जाँचें, फिर कोशिश करें।",
+    "haHandoffFailed": "Home Assistant की जानकारी लोड नहीं हो सकी। विज़ार्ड पर वापस जाएँ, जानकारी फिर से भरें और नया कमांड कॉपी करें।"
   },
   "kab-dz": {
     "bits": "OVOS yesra anagraw n wammud 64 ibiten. Ulac abeddel i yettwaxedmen.",
@@ -669,6 +680,7 @@
     "locked": "Asbeddi la iteddu, neɣ asbeddi yeḥbes yeǧǧa akaram n usekṛu. Senqed qbel belli ulac asbeddi iteddun. Syen kkes akaram-a n usekṛu, ɛreḍ tikkelt-nniḍen:",
     "runtimeBackup": "Allalen n usebded iqburen ttwaskelsen deg:",
     "audioNo": "Ulac imesli yettwasslen. Senqed aswir n yimesli d usiɣen n yimesli yettwafernen, syin ales asenqed.",
-    "voiceNo": "Ulac tiririt n taɣect tameɣtut yettwasentmen. Senqed amikru d wawal n usaki, syin ales aɛraḍ."
+    "voiceNo": "Ulac tiririt n taɣect tameɣtut yettwasentmen. Senqed amikru d wawal n usaki, syin ales aɛraḍ.",
+    "haHandoffFailed": "Ur nezmir ara ad d-nawi talɣut n Home Assistant. Uɣal ɣer umallal, sekcem-itt tikkelt-nniḍen, syen nɣel taladna tamaynut."
   }
 }
